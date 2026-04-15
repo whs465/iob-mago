@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IOB Mago</title>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #8892b0;
+            margin-bottom: 40px;
+        }
+
+        .operations {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 217, 255, 0.1);
+        }
+
+        .card-full {
+            grid-column: 1 / -1;
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+
+        .card h3 {
+            margin-bottom: 12px;
+            color: #00d9ff;
+        }
+
+        .card p {
+            color: #8892b0;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            display: none;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #8892b0;
+        }
+
+        .file-input-label:hover {
+            border-color: #00d9ff;
+            color: #00d9ff;
+        }
+
+        .file-input-label.has-files {
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        .btn {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d9ff, #00ff88);
+            color: #1a1a2e;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(0, 217, 255, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-danger {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: rgba(255, 107, 107, 0.3);
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ccd6f6;
+            font-size: 0.9rem;
+        }
+
+        .input-group input[type="text"],
+        .input-group input[type="number"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #00d9ff;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .file-list {
+            margin-top: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+        }
+
+        .file-item .remove {
+            color: #ff6b6b;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+
+        .file-item .remove:hover {
+            background: rgba(255, 107, 107, 0.2);
+            border-radius: 4px;
+        }
+
+        .status {
+            text-align: center;
+            padding: 16px;
+            margin-top: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .status.success {
+            display: block;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+        }
+
+        .status.error {
+            display: block;
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        .status.processing {
+            display: block;
+            background: rgba(0, 217, 255, 0.1);
+            border: 1px solid #00d9ff;
+            color: #00d9ff;
+        }
+
+        .divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 40px 0;
+        }
+
+        .info-box {
+            background: rgba(0, 217, 255, 0.05);
+            border: 1px solid rgba(0, 217, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .info-box h4 {
+            color: #00d9ff;
+            margin-bottom: 12px;
+        }
+
+        .info-box ul {
+            color: #8892b0;
+            padding-left: 20px;
+            line-height: 1.8;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            color: #8892b0;
+            cursor: pointer;
+        }
+
+        /* Estilos para la sección de firma */
+        .signature-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .signature-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .pdf-preview-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .pdf-preview-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .pdf-preview-controls button {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pdf-preview-controls button:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .pdf-preview-controls button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .pdf-preview-controls span {
+            color: #8892b0;
+            font-size: 0.9rem;
+        }
+
+        .pdf-canvas-wrapper {
+            position: relative;
+            background: #fff;
+            border-radius: 4px;
+            overflow: hidden;
+            max-width: 100%;
+        }
+
+        #pdf-canvas {
+            display: block;
+            cursor: crosshair;
+        }
+
+        .signature-marker {
+            position: absolute;
+            border: 2px dashed #00ff88;
+            background: rgba(0, 255, 136, 0.2);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+        }
+
+        .signature-marker::before {
+            content: '✕';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff6b6b;
+            color: #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+        .signature-controls {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .signature-preview {
+            max-width: 100%;
+            max-height: 150px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .signature-preview.visible {
+            display: block;
+        }
+
+        .signature-list {
+            margin-top: 16px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .signature-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            border-left: 3px solid #00ff88;
+        }
+
+        .signature-item-info {
+            flex: 1;
+        }
+
+        .signature-item-page {
+            color: #00d9ff;
+            font-weight: 600;
+        }
+
+        .signature-item-coords {
+            color: #8892b0;
+            font-size: 0.8rem;
+        }
+
+        .signature-item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .signature-item-actions button {
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-apply {
+            background: rgba(0, 217, 255, 0.2);
+            color: #00d9ff;
+        }
+
+        .btn-apply:hover {
+            background: rgba(0, 217, 255, 0.3);
+        }
+
+        .slider-group {
+            margin-top: 8px;
+        }
+
+        .slider-group input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+        }
+
+        .slider-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #00d9ff;
+            cursor: pointer;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #8892b0;
+            margin-top: 4px;
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: #8892b0;
+            margin-top: 8px;
+        }
+
+        .help-text strong {
+            color: #00d9ff;
+        }
+
+        /* ===== SEGUIMIENTO DE AVANCE — rediseño ===== */
+        .avance-section {
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+            margin-top: 8px;
+        }
+
+        /* Fila período: Inicio → Fin · Calculado al */
+        .avance-period-row {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr auto 1fr;
+            align-items: end;
+            gap: 8px;
+        }
+
+        .avance-field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .avance-label {
+            font-size: 0.63rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            color: #8892b0;
+            text-transform: uppercase;
+        }
+
+        .avance-sep {
+            color: rgba(255,255,255,0.2);
+            font-size: 1.1rem;
+            padding-bottom: 12px;
+            text-align: center;
+            user-select: none;
+        }
+
+        .avance-date-sm {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.04);
+            color: #ccd6f6;
+            font-size: 0.93rem;
+            color-scheme: dark;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .avance-date-sm:focus {
+            outline: none;
+            border-color: #00d9ff;
+            background: rgba(0,217,255,0.05);
+        }
+
+        /* Tarjeta de resultado */
+        .avance-result-card {
+            display: none;
+        }
+        .avance-result-card.visible {
+            background: rgba(0,217,255,0.04);
+            border: 1px solid rgba(0,217,255,0.12);
+            border-radius: 12px;
+            padding: 18px 20px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .avance-result-top {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+        }
+
+        .avance-result-label {
+            font-size: 0.63rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #8892b0;
+        }
+
+        .avance-result-pct {
+            display: flex;
+            align-items: baseline;
+            gap: 2px;
+        }
+
+        #porcentaje-numero {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.02em;
+        }
+
+        .avance-pct-symbol {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #8892b0;
+        }
+
+        /* Barra de progreso */
+        .avance-bar-track {
+            background: rgba(255,255,255,0.07);
+            border-radius: 6px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        #barra-progreso {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            border-radius: 6px;
+            transition: width 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .avance-bar-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2px;
+            font-size: 0.72rem;
+            color: #8892b0;
+        }
+
+        /* Mobile: 3 fechas → 2 columnas + separadores ocultos */
+        @media (max-width: 600px) {
+            .avance-period-row {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+            .avance-sep {
+                display: none;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .avance-period-row {
+                grid-template-columns: 1fr;
+            }
+            .avance-date-sm {
+                font-size: 0.82rem;
+                padding: 10px 8px;
+            }
+        }
+
+        /* Drag & drop */
+        .file-input-label.drag-over {
+            border-color: #00d9ff;
+            background: rgba(0, 217, 255, 0.08);
+            color: #00d9ff;
+            transform: scale(1.01);
+        }
+
+        /* Spinner procesando */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .status.processing::before {
+            content: '';
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            border-top-color: #00d9ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        /* Inputs de fecha */
+        .input-group input[type="date"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 1rem;
+            color-scheme: dark;
+        }
+
+        .input-group input[type="date"]:focus {
+            outline: none;
+            border-color: #00d9ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>IOB Mago</h1>
+        <p class="subtitle">Operaciones con archivos PDF directamente en tu navegador</p>
+
+        <!-- Sección de Fechas y Avance -->
+        <div class="card card-full" style="margin-bottom: 30px;">
+            <div class="card-icon">📅</div>
+            <h3>Seguimiento de Avance</h3>
+            <p>Calcula el porcentaje de avance de tu contrato
+            </p>
+
+            <div class="avance-section">
+
+                <!-- Las tres fechas en una sola fila, mismo tamaño -->
+                <div class="avance-period-row">
+                    <div class="avance-field">
+                        <label class="avance-label" for="fecha-inicial">Inicio del período</label>
+                        <input type="date" id="fecha-inicial" class="avance-date-sm"
+                               aria-label="Fecha inicial del período" oninput="autoCalcularAvance()">
+                    </div>
+                    <div class="avance-sep">→</div>
+                    <div class="avance-field">
+                        <label class="avance-label" for="fecha-final">Fin del período</label>
+                        <input type="date" id="fecha-final" class="avance-date-sm"
+                               aria-label="Fecha final del período" oninput="autoCalcularAvance()">
+                    </div>
+                    <div class="avance-sep">·</div>
+                    <div class="avance-field">
+                        <label class="avance-label" for="fecha-calculo">Calculado al</label>
+                        <input type="date" id="fecha-calculo" class="avance-date-sm"
+                               aria-label="Fecha de cálculo, hoy por defecto" oninput="autoCalcularAvance()">
+                    </div>
+                </div>
+
+                <!-- Tarjeta de resultado: porcentaje + barra -->
+                <div class="avance-result-card" id="avance-result-card">
+                    <div class="avance-result-top">
+                        <span class="avance-result-label">Avance del período</span>
+                        <div class="avance-result-pct" aria-live="polite">
+                            <span id="porcentaje-numero">—</span>
+                            <span class="avance-pct-symbol">%</span>
+                        </div>
+                    </div>
+                    <div class="avance-bar-track">
+                        <div id="barra-progreso"
+                             role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="avance-bar-labels">
+                        <span id="fecha-inicio-txt">—</span>
+                        <span id="fecha-fin-txt">—</span>
+                    </div>
+                </div>
+
+                <p class="help-text" id="mensaje-guardado" style="margin: 0; min-height: 1.1em;"></p>
+
+            </div>
+        </div>
+
+        <div class="operations">
+            <!-- Unir PDFs -->
+            <div class="card">
+                <div class="card-icon">📎</div>
+                <h3>Unir PDFs</h3>
+                <p>Combina múltiples archivos PDF en un solo documento</p>
+
+                <div class="file-input-wrapper">
+                    <label class="file-input-label" id="merge-label">
+                        Click para seleccionar archivos PDF
+                        <input type="file" id="merge-files" accept=".pdf" multiple>
+                    </label>
+                </div>
+
+                <div class="file-list" id="merge-list"></div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="merge-bookmarks">
+                    <label for="merge-bookmarks">Agregar marcadores por archivo</label>
+                </div>
+
+                <button class="btn btn-primary" style="margin-top: 16px;" onclick="unirPDFs()">
+                    Unir PDFs
+                </button>
+            </div>
+
+            <!-- Separar PDF -->
+            <div class="card">
+                <div class="card-icon">✂️</div>
+                <h3>Separar PDF</h3>
+                <p>Divide un PDF en archivos individuales por cada página</p>
+
+                <div class="file-input-wrapper">
+                    <label class="file-input-label" id="split-label">
+                        Click para seleccionar PDF
+                        <input type="file" id="split-file" accept=".pdf">
+                    </label>
+                </div>
+
+                <div class="file-list" id="split-list"></div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="split-zip" checked>
+                    <label for="split-zip">Descargar como ZIP</label>
+                </div>
+
+                <button class="btn btn-primary" style="margin-top: 16px;" onclick="separarPDF()">
+                    Separar por páginas
+                </button>
+            </div>
+
+            <!-- Extraer páginas -->
+            <div class="card">
+                <div class="card-icon">📄</div>
+                <h3>Extraer páginas</h3>
+                <p>Selecciona páginas específicas para crear un nuevo PDF</p>
+
+                <div class="file-input-wrapper">
+                    <label class="file-input-label" id="extract-label">
+                        Click para seleccionar PDF
+                        <input type="file" id="extract-file" accept=".pdf">
+                    </label>
+                </div>
+
+                <div class="file-list" id="extract-list"></div>
+
+                <div class="input-group" style="margin-top: 16px;">
+                    <label for="extract-pages">Páginas a extraer (ej: 1, 3, 5-8)</label>
+                    <input type="text" id="extract-pages" placeholder="1, 2, 3 o 1-5, 8, 10-12">
+                </div>
+
+                <button class="btn btn-primary" style="margin-top: 16px;" onclick="extraerPaginas()">
+                    Extraer páginas
+                </button>
+            </div>
+        </div>
+
+        <!-- Sección de Firmar PDF -->
+        <div class="card card-full">
+            <div class="card-icon">✍️</div>
+            <h3>Firmar PDF - Agregar imagen (PNG)</h3>
+            <p>Sube un PDF, visualízalo página por página y haz click para posicionar la firma. Luego sube tu imagen de firma y aplícala.</p>
+
+            <div class="signature-container">
+                <!-- Columna izquierda: Vista previa del PDF -->
+                <div class="pdf-preview-container">
+                    <div class="file-input-wrapper" style="width: 100%;">
+                        <label class="file-input-label" id="sign-pdf-label">
+                            Click para seleccionar PDF a firmar
+                            <input type="file" id="sign-pdf-file" accept=".pdf">
+                        </label>
+                    </div>
+
+                    <div class="pdf-preview-controls" id="pdf-controls" style="display: none;">
+                        <button id="prev-page" onclick="changePage(-1)">◀ Anterior</button>
+                        <span id="page-info">Página 1 de 1</span>
+                        <button id="next-page" onclick="changePage(1)">Siguiente ▶</button>
+                        <button class="btn-danger" onclick="clearMarkers()">Limpiar marcas</button>
+                    </div>
+
+                    <div class="pdf-canvas-wrapper" id="canvas-wrapper" style="display: none;">
+                        <canvas id="pdf-canvas" onclick="handleCanvasClick(event)"></canvas>
+                        <div id="signature-markers"></div>
+                    </div>
+
+                    <p class="help-text" id="help-text" style="display: none;">
+                        <strong>Click en el PDF</strong> para marcar la posición de la firma
+                    </p>
+                </div>
+
+                <!-- Columna derecha: Controles de firma -->
+                <div class="signature-controls">
+                    <h4 style="color: #00d9ff; margin-bottom: 16px;">Configuración de firma</h4>
+
+                    <div class="file-input-wrapper">
+                        <label class="file-input-label" id="sign-image-label">
+                            Click para seleccionar imagen de firma (PNG)
+                            <input type="file" id="sign-image-file" accept="image/png,image/jpeg">
+                        </label>
+                    </div>
+
+                    <img id="signature-preview" class="signature-preview" alt="Vista previa de firma">
+
+                    <div class="slider-group">
+                        <label style="color: #ccd6f6; font-size: 0.9rem;">Tamaño de la firma</label>
+                        <input type="range" id="signature-size" min="10" max="150" value="50" oninput="updateSignatureSize()">
+                        <div class="slider-label">
+                            <span>10px</span>
+                            <span id="size-value">50px</span>
+                            <span>150px</span>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group" style="margin-top: 16px;">
+                        <input type="checkbox" id="apply-all-pages">
+                        <label for="apply-all-pages">Aplicar a todas las páginas</label>
+                    </div>
+
+                    <button class="btn btn-primary" style="margin-top: 16px; width: 100%;" onclick="applySignatures()">
+                        Aplicar firma y descargar
+                    </button>
+
+                    <div class="signature-list" id="signature-list">
+                        <!-- Lista de firmas marcadas -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+
+        <div class="divider"></div>
+
+        <div class="info-box">
+            <h4>🔒 Privacidad y seguridad</h4>
+            <ul>
+                <li>Todos los archivos se procesan <strong>localmente en tu navegador</strong></li>
+                <li>Los archivos <strong>NO</strong> se suben a ningún servidor</li>
+                <li>No se requiere instalación ni registro</li>
+                <li>Compatible con Chrome, Firefox, Edge y Safari</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <script>
+        const { PDFDocument } = PDFLib;
+
+        // Configurar PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        // Estado de archivos
+        let mergeFiles = [];
+        let splitFile = null;
+        let extractFile = null;
+
+        // Estado para firma
+        let signPdfFile = null;
+        let signImageFile = null;
+        let signImageBytes = null;
+        let currentPage = 1;
+        let totalPages = 0;
+        let pdfDocProxy = null;
+        let signatureMarkers = []; // { page, x, y, size }
+        let currentScale = 1;
+
+        // ==================== FECHAS Y AVANCE ====================
+
+        // Inicializar fechas al cargar
+        document.addEventListener('DOMContentLoaded', function() {
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('fecha-calculo').value = hoy;
+
+            // Si hay fechas guardadas, cargarlas y calcular automáticamente
+            const guardado = localStorage.getItem('fechasAvance');
+            if (guardado) {
+                try {
+                    const fechas = JSON.parse(guardado);
+                    document.getElementById('fecha-inicial').value = fechas.fechaInicial || '';
+                    document.getElementById('fecha-final').value = fechas.fechaFinal || '';
+                    // La fecha de cálculo siempre es hoy
+                    document.getElementById('fecha-calculo').value = hoy;
+
+                    const msg = document.getElementById('mensaje-guardado');
+                    msg.textContent = '✓ Fechas cargadas (guardadas el ' + new Date(fechas.guardado).toLocaleString() + ')';
+                    msg.style.color = '#00d9ff';
+
+                    document.getElementById('avance-result-card').classList.add('visible');
+                    setTimeout(calcularAvance, 100);
+                } catch (e) {
+                    // Si el dato está corrupto, ignorar silenciosamente
+                    localStorage.removeItem('fechasAvance');
+                }
+            }
+
+            initDragDrop();
+
+            // Restaurar tamaño de firma guardado
+            const tamanoGuardado = localStorage.getItem('firmaTamano');
+            if (tamanoGuardado) {
+                const slider = document.getElementById('signature-size');
+                slider.value = tamanoGuardado;
+                document.getElementById('size-value').textContent = tamanoGuardado + 'px';
+            }
+
+            // Restaurar firma guardada si existe
+            const firmaGuardada = localStorage.getItem('firmaImagen');
+            if (firmaGuardada) {
+                try {
+                    const { dataUrl, nombre } = JSON.parse(firmaGuardada);
+
+                    // Mostrar preview
+                    const preview = document.getElementById('signature-preview');
+                    preview.src = dataUrl;
+                    preview.classList.add('visible');
+
+                    // Actualizar label
+                    const label = document.getElementById('sign-image-label');
+                    label.classList.add('has-files');
+                    label.textContent = nombre || 'Firma cargada';
+
+                    // Convertir dataUrl → ArrayBuffer para poder firmar
+                    const base64 = dataUrl.split(',')[1];
+                    const binary = atob(base64);
+                    const bytes = new Uint8Array(binary.length);
+                    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                    signImageBytes = bytes.buffer;
+                } catch (e) {
+                    localStorage.removeItem('firmaImagen');
+                }
+            }
+        });
+
+        // Función DÍAS360 - igual que Excel
+        // Asume meses de 30 días y años de 360 días
+        function dias360(fechaInicio, fechaFin) {
+            const d1 = new Date(fechaInicio);
+            const d2 = new Date(fechaFin);
+
+            const dia1 = d1.getDate();
+            const mes1 = d1.getMonth();
+            const anio1 = d1.getFullYear();
+
+            const dia2 = d2.getDate();
+            const mes2 = d2.getMonth();
+            const anio2 = d2.getFullYear();
+
+            // Fórmula DÍAS360 de Excel
+            const dias = (anio2 - anio1) * 360
+                       + (mes2 - mes1) * 30
+                       + (dia2 - dia1)
+                       + 1;  // Inclusivo (día inicial y final cuentan)
+
+            return dias;
+        }
+
+        function calcularAvance() {
+            const fechaInicialVal = document.getElementById('fecha-inicial').value;
+            const fechaFinalVal = document.getElementById('fecha-final').value;
+            const fechaCalculoVal = document.getElementById('fecha-calculo').value;
+            const msg = document.getElementById('mensaje-guardado');
+
+            if (!fechaInicialVal || !fechaFinalVal) {
+                msg.textContent = '✗ Ingresa la fecha inicial y final para calcular';
+                msg.style.color = '#ff6b6b';
+                return;
+            }
+
+            if (!fechaCalculoVal) {
+                msg.textContent = '✗ Ingresa la fecha de cálculo';
+                msg.style.color = '#ff6b6b';
+                return;
+            }
+
+            const fechaInicial = new Date(fechaInicialVal);
+            const fechaFinal = new Date(fechaFinalVal);
+            const fechaCalculo = new Date(fechaCalculoVal);
+
+            if (fechaFinal <= fechaInicial) {
+                msg.textContent = '✗ La fecha final debe ser posterior a la inicial';
+                msg.style.color = '#ff6b6b';
+                return;
+            }
+
+            if (fechaCalculo < fechaInicial) {
+                msg.textContent = '✗ La fecha de cálculo no puede ser anterior al inicio';
+                msg.style.color = '#ff6b6b';
+                return;
+            }
+
+            // Usar DÍAS360 como Excel
+            const totalDias = dias360(fechaInicialVal, fechaFinalVal);
+            const diasTranscurridos = dias360(fechaInicialVal, fechaCalculoVal);
+
+            let porcentaje = (diasTranscurridos / totalDias) * 100;
+            if (porcentaje > 100) porcentaje = 100;
+            if (porcentaje < 0) porcentaje = 0;
+
+            document.getElementById('fecha-inicio-txt').textContent = formatDate(fechaInicialVal);
+            document.getElementById('fecha-fin-txt').textContent = formatDate(fechaFinalVal);
+
+            // Actualizar número de porcentaje
+            document.getElementById('porcentaje-numero').textContent = porcentaje.toFixed(1);
+
+            // Barra de progreso
+            const barra = document.getElementById('barra-progreso');
+            barra.style.width = porcentaje + '%';
+            barra.setAttribute('aria-valuenow', porcentaje.toFixed(0));
+        }
+
+        function autoCalcularAvance() {
+            const fi = document.getElementById('fecha-inicial').value;
+            const ff = document.getElementById('fecha-final').value;
+            const card = document.getElementById('avance-result-card');
+            if (fi && ff) {
+                card.classList.add('visible');
+                calcularAvance();
+                // Guardar automáticamente si el período es válido
+                if (new Date(fi) < new Date(ff)) {
+                    localStorage.setItem('fechasAvance', JSON.stringify({
+                        fechaInicial: fi,
+                        fechaFinal: ff,
+                        guardado: new Date().toISOString()
+                    }));
+                }
+            } else {
+                card.classList.remove('visible');
+            }
+        }
+
+        function formatDate(dateStr) {
+            const [year, month, day] = dateStr.split('-');
+            return `${day}/${month}/${year}`;
+        }
+
+        // ==================== MOSTRAR ESTADO ====================
+
+        let statusTimer = null;
+
+        function showStatus(message, type) {
+            const el = document.getElementById('status');
+            el.className = 'status ' + type;
+            el.textContent = message;
+
+            if (statusTimer) clearTimeout(statusTimer);
+            if (type === 'success') {
+                statusTimer = setTimeout(() => { el.className = 'status'; }, 5000);
+            }
+        }
+
+        // ==================== DRAG & DROP ====================
+
+        function initDragDrop() {
+            document.querySelectorAll('.file-input-wrapper').forEach(wrapper => {
+                const label = wrapper.querySelector('.file-input-label');
+                const input = wrapper.querySelector('input[type="file"]');
+                if (!label || !input) return;
+
+                wrapper.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    label.classList.add('drag-over');
+                });
+
+                wrapper.addEventListener('dragleave', e => {
+                    if (!wrapper.contains(e.relatedTarget)) {
+                        label.classList.remove('drag-over');
+                    }
+                });
+
+                wrapper.addEventListener('drop', e => {
+                    e.preventDefault();
+                    label.classList.remove('drag-over');
+
+                    const files = e.dataTransfer.files;
+                    if (!files.length) return;
+
+                    try {
+                        const dt = new DataTransfer();
+                        Array.from(files).forEach(f => dt.items.add(f));
+                        input.files = dt.files;
+                        input.dispatchEvent(new Event('change'));
+                    } catch (err) {
+                        // DataTransfer no soportado en este browser — ignorar
+                    }
+                });
+            });
+        }
+
+        // Parsear rango de páginas
+        function parsePaginas(pagesStr, totalPages) {
+            const result = new Set();
+            const parts = pagesStr.split(',').map(p => p.trim());
+
+            for (const part of parts) {
+                if (part.includes('-')) {
+                    const [start, end] = part.split('-').map(n => parseInt(n));
+                    if (start && end) {
+                        for (let i = start; i <= end; i++) {
+                            if (i >= 1 && i <= totalPages) result.add(i - 1);
+                        }
+                    }
+                } else {
+                    const num = parseInt(part);
+                    if (num >= 1 && num <= totalPages) result.add(num - 1);
+                }
+            }
+
+            return Array.from(result).sort((a, b) => a - b);
+        }
+
+        // ==================== UNIR PDFs ====================
+
+        document.getElementById('merge-files').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            mergeFiles = [...mergeFiles, ...files];
+            actualizarMergeList();
+        });
+
+        function actualizarMergeList() {
+            const list = document.getElementById('merge-list');
+            list.innerHTML = '';
+
+            mergeFiles.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `
+                    <span>${index + 1}. ${file.name}</span>
+                    <span class="remove" onclick="removerMergeFile(${index})">✕</span>
+                `;
+                list.appendChild(item);
+            });
+
+            const label = document.getElementById('merge-label');
+            if (mergeFiles.length > 0) {
+                label.classList.add('has-files');
+                label.textContent = `${mergeFiles.length} archivo(s) seleccionado(s)`;
+            }
+        }
+
+        function removerMergeFile(index) {
+            mergeFiles.splice(index, 1);
+            actualizarMergeList();
+        }
+
+        async function unirPDFs() {
+            if (mergeFiles.length < 2) {
+                showStatus('Selecciona al menos 2 archivos PDF', 'error');
+                return;
+            }
+
+            showStatus('Procesando...', 'processing');
+
+            try {
+                const pdfUnido = await PDFDocument.create();
+                const bookmarks = document.getElementById('merge-bookmarks').checked;
+
+                for (let i = 0; i < mergeFiles.length; i++) {
+                    const file = mergeFiles[i];
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await PDFDocument.load(arrayBuffer);
+
+                    const indices = pdf.getPageIndices();
+                    const paginas = await pdfUnido.copyPages(pdf, indices);
+                    paginas.forEach(p => pdfUnido.addPage(p));
+                }
+
+                const pdfBytes = await pdfUnido.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                saveAs(blob, 'documento-unido.pdf');
+
+                showStatus('¡PDFs unidos exitosamente!', 'success');
+            } catch (error) {
+                console.error(error);
+                showStatus('Error al unir PDFs: ' + error.message, 'error');
+            }
+        }
+
+        // ==================== SEPARAR PDF ====================
+
+        document.getElementById('split-file').addEventListener('change', function(e) {
+            splitFile = e.target.files[0];
+            actualizarSplitList();
+        });
+
+        function actualizarSplitList() {
+            const list = document.getElementById('split-list');
+            const label = document.getElementById('split-label');
+
+            if (splitFile) {
+                list.innerHTML = `<div class="file-item">${splitFile.name}</div>`;
+                label.classList.add('has-files');
+                label.textContent = splitFile.name;
+            } else {
+                list.innerHTML = '';
+                label.classList.remove('has-files');
+                label.textContent = 'Click para seleccionar PDF';
+            }
+        }
+
+        async function separarPDF() {
+            if (!splitFile) {
+                showStatus('Selecciona un archivo PDF', 'error');
+                return;
+            }
+
+            showStatus('Procesando...', 'processing');
+
+            try {
+                const arrayBuffer = await splitFile.arrayBuffer();
+                const pdf = await PDFDocument.load(arrayBuffer);
+                const totalPages = pdf.getPageCount();
+
+                const usarZip = document.getElementById('split-zip').checked;
+
+                if (usarZip) {
+                    const zip = new JSZip();
+
+                    for (let i = 0; i < totalPages; i++) {
+                        const nuevoPdf = await PDFDocument.create();
+                        const [pagina] = await nuevoPdf.copyPages(pdf, [i]);
+                        nuevoPdf.addPage(pagina);
+                        const pdfBytes = await nuevoPdf.save();
+                        zip.file(`pagina-${String(i + 1).padStart(3, '0')}.pdf`, pdfBytes);
+                    }
+
+                    const content = await zip.generateAsync({ type: 'blob' });
+                    saveAs(content, splitFile.name.replace('.pdf', '-separado.zip'));
+                } else {
+                    for (let i = 0; i < totalPages; i++) {
+                        const nuevoPdf = await PDFDocument.create();
+                        const [pagina] = await nuevoPdf.copyPages(pdf, [i]);
+                        nuevoPdf.addPage(pagina);
+                        const pdfBytes = await nuevoPdf.save();
+                        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                        saveAs(blob, `pagina-${String(i + 1).padStart(3, '0')}.pdf`);
+                        await new Promise(r => setTimeout(r, 100));
+                    }
+                }
+
+                showStatus(`¡PDF separado en ${totalPages} páginas!`, 'success');
+            } catch (error) {
+                console.error(error);
+                showStatus('Error al separar PDF: ' + error.message, 'error');
+            }
+        }
+
+        // ==================== EXTRAER PÁGINAS ====================
+
+        document.getElementById('extract-file').addEventListener('change', function(e) {
+            extractFile = e.target.files[0];
+            actualizarExtractList();
+        });
+
+        function actualizarExtractList() {
+            const list = document.getElementById('extract-list');
+            const label = document.getElementById('extract-label');
+
+            if (extractFile) {
+                list.innerHTML = `<div class="file-item">${extractFile.name}</div>`;
+                label.classList.add('has-files');
+                label.textContent = extractFile.name;
+            } else {
+                list.innerHTML = '';
+                label.classList.remove('has-files');
+                label.textContent = 'Click para seleccionar PDF';
+            }
+        }
+
+        async function extraerPaginas() {
+            if (!extractFile) {
+                showStatus('Selecciona un archivo PDF', 'error');
+                return;
+            }
+
+            const pagesStr = document.getElementById('extract-pages').value.trim();
+            if (!pagesStr) {
+                showStatus('Ingresa las páginas a extraer', 'error');
+                return;
+            }
+
+            showStatus('Procesando...', 'processing');
+
+            try {
+                const arrayBuffer = await extractFile.arrayBuffer();
+                const pdf = await PDFDocument.load(arrayBuffer);
+                const totalPages = pdf.getPageCount();
+
+                const paginas = parsePaginas(pagesStr, totalPages);
+
+                if (paginas.length === 0) {
+                    showStatus('No se encontraron páginas válidas', 'error');
+                    return;
+                }
+
+                const nuevoPdf = await PDFDocument.create();
+                const copias = await nuevoPdf.copyPages(pdf, paginas);
+                copias.forEach(p => nuevoPdf.addPage(p));
+
+                const pdfBytes = await nuevoPdf.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                saveAs(blob, extractFile.name.replace('.pdf', '-extraido.pdf'));
+
+                showStatus(`¡${paginas.length} página(s) extraída(s) exitosamente!`, 'success');
+            } catch (error) {
+                console.error(error);
+                showStatus('Error al extraer páginas: ' + error.message, 'error');
+            }
+        }
+
+        // ==================== FIRMAR PDF ====================
+
+        document.getElementById('sign-pdf-file').addEventListener('change', async function(e) {
+            signPdfFile = e.target.files[0];
+            if (signPdfFile) {
+                await loadPDF(signPdfFile);
+            }
+        });
+
+        document.getElementById('sign-image-file').addEventListener('change', async function(e) {
+            signImageFile = e.target.files[0];
+            if (signImageFile) {
+                const arrayBuffer = await signImageFile.arrayBuffer();
+                signImageBytes = arrayBuffer;
+
+                // Mostrar vista previa
+                const preview = document.getElementById('signature-preview');
+                preview.src = URL.createObjectURL(signImageFile);
+                preview.classList.add('visible');
+
+                const label = document.getElementById('sign-image-label');
+                label.classList.add('has-files');
+                label.textContent = signImageFile.name;
+
+                // Guardar en localStorage como Base64
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    try {
+                        localStorage.setItem('firmaImagen', JSON.stringify({
+                            dataUrl: ev.target.result,
+                            nombre: signImageFile.name
+                        }));
+                    } catch (e) {
+                        // localStorage lleno (imagen muy grande) — ignorar silenciosamente
+                    }
+                };
+                reader.readAsDataURL(signImageFile);
+            }
+        });
+
+        async function loadPDF(file) {
+            showStatus('Cargando PDF...', 'processing');
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+
+                // Cargar con PDF.js para renderizar
+                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+                pdfDocProxy = await loadingTask.promise;
+                totalPages = pdfDocProxy.numPages;
+                currentPage = 1;
+
+                // Mostrar controles
+                document.getElementById('pdf-controls').style.display = 'flex';
+                document.getElementById('canvas-wrapper').style.display = 'block';
+                document.getElementById('help-text').style.display = 'block';
+
+                const label = document.getElementById('sign-pdf-label');
+                label.classList.add('has-files');
+                label.textContent = file.name;
+
+                await renderPage(currentPage);
+                showStatus(`PDF cargado: ${totalPages} página(s)`, 'success');
+            } catch (error) {
+                console.error(error);
+                showStatus('Error al cargar PDF: ' + error.message, 'error');
+            }
+        }
+
+        async function renderPage(pageNum) {
+            if (!pdfDocProxy) return;
+
+            const page = await pdfDocProxy.getPage(pageNum);
+
+            // Escalar para que quepa en el contenedor
+            const container = document.getElementById('canvas-wrapper');
+            const containerWidth = container.clientWidth;
+
+            // Escala base para visualización
+            const desiredWidth = Math.min(containerWidth, 800);
+            currentScale = desiredWidth / page.view[2];
+
+            const viewport = page.getViewport({ scale: currentScale });
+
+            const canvas = document.getElementById('pdf-canvas');
+            const context = canvas.getContext('2d');
+
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            const renderContext = {
+                canvasContext: context,
+                viewport: viewport
+            };
+
+            await page.render(renderContext).promise;
+
+            // Actualizar info de página
+            document.getElementById('page-info').textContent = `Página ${pageNum} de ${totalPages}`;
+            document.getElementById('prev-page').disabled = pageNum <= 1;
+            document.getElementById('next-page').disabled = pageNum >= totalPages;
+
+            // Actualizar marcadores visibles
+            updateMarkersDisplay();
+        }
+
+        function changePage(delta) {
+            const newPage = currentPage + delta;
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                renderPage(currentPage);
+            }
+        }
+
+        async function handleCanvasClick(event) {
+            if (!signImageBytes) {
+                showStatus('Primero sube una imagen de firma', 'error');
+                return;
+            }
+
+            const canvas = document.getElementById('pdf-canvas');
+            const rect = canvas.getBoundingClientRect();
+
+            // Coordenadas del click en el canvas
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            // Convertir a coordenadas reales del PDF
+            const pdfPage = await pdfDocProxy.getPage(currentPage);
+            const pdfWidth = pdfPage.view[2];
+            const pdfHeight = pdfPage.view[3];
+
+            // Coordenadas PDF (origen en esquina inferior izquierda)
+            const pdfX = (x / canvas.width) * pdfWidth;
+            const pdfY = pdfHeight - (y / canvas.height) * pdfHeight;
+
+            // Agregar marcador
+            const size = parseInt(document.getElementById('signature-size').value);
+            signatureMarkers.push({
+                page: currentPage,
+                x: pdfX,
+                y: pdfY,
+                size: size,
+                canvasX: x,
+                canvasY: y
+            });
+
+            updateMarkersDisplay();
+            updateSignatureList();
+        }
+
+        function updateMarkersDisplay() {
+            const markersContainer = document.getElementById('signature-markers');
+            markersContainer.innerHTML = '';
+
+            // Filtrar marcadores de la página actual
+            const pageMarkers = signatureMarkers.filter(m => m.page === currentPage);
+
+            pageMarkers.forEach((marker, index) => {
+                const div = document.createElement('div');
+                div.className = 'signature-marker';
+                div.style.left = marker.canvasX + 'px';
+                div.style.top = marker.canvasY + 'px';
+                div.style.width = marker.size + 'px';
+                div.style.height = marker.size + 'px';
+
+                // Click en X para eliminar
+                div.onclick = (e) => {
+                    e.stopPropagation();
+                    const globalIndex = signatureMarkers.indexOf(marker);
+                    if (globalIndex > -1) {
+                        signatureMarkers.splice(globalIndex, 1);
+                        updateMarkersDisplay();
+                        updateSignatureList();
+                    }
+                };
+
+                markersContainer.appendChild(div);
+            });
+        }
+
+        function updateSignatureList() {
+            const list = document.getElementById('signature-list');
+            list.innerHTML = '';
+
+            if (signatureMarkers.length === 0) {
+                list.innerHTML = '<p style="color: #8892b0; font-size: 0.9rem;">No hay firmas marcadas</p>';
+                return;
+            }
+
+            signatureMarkers.forEach((marker, index) => {
+                const div = document.createElement('div');
+                div.className = 'signature-item';
+                div.innerHTML = `
+                    <div class="signature-item-info">
+                        <span class="signature-item-page">Página ${marker.page}</span>
+                        <div class="signature-item-coords">X: ${Math.round(marker.x)}, Y: ${Math.round(marker.y)}</div>
+                    </div>
+                    <div class="signature-item-actions">
+                        <button class="btn-apply" onclick="removeSignature(${index})">✕</button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function removeSignature(index) {
+            signatureMarkers.splice(index, 1);
+            updateMarkersDisplay();
+            updateSignatureList();
+        }
+
+        function clearMarkers() {
+            signatureMarkers = [];
+            updateMarkersDisplay();
+            updateSignatureList();
+        }
+
+        function updateSignatureSize() {
+            const size = document.getElementById('signature-size').value;
+            document.getElementById('size-value').textContent = size + 'px';
+
+            // Actualizar tamaño de marcadores existentes
+            signatureMarkers.forEach(m => m.size = parseInt(size));
+            updateMarkersDisplay();
+
+            // Guardar último tamaño usado
+            localStorage.setItem('firmaTamano', size);
+        }
+
+        async function applySignatures() {
+            if (!signPdfFile) {
+                showStatus('Selecciona un PDF para firmar', 'error');
+                return;
+            }
+
+            if (!signImageBytes) {
+                showStatus('Sube una imagen de firma', 'error');
+                return;
+            }
+
+            if (signatureMarkers.length === 0) {
+                showStatus('Marca al menos una posición para la firma', 'error');
+                return;
+            }
+
+            showStatus('Aplicando firma(s)...', 'processing');
+
+            try {
+                const arrayBuffer = await signPdfFile.arrayBuffer();
+                const pdfDoc = await PDFDocument.load(arrayBuffer);
+
+                // Cargar la imagen de firma
+                let pngImage;
+                try {
+                    pngImage = await pdfDoc.embedPng(signImageBytes);
+                } catch (e) {
+                    // Si falla como PNG, intentar como JPG
+                    pngImage = await pdfDoc.embedJpg(signImageBytes);
+                }
+
+                const aplicarFirma = (page, marker) => {
+                    const size = marker.size;
+                    const pageHeight = page.getHeight();
+
+                    // Ajustar coordenadas: PDF origen en abajo-izquierda
+                    // Pero necesitamos centrar la imagen en el punto seleccionado
+                    const x = marker.x - size / 2;
+                    const y = marker.y - size / 2;
+
+                    page.drawImage(pngImage, {
+                        x: x,
+                        y: y,
+                        width: size,
+                        height: size
+                    });
+                };
+
+                const applyAllPages = document.getElementById('apply-all-pages').checked;
+
+                if (applyAllPages && signatureMarkers.length > 0) {
+                    // Aplicar primera marca a todas las páginas
+                    const baseMarker = signatureMarkers[0];
+                    for (let i = 0; i < pdfDoc.getPageCount(); i++) {
+                        const page = pdfDoc.getPage(i);
+                        aplicarFirma(page, { ...baseMarker, page: i + 1 });
+                    }
+                } else {
+                    // Aplicar marcas específicas
+                    for (const marker of signatureMarkers) {
+                        const page = pdfDoc.getPage(marker.page - 1);
+                        aplicarFirma(page, marker);
+                    }
+                }
+
+                const pdfBytes = await pdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                saveAs(blob, signPdfFile.name.replace('.pdf', '-firmado.pdf'));
+
+                showStatus('Firma aplicada exitosamente!', 'success');
+            } catch (error) {
+                console.error(error);
+                showStatus('Error al aplicar firma: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
