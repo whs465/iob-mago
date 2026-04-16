@@ -1127,6 +1127,73 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        @media (max-width: 760px) {
+            #firma .signature-stage {
+                padding: 20px 16px;
+                border-radius: 24px;
+            }
+
+            #firma .signature-container {
+                gap: 16px;
+            }
+
+            #firma .pdf-preview-container,
+            #firma .signature-controls {
+                padding: 16px;
+                border-radius: 20px;
+            }
+
+            #firma .pdf-preview-container {
+                min-height: 0;
+            }
+
+            #firma .pdf-canvas-wrapper {
+                border-radius: 14px;
+            }
+
+            #firma .pdf-preview-controls {
+                gap: 8px;
+                margin-bottom: 14px;
+            }
+
+            #firma .pdf-preview-controls button {
+                padding: 10px 14px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 520px) {
+            #firma .section-heading {
+                margin-bottom: 18px;
+            }
+
+            #firma .signature-stage {
+                padding: 16px 12px;
+                border-radius: 20px;
+            }
+
+            #firma .pdf-preview-container,
+            #firma .signature-controls {
+                padding: 12px;
+                border-radius: 16px;
+            }
+
+            #firma .pdf-preview-controls {
+                width: 100%;
+            }
+
+            #firma .pdf-preview-controls button {
+                flex: 1 1 calc(50% - 8px);
+                min-width: 0;
+            }
+
+            #firma .pdf-preview-controls span {
+                width: 100%;
+                text-align: center;
+                order: -1;
+            }
+        }
     </style>
 </head>
 <body>
