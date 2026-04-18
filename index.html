@@ -1536,6 +1536,166 @@
         let draggingSignatureIndex = null;
         let markerMovedDuringDrag = false;
 
+        const preferredLanguage = Array.isArray(navigator.languages) && navigator.languages.length
+            ? navigator.languages[0]
+            : (navigator.language || 'es');
+        const currentLanguage = String(preferredLanguage).toLowerCase().startsWith('es') ? 'es' : 'en';
+        const currentLocale = currentLanguage === 'es' ? 'es-CO' : 'en-US';
+
+        function i18n(englishText, spanishText, vars = {}) {
+            let text = currentLanguage === 'es' ? spanishText : englishText;
+            Object.entries(vars).forEach(([key, value]) => {
+                text = text.replaceAll(`{{${key}}}`, value);
+            });
+            return text;
+        }
+
+        function formatDateValue(date) {
+            return new Intl.DateTimeFormat(currentLocale, {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            }).format(date);
+        }
+
+        function formatDateTimeValue(date) {
+            return new Intl.DateTimeFormat(currentLocale, {
+                dateStyle: 'short',
+                timeStyle: 'short'
+            }).format(date);
+        }
+
+        function updateFileInputLabel(labelId, inputId, text, hasFiles = false) {
+            const label = document.getElementById(labelId);
+            const input = label?.querySelector('input[type="file"]') || document.getElementById(inputId);
+            if (!label) return;
+
+            label.textContent = text;
+            label.classList.toggle('has-files', hasFiles);
+            if (input) {
+                label.appendChild(input);
+            }
+        }
+
+        function updateMergeLabel(text, hasFiles = false) {
+            updateFileInputLabel('merge-label', 'merge-files', text, hasFiles);
+        }
+
+        function updateSplitLabel(text, hasFiles = false) {
+            updateFileInputLabel('split-label', 'split-file', text, hasFiles);
+        }
+
+        function updateExtractLabel(text, hasFiles = false) {
+            updateFileInputLabel('extract-label', 'extract-file', text, hasFiles);
+        }
+
+        function updatePageInfoDisplay(page = 1, total = 1) {
+            document.getElementById('page-info').textContent = i18n(
+                'Page {{page}} of {{total}}',
+                'Página {{page}} de {{total}}',
+                { page: String(page), total: String(total) }
+            );
+        }
+
+        function getPdfBaseName(filename) {
+            return filename.replace(/\.pdf$/i, '');
+        }
+
+        function translatePageToEnglish() {
+            if (currentLanguage !== 'en') return;
+
+            document.documentElement.lang = 'en';
+            document.title = 'IOB Mago';
+
+            document.querySelector('.brand-note').textContent = 'Local, fast, private PDF tools';
+            document.querySelector('.hero-copy .eyebrow').textContent = 'PDF tools for everyday work';
+            document.querySelector('.hero-copy h1').textContent = 'Do more with your PDFs. Without leaving the browser.';
+            document.querySelector('.hero-copy .subtitle').textContent = 'Merge, split, extract, sign and track contract progress from desktop or phone with a cleaner, calmer, fully local interface.';
+            document.querySelector('.hero-actions .btn-primary').textContent = 'View tools';
+            document.querySelector('.hero-actions .btn-secondary').textContent = 'Go to signing';
+
+            const heroHighlights = document.querySelectorAll('.hero-highlight');
+            heroHighlights[0].querySelector('strong').textContent = 'Everything happens in your browser';
+            heroHighlights[0].querySelector('span').textContent = 'No server uploads, no extra steps.';
+            heroHighlights[1].querySelector('strong').textContent = 'Breathe easy';
+            heroHighlights[1].querySelector('span').textContent = 'Your file is processed right here, calmly, without leaving the browser.';
+            heroHighlights[2].querySelector('strong').textContent = 'Desktop and mobile';
+            heroHighlights[2].querySelector('span').textContent = 'Run tasks and sign from your phone too, even while commuting, without waiting to get home.';
+
+            const sections = document.querySelectorAll('.section');
+            sections[0].querySelector('.section-kicker').textContent = 'Featured tool';
+            sections[0].querySelector('.section-title').textContent = 'Progress tracking';
+            sections[0].querySelector('.section-text').textContent = 'Calculate your contract progress percentage with a clearer readout and a more editorial presentation.';
+            sections[1].querySelector('.section-kicker').textContent = 'Quick tools';
+            sections[1].querySelector('.section-title').textContent = 'Three flows for the essentials';
+            sections[1].querySelector('.section-text').textContent = 'Merge, split, or extract pages from a PDF in just a few steps. Pick what you need and keep going.';
+            sections[2].querySelector('.section-kicker').textContent = 'Visual signing';
+            sections[2].querySelector('.section-title').textContent = 'Place the signature directly on the PDF';
+            sections[2].querySelector('.section-text').textContent = 'Upload the PDF, mark where the signature should go, and download it signed right away from desktop or phone, even while commuting.';
+
+            const cards = document.querySelectorAll('.card');
+            cards[0].querySelector('.card-icon').textContent = 'Progress';
+            cards[0].querySelector('h3').textContent = 'Contract period';
+            cards[0].querySelector('p').textContent = 'Set the start, end, and calculation date to get a quick read on the current contract status.';
+            cards[1].querySelector('.card-icon').textContent = 'Merge';
+            cards[1].querySelector('h3').textContent = 'Merge PDFs';
+            cards[1].querySelector('p').textContent = 'Combine multiple PDF files into a single document';
+            cards[1].querySelector('label[for="merge-bookmarks"]').textContent = 'Add bookmarks per file';
+            cards[1].querySelector('.btn-primary').textContent = 'Merge PDFs';
+            cards[2].querySelector('.card-icon').textContent = 'Split';
+            cards[2].querySelector('h3').textContent = 'Split PDF';
+            cards[2].querySelector('p').textContent = 'Break a PDF into one file per page';
+            cards[2].querySelector('label[for="split-zip"]').textContent = 'Download as ZIP';
+            cards[2].querySelector('.btn-primary').textContent = 'Split by pages';
+            cards[3].querySelector('.card-icon').textContent = 'Extract';
+            cards[3].querySelector('h3').textContent = 'Extract pages';
+            cards[3].querySelector('p').textContent = 'Choose specific pages to create a new PDF';
+            cards[3].querySelector('label[for="extract-pages"]').textContent = 'Pages to extract (e.g. 1, 3, 5-8)';
+            cards[3].querySelector('.btn-primary').textContent = 'Extract pages';
+            cards[4].querySelector('.card-icon').textContent = 'Sign';
+            cards[4].querySelector('.signature-stage h3').textContent = 'Sign PDF with an image';
+            cards[4].querySelector('.signature-stage > p').textContent = 'Upload the PDF and your signature image, mark the position, move it if needed, and download it signed at the size you prefer.';
+
+            document.querySelector('label[for="fecha-inicial"]').textContent = 'Contract start';
+            document.querySelector('label[for="fecha-final"]').textContent = 'Contract end';
+            document.querySelector('label[for="fecha-calculo"]').textContent = 'Calculated on';
+            document.querySelector('.avance-result-label').textContent = 'Contract progress';
+            document.getElementById('fecha-inicial').setAttribute('aria-label', 'Contract start date');
+            document.getElementById('fecha-final').setAttribute('aria-label', 'Contract end date');
+            document.getElementById('fecha-calculo').setAttribute('aria-label', 'Calculation date, today by default');
+            document.getElementById('extract-pages').placeholder = '1, 2, 3 or 1-5, 8, 10-12';
+
+            updateMergeLabel('Click to select PDF files');
+            updateSplitLabel('Click to select PDF');
+            updateExtractLabel('Click to select PDF');
+            updateSignPdfLabel('Click to select PDF to sign');
+            updateSignImageLabel(signImageBytes ? 'Signature loaded' : 'Click to select signature image (PNG)', !!signImageBytes);
+
+            document.getElementById('prev-page').textContent = '◀ Previous';
+            document.getElementById('next-page').textContent = 'Next ▶';
+            document.querySelector('.pdf-preview-controls .btn-danger').textContent = 'Clear markers';
+            document.getElementById('help-text').innerHTML = '<strong>Click on the PDF</strong> to mark the signature position';
+            document.querySelector('.signature-controls h4').textContent = 'Signature settings';
+            document.querySelector('.signature-storage-note').innerHTML = '<strong>Your signature image is stored in this browser</strong> so you do not need to upload it every time. If you replace it, it updates right here.';
+            document.querySelector('.slider-group label').textContent = 'Signature size';
+            document.querySelector('label[for="apply-all-pages"]').textContent = 'Apply to all pages';
+            document.querySelector('.signature-controls .btn-primary').textContent = 'Apply signature and download';
+            document.getElementById('signature-preview').alt = 'Signature preview';
+
+            document.querySelector('.info-box h4').textContent = 'Privacy and security';
+            const infoParagraphs = document.querySelectorAll('.info-box-content p');
+            infoParagraphs[0].innerHTML = '<span class="info-note-number">1.</span>IOB Mago processes files <strong>directly in your browser</strong>. That means the PDF contents and signature image do not need to travel to an external server to be merged, split, extracted, or signed. Keeping that flow on the contractor&apos;s device reduces unnecessary exposure, avoids upload dependencies, and helps maintain control over documents that often contain sensitive, contractual, or personal data.';
+            infoParagraphs[1].innerHTML = '<span class="info-note-number">2.</span>Because information is not uploaded to a backend, a major part of the operational risk disappears as well: there are no temporary copies of the document on a third-party platform, no remote processing queues, and no intermediary account that has to safeguard files or credentials. In practical terms, contractors keep a more private, faster, and more direct experience, especially when working with supporting documents, contracts, annexes, and files that should not circulate outside their immediate environment.';
+            infoParagraphs[2].innerHTML = '<span class="info-note-number">3.</span>This site does not require prior registration to work. That choice is not just about convenience: it reduces friction, avoids asking for data that is unnecessary for the task, and keeps access focused on the usefulness of IOB Mago. Someone can open the site, upload a file, sign it, and download the result without creating an account, giving away an email address, or depending on an active session.';
+            infoParagraphs[3].innerHTML = '<span class="info-note-number">4.</span>The signature image can remain stored in this browser for reuse later, but that storage is local and depends on the device and browser where it was used. If the contractor clears browsing data, changes devices, or uses another browser, that image may no longer be available. For that reason, it is always wise to keep your own copy of the signature file and verify the final document before sharing or sending it.';
+            infoParagraphs[4].innerHTML = '<span class="info-note-number">5.</span>No contractor had to stay up all night during the design, development, and testing of IOB Mago. Any resemblance to last-minute deliveries, reheated coffee, or reviews at 11:58 p.m. should be treated as an isolated event and not as an official part of the process.';
+            infoParagraphs[5].innerHTML = '<span class="info-note-number">6.</span>Best of all, we do not have to deal with Adobe Reader all day trying to sell us things and butting in when we only wanted to open or sign a PDF.';
+            infoParagraphs[6].innerHTML = '<span class="info-note-number">7.</span>Compatible with modern versions of Chrome, Firefox, Edge, and Safari.';
+            document.querySelector('.module-signoff').innerHTML = 'IOB Mago by Módulo IOB G3 · Made with love <span class="heartbeat" aria-hidden="true">♥</span>';
+
+            updatePageInfoDisplay(currentPage, totalPages || 1);
+        }
+
         function dataUrlToArrayBuffer(dataUrl) {
             const base64 = dataUrl.split(',')[1];
             const binary = atob(base64);
@@ -1545,23 +1705,11 @@
         }
 
         function updateSignPdfLabel(text, hasFile = false) {
-            const label = document.getElementById('sign-pdf-label');
-            const input = label.querySelector('input[type="file"]') || document.getElementById('sign-pdf-file');
-            label.textContent = text;
-            label.classList.toggle('has-files', hasFile);
-            if (input) {
-                label.appendChild(input);
-            }
+            updateFileInputLabel('sign-pdf-label', 'sign-pdf-file', text, hasFile);
         }
 
         function updateSignImageLabel(text, hasFile = false) {
-            const label = document.getElementById('sign-image-label');
-            const input = label.querySelector('input[type="file"]') || document.getElementById('sign-image-file');
-            label.textContent = text;
-            label.classList.toggle('has-files', hasFile);
-            if (input) {
-                label.appendChild(input);
-            }
+            updateFileInputLabel('sign-image-label', 'sign-image-file', text, hasFile);
         }
 
         function updateSignaturePreview(src, nombre, isObjectUrl = false) {
@@ -1577,8 +1725,9 @@
             }
 
             preview.src = src;
+            preview.alt = i18n('Signature preview', 'Vista previa de firma');
             preview.classList.add('visible');
-            updateSignImageLabel(nombre || 'Firma cargada', true);
+            updateSignImageLabel(nombre || i18n('Signature loaded', 'Firma cargada'), true);
         }
 
         function clamp(value, min, max) {
@@ -1673,7 +1822,7 @@
             document.getElementById('pdf-controls').style.display = 'none';
             document.getElementById('canvas-wrapper').style.display = 'none';
             document.getElementById('help-text').style.display = 'none';
-            document.getElementById('page-info').textContent = 'Página 1 de 1';
+            updatePageInfoDisplay();
             document.getElementById('prev-page').disabled = true;
             document.getElementById('next-page').disabled = true;
 
@@ -1688,7 +1837,7 @@
             try {
                 const { dataUrl, nombre } = JSON.parse(firmaGuardada);
                 signImageBytes = dataUrlToArrayBuffer(dataUrl);
-                updateSignaturePreview(dataUrl, nombre || 'Firma cargada');
+                updateSignaturePreview(dataUrl, nombre || i18n('Signature loaded', 'Firma cargada'));
             } catch (e) {
                 localStorage.removeItem('firmaImagen');
             }
@@ -1719,6 +1868,8 @@
 
         // Inicializar fechas al cargar
         document.addEventListener('DOMContentLoaded', function() {
+            translatePageToEnglish();
+
             const hoy = new Date().toISOString().split('T')[0];
             document.getElementById('fecha-calculo').value = hoy;
 
@@ -1733,7 +1884,11 @@
                     document.getElementById('fecha-calculo').value = hoy;
 
                     const msg = document.getElementById('mensaje-guardado');
-                    msg.textContent = '✓ Fechas cargadas (guardadas el ' + new Date(fechas.guardado).toLocaleString() + ')';
+                    msg.textContent = i18n(
+                        '✓ Dates loaded (saved on {{date}})',
+                        '✓ Fechas cargadas (guardadas el {{date}})',
+                        { date: formatDateTimeValue(new Date(fechas.guardado)) }
+                    );
                     msg.style.color = '#00d9ff';
 
                     document.getElementById('avance-result-card').classList.add('visible');
@@ -1787,13 +1942,19 @@
             const msg = document.getElementById('mensaje-guardado');
 
             if (!fechaInicialVal || !fechaFinalVal) {
-                msg.textContent = '✗ Ingresa la fecha inicial y final para calcular';
+                msg.textContent = i18n(
+                    '✗ Enter the contract start and end dates to calculate',
+                    '✗ Ingresa la fecha inicial y final para calcular'
+                );
                 msg.style.color = '#ff6b6b';
                 return;
             }
 
             if (!fechaCalculoVal) {
-                msg.textContent = '✗ Ingresa la fecha de cálculo';
+                msg.textContent = i18n(
+                    '✗ Enter the calculation date',
+                    '✗ Ingresa la fecha de cálculo'
+                );
                 msg.style.color = '#ff6b6b';
                 return;
             }
@@ -1803,13 +1964,19 @@
             const fechaCalculo = new Date(fechaCalculoVal);
 
             if (fechaFinal <= fechaInicial) {
-                msg.textContent = '✗ La fecha final debe ser posterior a la inicial';
+                msg.textContent = i18n(
+                    '✗ The end date must be after the start date',
+                    '✗ La fecha final debe ser posterior a la inicial'
+                );
                 msg.style.color = '#ff6b6b';
                 return;
             }
 
             if (fechaCalculo < fechaInicial) {
-                msg.textContent = '✗ La fecha de cálculo no puede ser anterior al inicio';
+                msg.textContent = i18n(
+                    '✗ The calculation date cannot be before the start date',
+                    '✗ La fecha de cálculo no puede ser anterior al inicio'
+                );
                 msg.style.color = '#ff6b6b';
                 return;
             }
@@ -1855,8 +2022,7 @@
         }
 
         function formatDate(dateStr) {
-            const [year, month, day] = dateStr.split('-');
-            return `${day}/${month}/${year}`;
+            return formatDateValue(new Date(dateStr + 'T00:00:00'));
         }
 
         // ==================== MOSTRAR ESTADO ====================
@@ -1956,10 +2122,15 @@
                 list.appendChild(item);
             });
 
-            const label = document.getElementById('merge-label');
             if (mergeFiles.length > 0) {
-                label.classList.add('has-files');
-                label.textContent = `${mergeFiles.length} archivo(s) seleccionado(s)`;
+                updateMergeLabel(
+                    i18n('{{count}} file(s) selected', '{{count}} archivo(s) seleccionado(s)', {
+                        count: String(mergeFiles.length)
+                    }),
+                    true
+                );
+            } else {
+                updateMergeLabel(i18n('Click to select PDF files', 'Click para seleccionar archivos PDF'));
             }
         }
 
@@ -1970,11 +2141,14 @@
 
         async function unirPDFs() {
             if (mergeFiles.length < 2) {
-                showStatus('Selecciona al menos 2 archivos PDF', 'error');
+                showStatus(
+                    i18n('Select at least 2 PDF files', 'Selecciona al menos 2 archivos PDF'),
+                    'error'
+                );
                 return;
             }
 
-            showStatus('Procesando...', 'processing');
+            showStatus(i18n('Processing...', 'Procesando...'), 'processing');
 
             try {
                 const pdfUnido = await PDFDocument.create();
@@ -1992,12 +2166,20 @@
 
                 const pdfBytes = await pdfUnido.save();
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                saveAs(blob, 'documento-unido.pdf');
+                saveAs(blob, i18n('merged-document.pdf', 'documento-unido.pdf'));
 
-                showStatus('¡PDFs unidos exitosamente!', 'success');
+                showStatus(
+                    i18n('PDFs merged successfully!', '¡PDFs unidos exitosamente!'),
+                    'success'
+                );
             } catch (error) {
                 console.error(error);
-                showStatus('Error al unir PDFs: ' + error.message, 'error');
+                showStatus(
+                    i18n('Error merging PDFs: {{message}}', 'Error al unir PDFs: {{message}}', {
+                        message: error.message
+                    }),
+                    'error'
+                );
             }
         }
 
@@ -2010,26 +2192,23 @@
 
         function actualizarSplitList() {
             const list = document.getElementById('split-list');
-            const label = document.getElementById('split-label');
 
             if (splitFile) {
                 list.innerHTML = `<div class="file-item">${splitFile.name}</div>`;
-                label.classList.add('has-files');
-                label.textContent = splitFile.name;
+                updateSplitLabel(splitFile.name, true);
             } else {
                 list.innerHTML = '';
-                label.classList.remove('has-files');
-                label.textContent = 'Click para seleccionar PDF';
+                updateSplitLabel(i18n('Click to select PDF', 'Click para seleccionar PDF'));
             }
         }
 
         async function separarPDF() {
             if (!splitFile) {
-                showStatus('Selecciona un archivo PDF', 'error');
+                showStatus(i18n('Select a PDF file', 'Selecciona un archivo PDF'), 'error');
                 return;
             }
 
-            showStatus('Procesando...', 'processing');
+            showStatus(i18n('Processing...', 'Procesando...'), 'processing');
 
             try {
                 const arrayBuffer = await splitFile.arrayBuffer();
@@ -2050,7 +2229,7 @@
                     }
 
                     const content = await zip.generateAsync({ type: 'blob' });
-                    saveAs(content, splitFile.name.replace('.pdf', '-separado.zip'));
+                    saveAs(content, getPdfBaseName(splitFile.name) + i18n('-split.zip', '-separado.zip'));
                 } else {
                     for (let i = 0; i < totalPages; i++) {
                         const nuevoPdf = await PDFDocument.create();
@@ -2058,15 +2237,28 @@
                         nuevoPdf.addPage(pagina);
                         const pdfBytes = await nuevoPdf.save();
                         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                        saveAs(blob, `pagina-${String(i + 1).padStart(3, '0')}.pdf`);
+                        saveAs(
+                            blob,
+                            `${i18n('page', 'pagina')}-${String(i + 1).padStart(3, '0')}.pdf`
+                        );
                         await new Promise(r => setTimeout(r, 100));
                     }
                 }
 
-                showStatus(`¡PDF separado en ${totalPages} páginas!`, 'success');
+                showStatus(
+                    i18n('PDF split into {{count}} pages!', '¡PDF separado en {{count}} páginas!', {
+                        count: String(totalPages)
+                    }),
+                    'success'
+                );
             } catch (error) {
                 console.error(error);
-                showStatus('Error al separar PDF: ' + error.message, 'error');
+                showStatus(
+                    i18n('Error splitting PDF: {{message}}', 'Error al separar PDF: {{message}}', {
+                        message: error.message
+                    }),
+                    'error'
+                );
             }
         }
 
@@ -2079,32 +2271,29 @@
 
         function actualizarExtractList() {
             const list = document.getElementById('extract-list');
-            const label = document.getElementById('extract-label');
 
             if (extractFile) {
                 list.innerHTML = `<div class="file-item">${extractFile.name}</div>`;
-                label.classList.add('has-files');
-                label.textContent = extractFile.name;
+                updateExtractLabel(extractFile.name, true);
             } else {
                 list.innerHTML = '';
-                label.classList.remove('has-files');
-                label.textContent = 'Click para seleccionar PDF';
+                updateExtractLabel(i18n('Click to select PDF', 'Click para seleccionar PDF'));
             }
         }
 
         async function extraerPaginas() {
             if (!extractFile) {
-                showStatus('Selecciona un archivo PDF', 'error');
+                showStatus(i18n('Select a PDF file', 'Selecciona un archivo PDF'), 'error');
                 return;
             }
 
             const pagesStr = document.getElementById('extract-pages').value.trim();
             if (!pagesStr) {
-                showStatus('Ingresa las páginas a extraer', 'error');
+                showStatus(i18n('Enter the pages to extract', 'Ingresa las páginas a extraer'), 'error');
                 return;
             }
 
-            showStatus('Procesando...', 'processing');
+            showStatus(i18n('Processing...', 'Procesando...'), 'processing');
 
             try {
                 const arrayBuffer = await extractFile.arrayBuffer();
@@ -2114,7 +2303,7 @@
                 const paginas = parsePaginas(pagesStr, totalPages);
 
                 if (paginas.length === 0) {
-                    showStatus('No se encontraron páginas válidas', 'error');
+                    showStatus(i18n('No valid pages were found', 'No se encontraron páginas válidas'), 'error');
                     return;
                 }
 
@@ -2124,12 +2313,22 @@
 
                 const pdfBytes = await nuevoPdf.save();
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                saveAs(blob, extractFile.name.replace('.pdf', '-extraido.pdf'));
+                saveAs(blob, getPdfBaseName(extractFile.name) + i18n('-extracted.pdf', '-extraido.pdf'));
 
-                showStatus(`¡${paginas.length} página(s) extraída(s) exitosamente!`, 'success');
+                showStatus(
+                    i18n('{{count}} page(s) extracted successfully!', '¡{{count}} página(s) extraída(s) exitosamente!', {
+                        count: String(paginas.length)
+                    }),
+                    'success'
+                );
             } catch (error) {
                 console.error(error);
-                showStatus('Error al extraer páginas: ' + error.message, 'error');
+                showStatus(
+                    i18n('Error extracting pages: {{message}}', 'Error al extraer páginas: {{message}}', {
+                        message: error.message
+                    }),
+                    'error'
+                );
             }
         }
 
@@ -2154,7 +2353,10 @@
             const selectedFile = e.target.files[0];
             if (selectedFile) {
                 await setSignatureImageFile(selectedFile);
-                showStatus('Firma actualizada y guardada localmente', 'success');
+                showStatus(
+                    i18n('Signature updated and stored locally', 'Firma actualizada y guardada localmente'),
+                    'success'
+                );
             }
         });
 
@@ -2163,7 +2365,7 @@
         document.addEventListener('pointercancel', stopSignatureDrag);
 
         async function loadPDF(file) {
-            showStatus('Cargando PDF...', 'processing');
+            showStatus(i18n('Loading PDF...', 'Cargando PDF...'), 'processing');
 
             try {
                 signPdfFile = file;
@@ -2187,14 +2389,24 @@
                 updateSignPdfLabel(file.name, true);
 
                 await renderPage(currentPage);
-                showStatus(`PDF cargado: ${totalPages} página(s)`, 'success');
+                showStatus(
+                    i18n('PDF loaded: {{count}} page(s)', 'PDF cargado: {{count}} página(s)', {
+                        count: String(totalPages)
+                    }),
+                    'success'
+                );
             } catch (error) {
                 console.error(error);
                 signPdfFile = null;
                 pdfDocProxy = null;
                 totalPages = 0;
                 currentPage = 1;
-                showStatus('Error al cargar PDF: ' + error.message, 'error');
+                showStatus(
+                    i18n('Error loading PDF: {{message}}', 'Error al cargar PDF: {{message}}', {
+                        message: error.message
+                    }),
+                    'error'
+                );
             }
         }
 
@@ -2231,7 +2443,7 @@
             await page.render(renderContext).promise;
 
             // Actualizar info de página
-            document.getElementById('page-info').textContent = `Página ${pageNum} de ${totalPages}`;
+            updatePageInfoDisplay(pageNum, totalPages);
             document.getElementById('prev-page').disabled = pageNum <= 1;
             document.getElementById('next-page').disabled = pageNum >= totalPages;
 
@@ -2249,7 +2461,10 @@
 
         async function handleCanvasClick(event) {
             if (!signImageBytes) {
-                showStatus('Primero sube una imagen de firma', 'error');
+                showStatus(
+                    i18n('Upload a signature image first', 'Primero sube una imagen de firma'),
+                    'error'
+                );
                 return;
             }
 
@@ -2331,7 +2546,7 @@
             list.innerHTML = '';
 
             if (signatureMarkers.length === 0) {
-                list.innerHTML = '<p style="color: #8892b0; font-size: 0.9rem;">No hay firmas marcadas</p>';
+                list.innerHTML = `<p style="color: #8892b0; font-size: 0.9rem;">${i18n('No signature markers yet', 'No hay firmas marcadas')}</p>`;
                 return;
             }
 
@@ -2340,7 +2555,7 @@
                 div.className = 'signature-item';
                 div.innerHTML = `
                     <div class="signature-item-info">
-                        <span class="signature-item-page">Página ${marker.page}</span>
+                        <span class="signature-item-page">${i18n('Page {{page}}', 'Página {{page}}', { page: String(marker.page) })}</span>
                         <div class="signature-item-coords">X: ${Math.round(marker.x)}, Y: ${Math.round(marker.y)}</div>
                     </div>
                     <div class="signature-item-actions">
@@ -2377,21 +2592,24 @@
 
         async function applySignatures() {
             if (!signPdfFile) {
-                showStatus('Selecciona un PDF para firmar', 'error');
+                showStatus(i18n('Select a PDF to sign', 'Selecciona un PDF para firmar'), 'error');
                 return;
             }
 
             if (!signImageBytes) {
-                showStatus('Sube una imagen de firma', 'error');
+                showStatus(i18n('Upload a signature image', 'Sube una imagen de firma'), 'error');
                 return;
             }
 
             if (signatureMarkers.length === 0) {
-                showStatus('Marca al menos una posición para la firma', 'error');
+                showStatus(
+                    i18n('Mark at least one signature position', 'Marca al menos una posición para la firma'),
+                    'error'
+                );
                 return;
             }
 
-            showStatus('Aplicando firma(s)...', 'processing');
+            showStatus(i18n('Applying signature(s)...', 'Aplicando firma(s)...'), 'processing');
 
             try {
                 const arrayBuffer = await signPdfFile.arrayBuffer();
@@ -2442,12 +2660,20 @@
 
                 const pdfBytes = await pdfDoc.save();
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                saveAs(blob, signPdfFile.name.replace('.pdf', '-firmado.pdf'));
+                saveAs(blob, getPdfBaseName(signPdfFile.name) + i18n('-signed.pdf', '-firmado.pdf'));
 
-                showStatus('Firma aplicada exitosamente!', 'success');
+                showStatus(
+                    i18n('Signature applied successfully!', 'Firma aplicada exitosamente!'),
+                    'success'
+                );
             } catch (error) {
                 console.error(error);
-                showStatus('Error al aplicar firma: ' + error.message, 'error');
+                showStatus(
+                    i18n('Error applying signature: {{message}}', 'Error al aplicar firma: {{message}}', {
+                        message: error.message
+                    }),
+                    'error'
+                );
             }
         }
     </script>
