@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IOB Mago</title>
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="shortcut icon" href="favicon.png">
+    <link rel="icon" type="image/png" href="mago-icon.png">
+    <link rel="shortcut icon" href="mago-icon.png">
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <style>
@@ -107,6 +107,34 @@
             font-weight: 700;
             letter-spacing: 0.12em;
             text-transform: uppercase;
+        }
+
+        .eyebrow {
+            gap: 9px;
+            padding-left: 12px;
+        }
+
+        .eyebrow-icon {
+            width: 22px;
+            height: 22px;
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transform: translateY(-0.01em);
+        }
+
+        .eyebrow-icon img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            opacity: 0.96;
+        }
+
+        .eyebrow-label {
+            display: inline-block;
+            transform: translateY(0.02em);
         }
 
         h1 {
@@ -1235,7 +1263,12 @@
                 </div>
 
                 <div class="hero-copy">
-                    <p class="eyebrow">Herramientas PDF para trabajo diario</p>
+                    <p class="eyebrow">
+                        <span class="eyebrow-icon" aria-hidden="true">
+                            <img src="mago-icon.png" alt="">
+                        </span>
+                        <span class="eyebrow-label">Herramientas PDF para trabajo diario</span>
+                    </p>
                     <h1>Haz más con tus PDFs. Sin salir del navegador.</h1>
                     <p class="subtitle">Une, separa, extrae, firma y sigue el avance de tus contratos desde desktop o desde tu teléfono, con una interfaz más limpia, más tranquila y totalmente local.</p>
 
@@ -1610,7 +1643,7 @@
             document.title = 'IOB Mago';
 
             document.querySelector('.brand-note').textContent = 'Local, fast, private PDF tools';
-            document.querySelector('.hero-copy .eyebrow').textContent = 'PDF tools for everyday work';
+            document.querySelector('.hero-copy .eyebrow .eyebrow-label').textContent = 'PDF tools for everyday work';
             document.querySelector('.hero-copy h1').textContent = 'Do more with your PDFs. Without leaving the browser.';
             document.querySelector('.hero-copy .subtitle').textContent = 'Merge, split, extract, sign and track contract progress from desktop or phone with a cleaner, calmer, fully local interface.';
             document.querySelector('.hero-actions .btn-primary').textContent = 'View tools';
