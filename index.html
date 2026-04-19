@@ -961,6 +961,7 @@
             flex-direction: column;
             gap: 24px;
             margin-top: 6px;
+            min-width: 0;
         }
 
         /* Fila período: Inicio → Fin · Calculado al */
@@ -996,7 +997,9 @@
 
         .avance-date-sm {
             width: 100%;
+            max-width: 100%;
             min-width: 0;
+            display: block;
             padding: 14px 16px;
             border: 1px solid rgba(29, 29, 31, 0.12);
             border-radius: 16px;
@@ -1091,31 +1094,30 @@
             color: var(--muted);
         }
 
-        /* Tablet: 3 fechas → 2 filas para evitar montajes en iPad mini */
+        /* Tablet y mobile: apilar fechas para evitar overflow en Safari/iPad */
         @media (max-width: 860px) {
             .avance-period-row {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 14px;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
             }
 
             .avance-sep {
                 display: none;
             }
 
-            .avance-period-row .avance-field:last-child {
-                grid-column: 1 / -1;
+            .avance-field {
+                width: 100%;
+            }
+
+            .avance-date-sm {
+                font-size: 16px;
+                padding: 12px 14px;
             }
         }
 
         @media (max-width: 520px) {
-            .avance-period-row {
-                grid-template-columns: 1fr;
-            }
-
-            .avance-period-row .avance-field:last-child {
-                grid-column: auto;
-            }
-
             .avance-date-sm {
                 font-size: 0.82rem;
                 padding: 10px 8px;
