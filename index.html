@@ -656,6 +656,163 @@
             margin: 34px 0;
         }
 
+        .support-box {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 24px;
+            align-items: start;
+            padding: 24px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(29, 29, 31, 0.08);
+            box-shadow: var(--shadow-md);
+            backdrop-filter: blur(18px);
+        }
+
+        .support-box h4 {
+            margin: 0 0 8px;
+            color: var(--text);
+            font-size: 1.18rem;
+            letter-spacing: -0.02em;
+        }
+
+        .support-box p {
+            margin: 0;
+            max-width: 74ch;
+            color: var(--muted);
+            font-size: 0.95rem;
+            line-height: 1.65;
+        }
+
+        .support-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+
+        .support-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 150px;
+            height: 48px;
+            padding: 9px 16px;
+            border-radius: 999px;
+            background: #ffffff;
+            border: 1px solid rgba(29, 29, 31, 0.1);
+            box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            cursor: pointer;
+        }
+
+        .support-action:hover,
+        .support-action.is-active {
+            transform: translateY(-1px);
+            border-color: rgba(0, 113, 227, 0.24);
+            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+        }
+
+        .support-action img {
+            display: block;
+            max-width: 112px;
+            max-height: 26px;
+            object-fit: contain;
+        }
+
+        .support-details {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .support-panel {
+            display: none;
+            padding: 16px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(29, 29, 31, 0.08);
+        }
+
+        .support-panel.visible {
+            display: block;
+        }
+
+        .support-panel h5 {
+            margin: 0 0 8px;
+            color: var(--text);
+            font-size: 0.95rem;
+            letter-spacing: -0.01em;
+        }
+
+        .support-panel p {
+            margin: 0 0 12px;
+            color: var(--muted);
+            font-size: 0.84rem;
+            line-height: 1.55;
+        }
+
+        .support-data-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 10px 10px 12px;
+            border-radius: 14px;
+            background: #ffffff;
+            border: 1px solid rgba(29, 29, 31, 0.08);
+        }
+
+        .support-data-label {
+            display: block;
+            margin-bottom: 3px;
+            color: var(--muted);
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .support-data-value {
+            display: block;
+            color: var(--text);
+            font-size: 0.94rem;
+            font-weight: 650;
+            overflow-wrap: anywhere;
+        }
+
+        .copy-support-value {
+            position: relative;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 113, 227, 0.18);
+            background: rgba(0, 113, 227, 0.08);
+            cursor: pointer;
+        }
+
+        .copy-support-value::before,
+        .copy-support-value::after {
+            content: "";
+            position: absolute;
+            width: 12px;
+            height: 14px;
+            border: 1.8px solid var(--accent);
+            border-radius: 3px;
+            background: #ffffff;
+        }
+
+        .copy-support-value::before {
+            left: 9px;
+            top: 10px;
+        }
+
+        .copy-support-value::after {
+            left: 13px;
+            top: 7px;
+        }
+
         .info-box {
             padding: 18px 0 0;
             background: transparent;
@@ -952,6 +1109,12 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
+        .signature-generator-panel .file-input-label {
+            min-height: 88px;
+            padding: 18px;
+            border-radius: 20px;
+        }
+
         .signature-generator-head {
             display: flex;
             align-items: flex-start;
@@ -994,7 +1157,71 @@
         .signature-generator-controls {
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 12px;
+        }
+
+        .signature-color-control {
+            margin-bottom: 2px;
+        }
+
+        .signature-color-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .signature-color-head label,
+        .signature-color-name {
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 0.9rem;
+        }
+
+        .signature-color-name {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 650;
+            white-space: nowrap;
+        }
+
+        .signature-color-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #050505;
+            border: 1px solid rgba(255, 255, 255, 0.32);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+        }
+
+        .signature-tone-range {
+            width: 100%;
+            height: 8px;
+            border-radius: 999px;
+            outline: none;
+            appearance: none;
+            background: linear-gradient(90deg, #050505 0%, #061f4a 18%, #0f342e 36%, #3a2413 54%, #4a1010 72%, #2f1645 86%, #111827 100%);
+            cursor: pointer;
+        }
+
+        .signature-tone-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 4px solid #0a84ff;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.22);
+        }
+
+        .signature-tone-range::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 4px solid #0a84ff;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.22);
         }
 
         .signature-generator-actions {
@@ -1030,7 +1257,7 @@
         }
 
         .signature-preview-board {
-            min-height: 230px;
+            min-height: 190px;
             padding: 14px;
             border-radius: 20px;
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1434,8 +1661,26 @@
                 align-items: flex-start;
             }
 
+            .support-box {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+
+            .support-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .support-details {
+                grid-template-columns: 1fr;
+            }
+
             .hero-actions .btn {
                 width: 100%;
+            }
+
+            .support-action {
+                flex: 1 1 140px;
             }
 
             .operations {
@@ -1809,6 +2054,17 @@
                                 </label>
                             </div>
 
+                            <div class="signature-color-control">
+                                <div class="signature-color-head">
+                                    <label id="signature-tone-label" for="signature-tone-range">Tono de firma</label>
+                                    <span class="signature-color-name">
+                                        <span class="signature-color-dot" id="signature-color-dot"></span>
+                                        <span id="signature-tone-name">Negro</span>
+                                    </span>
+                                </div>
+                                <input class="signature-tone-range" type="range" id="signature-tone-range" min="0" max="100" value="0" oninput="updateSignatureTone(true)">
+                            </div>
+
                             <div class="slider-group">
                                 <label id="signature-sensitivity-label" for="signature-clean-sensitivity" style="color: rgba(255, 255, 255, 0.82); font-size: 0.9rem;">Sensibilidad de limpieza</label>
                                 <input type="range" id="signature-clean-sensitivity" min="20" max="100" value="58" oninput="updateSignatureCleanSensitivity()">
@@ -1850,6 +2106,49 @@
         </section>
 
         <div id="status" class="status" role="status" aria-live="polite"></div>
+
+        <div class="divider"></div>
+
+        <section class="support-box" aria-labelledby="support-title">
+            <div>
+                <h4 id="support-title">¿IOB Mago te ahorró tiempo y estrés?</h4>
+                <p id="support-copy">Si esta página te ayudó a resolver PDFs sin subir tus documentos a ningún servidor, a firmar con más privacidad o a sacar por fin una firma transparente decente sin dibujarla con el mouse, puedes apoyar a las personas que la hicieron. Ese aporte ayuda a mantener IOB Mago vivo, más pulido y útil para quienes trabajan con documentos todos los días.</p>
+            </div>
+            <div class="support-actions" aria-label="Opciones para apoyar">
+                <button class="support-action" type="button" data-support-method="paypal" aria-label="Ver datos de PayPal" aria-expanded="false" aria-controls="support-paypal-panel">
+                    <img src="paypal.svg" alt="PayPal">
+                </button>
+                <button class="support-action" type="button" data-support-method="breb" aria-label="Ver llave Bre-B" aria-expanded="false" aria-controls="support-breb-panel">
+                    <img src="bre-b.svg" alt="Bre-B">
+                </button>
+            </div>
+            <div class="support-details">
+                <article class="support-panel" id="support-paypal-panel">
+                    <h5 id="support-paypal-title">Datos para PayPal</h5>
+                    <p id="support-paypal-note">Usa este correo en PayPal para enviar el aporte.</p>
+                    <div class="support-data-row">
+                        <div>
+                            <span class="support-data-label" id="support-paypal-label">Correo</span>
+                            <span class="support-data-value" id="support-paypal-value">Configura tu correo de PayPal</span>
+                        </div>
+                        <button class="copy-support-value" type="button" data-copy-support="paypal" aria-label="Copiar correo de PayPal" title="Copiar"></button>
+                    </div>
+                </article>
+
+                <article class="support-panel" id="support-breb-panel">
+                    <h5 id="support-breb-title">Datos para Bre-B</h5>
+                    <p id="support-breb-note">Usa esta llave Bre-B desde tu banco. Verifica el titular antes de enviar.</p>
+                    <div class="support-data-row">
+                        <div>
+                            <span class="support-data-label" id="support-breb-label">Llave Bre-B</span>
+                            <span class="support-data-value" id="support-breb-value">Configura tu llave Bre-B</span>
+                        </div>
+                        <button class="copy-support-value" type="button" data-copy-support="breb" aria-label="Copiar dato Bre-B" title="Copiar"></button>
+                    </div>
+                    <p id="support-breb-extra" style="margin-top: 10px;">Titular: configura el nombre del titular.</p>
+                </article>
+            </div>
+        </section>
 
         <div class="divider"></div>
 
@@ -1904,6 +2203,25 @@
         let preparedSignatureBlob = null;
         let preparedSignatureFileName = '';
         let preparedSignaturePreviewUrl = null;
+        let preparedSignatureCanvas = null;
+        let signatureToneRefreshTimer = null;
+
+        const signatureDarkTones = [
+            { position: 0, color: '#050505', es: 'Negro', en: 'Black' },
+            { position: 18, color: '#061f4a', es: 'Azul oscuro', en: 'Dark blue' },
+            { position: 36, color: '#0f342e', es: 'Verde petróleo', en: 'Deep teal' },
+            { position: 54, color: '#3a2413', es: 'Café oscuro', en: 'Dark brown' },
+            { position: 72, color: '#4a1010', es: 'Rojo oscuro', en: 'Dark red' },
+            { position: 86, color: '#2f1645', es: 'Morado oscuro', en: 'Dark purple' },
+            { position: 100, color: '#111827', es: 'Grafito', en: 'Graphite' }
+        ];
+
+        const supportPaymentDetails = {
+            // Pega aquí tus datos reales antes de publicar.
+            paypalEmail: 'whs465@gmail.com',
+            brebValue: '@whs932',
+            brebHolder: 'W**************EZ'
+        };
 
         const preferredLanguage = Array.isArray(navigator.languages) && navigator.languages.length
             ? navigator.languages[0]
@@ -2063,6 +2381,7 @@
             document.getElementById('signature-generator-copy').textContent = 'Upload a photo of the signature on paper, generate a clean transparent version, and download it. This step only runs when you ask for it and does not change the stored signature.';
             document.getElementById('signature-sensitivity-label').textContent = 'Cleanup sensitivity';
             document.querySelector('label[for="signature-auto-trim"]').textContent = 'Trim to the signature outline';
+            document.getElementById('signature-tone-label').textContent = 'Signature tone';
             document.querySelector('#signature-clean-sensitivity + .slider-label span:first-child').textContent = 'Soft';
             document.querySelector('#signature-clean-sensitivity + .slider-label span:last-child').textContent = 'Strong';
             document.getElementById('signature-generate-action').textContent = 'Generate PNG';
@@ -2070,6 +2389,19 @@
             document.getElementById('signature-use-action').textContent = 'Use as signature';
             document.getElementById('prepared-signature-preview').alt = 'Generated PNG preview';
             document.getElementById('signature-preview-empty').textContent = 'The generated PNG will appear here';
+            document.getElementById('support-title').textContent = 'Did IOB Mago save you time and stress?';
+            document.getElementById('support-copy').textContent = 'If this page helped you handle PDFs without uploading documents to a server, sign with more privacy, or finally create a decent transparent signature without drawing it with a mouse, you can support the people who built it. That contribution helps keep IOB Mago alive, more polished, and useful for people who work with documents every day.';
+            document.querySelector('.support-actions').setAttribute('aria-label', 'Support options');
+            document.querySelector('[data-support-method="paypal"]').setAttribute('aria-label', 'Show PayPal details');
+            document.querySelector('[data-support-method="breb"]').setAttribute('aria-label', 'Show Bre-B details');
+            document.getElementById('support-paypal-title').textContent = 'PayPal details';
+            document.getElementById('support-paypal-note').textContent = 'Use this email in PayPal to send your contribution.';
+            document.getElementById('support-paypal-label').textContent = 'Email';
+            document.getElementById('support-breb-title').textContent = 'Bre-B details';
+            document.getElementById('support-breb-note').textContent = 'Use this Bre-B detail from your bank. Verify the account holder before sending.';
+            document.getElementById('support-breb-label').textContent = 'Bre-B detail';
+            document.querySelector('[data-copy-support="paypal"]').setAttribute('aria-label', 'Copy PayPal email');
+            document.querySelector('[data-copy-support="breb"]').setAttribute('aria-label', 'Copy Bre-B detail');
 
             document.querySelector('.info-box h4').textContent = 'Privacy and security';
             const infoParagraphs = document.querySelectorAll('.info-box-content p');
@@ -2108,6 +2440,123 @@
         function updateSignatureCleanSensitivity() {
             const value = document.getElementById('signature-clean-sensitivity').value;
             document.getElementById('signature-clean-value').textContent = value;
+        }
+
+        function hexToRgb(hex) {
+            const normalized = hex.replace('#', '');
+            return {
+                r: parseInt(normalized.slice(0, 2), 16),
+                g: parseInt(normalized.slice(2, 4), 16),
+                b: parseInt(normalized.slice(4, 6), 16)
+            };
+        }
+
+        function rgbToHex({ r, g, b }) {
+            return '#' + [r, g, b].map(value => {
+                return Math.round(value).toString(16).padStart(2, '0');
+            }).join('');
+        }
+
+        function interpolateColor(startHex, endHex, ratio) {
+            const start = hexToRgb(startHex);
+            const end = hexToRgb(endHex);
+            return {
+                r: start.r + (end.r - start.r) * ratio,
+                g: start.g + (end.g - start.g) * ratio,
+                b: start.b + (end.b - start.b) * ratio
+            };
+        }
+
+        function getSignatureTone(toneValue = document.getElementById('signature-tone-range').value) {
+            const value = clamp(Number(toneValue) || 0, 0, 100);
+            let previousTone = signatureDarkTones[0];
+            let nextTone = signatureDarkTones[signatureDarkTones.length - 1];
+
+            for (let i = 0; i < signatureDarkTones.length; i++) {
+                const currentTone = signatureDarkTones[i];
+                if (currentTone.position <= value) previousTone = currentTone;
+                if (currentTone.position >= value) {
+                    nextTone = currentTone;
+                    break;
+                }
+            }
+
+            const span = nextTone.position - previousTone.position;
+            const ratio = span > 0 ? (value - previousTone.position) / span : 0;
+            const rgb = interpolateColor(previousTone.color, nextTone.color, ratio);
+            const closestTone = Math.abs(value - previousTone.position) <= Math.abs(value - nextTone.position)
+                ? previousTone
+                : nextTone;
+
+            return {
+                value,
+                color: rgbToHex(rgb),
+                rgb: {
+                    r: Math.round(rgb.r),
+                    g: Math.round(rgb.g),
+                    b: Math.round(rgb.b)
+                },
+                label: currentLanguage === 'es' ? closestTone.es : closestTone.en
+            };
+        }
+
+        function schedulePreparedSignatureRecolor() {
+            if (!preparedSignatureCanvas || !preparedSignatureBlob) return;
+            if (signatureToneRefreshTimer) clearTimeout(signatureToneRefreshTimer);
+            signatureToneRefreshTimer = setTimeout(() => {
+                signatureToneRefreshTimer = null;
+                recolorPreparedSignature();
+            }, 80);
+        }
+
+        async function updatePreparedSignatureBlobFromCanvas() {
+            preparedSignatureBlob = await canvasToPngBlob(preparedSignatureCanvas);
+
+            if (preparedSignaturePreviewUrl) URL.revokeObjectURL(preparedSignaturePreviewUrl);
+            preparedSignaturePreviewUrl = URL.createObjectURL(preparedSignatureBlob);
+            document.getElementById('prepared-signature-preview').src = preparedSignaturePreviewUrl;
+        }
+
+        async function recolorPreparedSignature() {
+            if (!preparedSignatureCanvas) return;
+
+            const tone = getSignatureTone();
+            const context = preparedSignatureCanvas.getContext('2d');
+            const imageData = context.getImageData(0, 0, preparedSignatureCanvas.width, preparedSignatureCanvas.height);
+            const pixels = imageData.data;
+
+            for (let i = 0; i < pixels.length; i += 4) {
+                pixels[i] = tone.rgb.r;
+                pixels[i + 1] = tone.rgb.g;
+                pixels[i + 2] = tone.rgb.b;
+            }
+
+            context.putImageData(imageData, 0, 0);
+            await updatePreparedSignatureBlobFromCanvas();
+
+            const meta = document.getElementById('signature-generator-meta');
+            if (meta.textContent) {
+                meta.textContent = i18n(
+                    'PNG ready: {{width}} x {{height}} px · {{tone}}',
+                    'PNG listo: {{width}} x {{height}} px · {{tone}}',
+                    {
+                        width: String(preparedSignatureCanvas.width),
+                        height: String(preparedSignatureCanvas.height),
+                        tone: tone.label
+                    }
+                );
+            }
+        }
+
+        function updateSignatureTone(refreshPrepared = false) {
+            const tone = getSignatureTone();
+            const toneName = document.getElementById('signature-tone-name');
+            const toneDot = document.getElementById('signature-color-dot');
+
+            toneName.textContent = tone.label;
+            toneDot.style.background = tone.color;
+
+            if (refreshPrepared) schedulePreparedSignatureRecolor();
         }
 
         function updateSignaturePreview(src, nombre, isObjectUrl = false) {
@@ -2316,6 +2765,7 @@
         function resetPreparedSignature() {
             preparedSignatureBlob = null;
             preparedSignatureFileName = '';
+            preparedSignatureCanvas = null;
 
             if (preparedSignaturePreviewUrl) {
                 URL.revokeObjectURL(preparedSignaturePreviewUrl);
@@ -2563,14 +3013,15 @@
             const outputContext = outputCanvas.getContext('2d');
             const outputImageData = outputContext.createImageData(outputWidth, outputHeight);
             const output = outputImageData.data;
+            const inkColor = options.color || { r: 0, g: 0, b: 0 };
 
             for (let y = 0; y < outputHeight; y++) {
                 for (let x = 0; x < outputWidth; x++) {
                     const sourcePixel = (cropY + y) * width + cropX + x;
                     const outputIndex = (y * outputWidth + x) * 4;
-                    output[outputIndex] = 0;
-                    output[outputIndex + 1] = 0;
-                    output[outputIndex + 2] = 0;
+                    output[outputIndex] = inkColor.r;
+                    output[outputIndex + 1] = inkColor.g;
+                    output[outputIndex + 2] = inkColor.b;
                     output[outputIndex + 3] = finalAlpha[sourcePixel];
                 }
             }
@@ -2612,11 +3063,14 @@
 
             try {
                 const image = await loadImageElementFromFile(signatureSourceFile);
+                const tone = getSignatureTone();
                 const processed = buildPreparedSignature(image, {
                     sensitivity: document.getElementById('signature-clean-sensitivity').value,
-                    trim: document.getElementById('signature-auto-trim').checked
+                    trim: document.getElementById('signature-auto-trim').checked,
+                    color: tone.rgb
                 });
 
+                preparedSignatureCanvas = processed.canvas;
                 preparedSignatureBlob = await canvasToPngBlob(processed.canvas);
                 preparedSignatureFileName = getFileBaseName(signatureSourceFile.name || 'firma') + '-firma.png';
 
@@ -2632,9 +3086,9 @@
                 document.getElementById('signature-download-action').disabled = false;
                 document.getElementById('signature-use-action').disabled = false;
                 document.getElementById('signature-generator-meta').textContent = i18n(
-                    'PNG ready: {{width}} x {{height}} px',
-                    'PNG listo: {{width}} x {{height}} px',
-                    { width: String(processed.width), height: String(processed.height) }
+                    'PNG ready: {{width}} x {{height}} px · {{tone}}',
+                    'PNG listo: {{width}} x {{height}} px · {{tone}}',
+                    { width: String(processed.width), height: String(processed.height), tone: tone.label }
                 );
 
                 showStatus(
@@ -2677,6 +3131,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             translatePageToEnglish();
             updateSignatureCleanSensitivity();
+            updateSignatureTone();
+            setupSupportLinks();
 
             const hoy = new Date().toISOString().split('T')[0];
             document.getElementById('fecha-calculo').value = hoy;
@@ -2866,6 +3322,105 @@
                 button.classList.remove('is-processing');
                 button.removeAttribute('aria-busy');
             };
+        }
+
+        function getSupportCopyValue(method) {
+            return method === 'paypal'
+                ? supportPaymentDetails.paypalEmail
+                : supportPaymentDetails.brebValue;
+        }
+
+        function renderSupportDetails() {
+            const paypalEmail = supportPaymentDetails.paypalEmail || i18n(
+                'Configure your PayPal email',
+                'Configura tu correo de PayPal'
+            );
+            const brebValue = supportPaymentDetails.brebValue || i18n(
+                'Configure your Bre-B detail',
+                'Configura tu dato Bre-B'
+            );
+            const brebHolder = supportPaymentDetails.brebHolder || i18n(
+                'configure the account holder name',
+                'configura el nombre del titular'
+            );
+
+            document.getElementById('support-paypal-value').textContent = paypalEmail;
+            document.getElementById('support-breb-value').textContent = brebValue;
+            document.getElementById('support-breb-extra').textContent = i18n(
+                'Account holder: {{holder}}.',
+                'Titular: {{holder}}.',
+                { holder: brebHolder }
+            );
+        }
+
+        function toggleSupportPanel(method) {
+            const activePanelId = `support-${method}-panel`;
+
+            document.querySelectorAll('.support-panel').forEach(panel => {
+                panel.classList.toggle('visible', panel.id === activePanelId);
+            });
+
+            document.querySelectorAll('[data-support-method]').forEach(button => {
+                const isActive = button.dataset.supportMethod === method;
+                button.classList.toggle('is-active', isActive);
+                button.setAttribute('aria-expanded', String(isActive));
+            });
+        }
+
+        function copyTextToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                return navigator.clipboard.writeText(text);
+            }
+
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            return Promise.resolve();
+        }
+
+        async function copySupportValue(method) {
+            const value = getSupportCopyValue(method);
+            if (!value) {
+                showStatus(
+                    i18n(
+                        'Configure this support detail in supportPaymentDetails inside index.html.',
+                        'Configura este dato de apoyo en supportPaymentDetails dentro de index.html.'
+                    ),
+                    'processing'
+                );
+                return;
+            }
+
+            try {
+                await copyTextToClipboard(value);
+                showStatus(
+                    i18n('Support detail copied', 'Dato copiado'),
+                    'success'
+                );
+            } catch (error) {
+                showStatus(
+                    i18n('Could not copy the support detail', 'No se pudo copiar el dato'),
+                    'error'
+                );
+            }
+        }
+
+        function setupSupportLinks() {
+            renderSupportDetails();
+
+            document.querySelectorAll('[data-support-method]').forEach(button => {
+                button.addEventListener('click', () => toggleSupportPanel(button.dataset.supportMethod));
+            });
+
+            document.querySelectorAll('[data-copy-support]').forEach(button => {
+                button.addEventListener('click', () => copySupportValue(button.dataset.copySupport));
+            });
         }
 
         // ==================== DRAG & DROP ====================
