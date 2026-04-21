@@ -944,6 +944,136 @@
             display: block;
         }
 
+        .signature-generator-panel {
+            margin-top: 24px;
+            padding: 22px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .signature-generator-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+
+        .signature-generator-kicker {
+            margin: 0 0 6px;
+            color: rgba(125, 211, 252, 0.86);
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .signature-generator-head h4 {
+            margin: 0 0 8px;
+            color: #ffffff;
+            font-size: 1.18rem;
+            letter-spacing: -0.02em;
+        }
+
+        .signature-generator-head p:last-child {
+            margin: 0;
+            max-width: 68ch;
+            color: rgba(255, 255, 255, 0.68);
+            font-size: 0.9rem;
+            line-height: 1.62;
+        }
+
+        .signature-generator-grid {
+            display: grid;
+            grid-template-columns: minmax(260px, 0.85fr) minmax(0, 1.15fr);
+            gap: 18px;
+            align-items: stretch;
+        }
+
+        .signature-generator-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .signature-generator-actions {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .signature-generator-actions .btn {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 0.88rem;
+            white-space: normal;
+        }
+
+        .signature-generator-actions .btn-secondary {
+            border-color: rgba(125, 211, 252, 0.22);
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: none;
+        }
+
+        .signature-generator-actions .btn-secondary:hover:not(:disabled) {
+            border-color: rgba(125, 211, 252, 0.38);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .signature-generator-actions .btn:disabled {
+            opacity: 0.44;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .signature-preview-board {
+            min-height: 230px;
+            padding: 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background:
+                linear-gradient(45deg, rgba(255, 255, 255, 0.86) 25%, transparent 25%),
+                linear-gradient(-45deg, rgba(255, 255, 255, 0.86) 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.86) 75%),
+                linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.86) 75%),
+                #d8dde5;
+            background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+            background-size: 24px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #prepared-signature-preview {
+            display: none;
+            max-width: 100%;
+            max-height: 260px;
+            object-fit: contain;
+            filter: drop-shadow(0 8px 18px rgba(15, 23, 42, 0.18));
+        }
+
+        #prepared-signature-preview.visible {
+            display: block;
+        }
+
+        .signature-preview-empty {
+            color: rgba(15, 23, 42, 0.58);
+            font-size: 0.9rem;
+            font-weight: 650;
+            text-align: center;
+        }
+
+        .signature-generator-meta {
+            min-height: 20px;
+            margin: 10px 2px 0;
+            color: rgba(255, 255, 255, 0.66);
+            font-size: 0.82rem;
+        }
+
         .signature-storage-note {
             margin: -4px 0 16px;
             color: rgba(255, 255, 255, 0.68);
@@ -1323,8 +1453,18 @@
                 gap: 16px;
             }
 
+            #firma .signature-generator-head,
+            #firma .signature-generator-grid {
+                grid-template-columns: 1fr;
+            }
+
+            #firma .signature-generator-head {
+                display: block;
+            }
+
             #firma .pdf-preview-container,
-            #firma .signature-controls {
+            #firma .signature-controls,
+            #firma .signature-generator-panel {
                 padding: 16px;
                 border-radius: 20px;
             }
@@ -1377,6 +1517,10 @@
                 width: 100%;
                 text-align: center;
                 order: -1;
+            }
+
+            #firma .signature-generator-actions {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -1646,6 +1790,62 @@
                     </div>
                 </div>
                 </div>
+
+                <div class="signature-generator-panel" aria-labelledby="signature-generator-title">
+                    <div class="signature-generator-head">
+                        <div>
+                            <p class="signature-generator-kicker">Preparar PNG</p>
+                            <h4 id="signature-generator-title">Crear PNG transparente desde foto</h4>
+                            <p id="signature-generator-copy">Sube una foto de la firma sobre papel, genera una versión limpia con fondo transparente y descárgala. Este paso solo corre cuando tú lo pides y no cambia la firma guardada.</p>
+                        </div>
+                    </div>
+
+                    <div class="signature-generator-grid">
+                        <div class="signature-generator-controls">
+                            <div class="file-input-wrapper">
+                                <label class="file-input-label" id="signature-source-label">
+                                    Click para seleccionar foto de la firma
+                                    <input type="file" id="signature-source-file" accept="image/png,image/jpeg,image/webp">
+                                </label>
+                            </div>
+
+                            <div class="slider-group">
+                                <label id="signature-sensitivity-label" for="signature-clean-sensitivity" style="color: rgba(255, 255, 255, 0.82); font-size: 0.9rem;">Sensibilidad de limpieza</label>
+                                <input type="range" id="signature-clean-sensitivity" min="20" max="100" value="58" oninput="updateSignatureCleanSensitivity()">
+                                <div class="slider-label">
+                                    <span>Suave</span>
+                                    <span id="signature-clean-value">58</span>
+                                    <span>Fuerte</span>
+                                </div>
+                            </div>
+
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="signature-auto-trim" checked>
+                                <label for="signature-auto-trim">Recortar al contorno de la firma</label>
+                            </div>
+
+                            <div class="signature-generator-actions">
+                                <button class="btn btn-primary" id="signature-generate-action" onclick="generateSignaturePng()">
+                                    Generar PNG
+                                </button>
+                                <button class="btn btn-secondary" id="signature-download-action" onclick="downloadPreparedSignature()" disabled>
+                                    Descargar PNG
+                                </button>
+                                <button class="btn btn-secondary" id="signature-use-action" onclick="usePreparedSignature()" disabled>
+                                    Usar como firma
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="signature-preview-board">
+                                <img id="prepared-signature-preview" alt="Vista previa del PNG generado">
+                                <div class="signature-preview-empty" id="signature-preview-empty">El PNG generado aparecerá aquí</div>
+                            </div>
+                            <p class="signature-generator-meta" id="signature-generator-meta"></p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -1700,6 +1900,10 @@
         let currentPdfPageHeight = 0;
         let draggingSignatureIndex = null;
         let markerMovedDuringDrag = false;
+        let signatureSourceFile = null;
+        let preparedSignatureBlob = null;
+        let preparedSignatureFileName = '';
+        let preparedSignaturePreviewUrl = null;
 
         const preferredLanguage = Array.isArray(navigator.languages) && navigator.languages.length
             ? navigator.languages[0]
@@ -1764,6 +1968,10 @@
 
         function getPdfBaseName(filename) {
             return filename.replace(/\.pdf$/i, '');
+        }
+
+        function getFileBaseName(filename) {
+            return filename.replace(/\.[^.]+$/i, '');
         }
 
         function translatePageToEnglish() {
@@ -1835,6 +2043,10 @@
             updateExtractLabel('Click to select PDF');
             updateSignPdfLabel('Click to select PDF to sign');
             updateSignImageLabel(signImageBytes ? 'Signature loaded' : 'Click to select signature image (PNG)', !!signImageBytes);
+            updateSignatureSourceLabel(
+                signatureSourceFile ? signatureSourceFile.name : 'Click to select signature photo',
+                !!signatureSourceFile
+            );
 
             document.getElementById('prev-page').textContent = '◀ Previous';
             document.getElementById('next-page').textContent = 'Next ▶';
@@ -1846,6 +2058,18 @@
             document.querySelector('label[for="apply-all-pages"]').textContent = 'Apply to all pages';
             document.querySelector('.signature-controls .btn-primary').textContent = 'Apply signature and download';
             document.getElementById('signature-preview').alt = 'Signature preview';
+            document.querySelector('.signature-generator-kicker').textContent = 'Prepare PNG';
+            document.getElementById('signature-generator-title').textContent = 'Create a transparent PNG from a photo';
+            document.getElementById('signature-generator-copy').textContent = 'Upload a photo of the signature on paper, generate a clean transparent version, and download it. This step only runs when you ask for it and does not change the stored signature.';
+            document.getElementById('signature-sensitivity-label').textContent = 'Cleanup sensitivity';
+            document.querySelector('label[for="signature-auto-trim"]').textContent = 'Trim to the signature outline';
+            document.querySelector('#signature-clean-sensitivity + .slider-label span:first-child').textContent = 'Soft';
+            document.querySelector('#signature-clean-sensitivity + .slider-label span:last-child').textContent = 'Strong';
+            document.getElementById('signature-generate-action').textContent = 'Generate PNG';
+            document.getElementById('signature-download-action').textContent = 'Download PNG';
+            document.getElementById('signature-use-action').textContent = 'Use as signature';
+            document.getElementById('prepared-signature-preview').alt = 'Generated PNG preview';
+            document.getElementById('signature-preview-empty').textContent = 'The generated PNG will appear here';
 
             document.querySelector('.info-box h4').textContent = 'Privacy and security';
             const infoParagraphs = document.querySelectorAll('.info-box-content p');
@@ -1875,6 +2099,15 @@
 
         function updateSignImageLabel(text, hasFile = false) {
             updateFileInputLabel('sign-image-label', 'sign-image-file', text, hasFile);
+        }
+
+        function updateSignatureSourceLabel(text, hasFile = false) {
+            updateFileInputLabel('signature-source-label', 'signature-source-file', text, hasFile);
+        }
+
+        function updateSignatureCleanSensitivity() {
+            const value = document.getElementById('signature-clean-sensitivity').value;
+            document.getElementById('signature-clean-value').textContent = value;
         }
 
         function updateSignaturePreview(src, nombre, isObjectUrl = false) {
@@ -2080,11 +2313,370 @@
             reader.readAsDataURL(file);
         }
 
+        function resetPreparedSignature() {
+            preparedSignatureBlob = null;
+            preparedSignatureFileName = '';
+
+            if (preparedSignaturePreviewUrl) {
+                URL.revokeObjectURL(preparedSignaturePreviewUrl);
+                preparedSignaturePreviewUrl = null;
+            }
+
+            const preview = document.getElementById('prepared-signature-preview');
+            const empty = document.getElementById('signature-preview-empty');
+            const meta = document.getElementById('signature-generator-meta');
+
+            preview.removeAttribute('src');
+            preview.classList.remove('visible');
+            empty.style.display = 'block';
+            meta.textContent = '';
+            document.getElementById('signature-download-action').disabled = true;
+            document.getElementById('signature-use-action').disabled = true;
+        }
+
+        function loadImageElementFromFile(file) {
+            return new Promise((resolve, reject) => {
+                const url = URL.createObjectURL(file);
+                const image = new Image();
+                image.onload = () => {
+                    URL.revokeObjectURL(url);
+                    resolve(image);
+                };
+                image.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    reject(new Error(i18n('The image could not be loaded', 'No se pudo cargar la imagen')));
+                };
+                image.src = url;
+            });
+        }
+
+        function percentileFromHistogram(histogram, total, percentile) {
+            const target = Math.max(1, Math.floor(total * percentile));
+            let sum = 0;
+            for (let i = 0; i < histogram.length; i++) {
+                sum += histogram[i];
+                if (sum >= target) return i;
+            }
+            return histogram.length - 1;
+        }
+
+        function buildPreparedSignature(image, options) {
+            const sourceCanvas = document.createElement('canvas');
+            sourceCanvas.width = image.naturalWidth || image.width;
+            sourceCanvas.height = image.naturalHeight || image.height;
+
+            const sourceContext = sourceCanvas.getContext('2d', { willReadFrequently: true });
+            sourceContext.fillStyle = '#ffffff';
+            sourceContext.fillRect(0, 0, sourceCanvas.width, sourceCanvas.height);
+            sourceContext.drawImage(image, 0, 0, sourceCanvas.width, sourceCanvas.height);
+
+            const width = sourceCanvas.width;
+            const height = sourceCanvas.height;
+            const total = width * height;
+            const sourceImageData = sourceContext.getImageData(0, 0, width, height);
+            const source = sourceImageData.data;
+            const histogram = new Array(256).fill(0);
+            const luminance = new Uint8Array(total);
+
+            for (let i = 0, pixel = 0; i < source.length; i += 4, pixel++) {
+                const luma = Math.round(source[i] * 0.299 + source[i + 1] * 0.587 + source[i + 2] * 0.114);
+                luminance[pixel] = luma;
+                histogram[luma]++;
+            }
+
+            const paperLuma = percentileFromHistogram(histogram, total, 0.9);
+            const sensitivity = Number(options.sensitivity) || 58;
+            const minContrast = clamp(70 - sensitivity * 0.75, 12, 60);
+            const fullContrast = minContrast + 48;
+            const candidateAlpha = new Uint8Array(total);
+            const candidateMask = new Uint8Array(total);
+
+            for (let pixel = 0; pixel < total; pixel++) {
+                const contrast = paperLuma - luminance[pixel];
+                const strength = clamp((contrast - minContrast) / (fullContrast - minContrast), 0, 1);
+                const alpha = Math.round(strength * 255);
+                candidateAlpha[pixel] = alpha;
+                candidateMask[pixel] = alpha > 10 ? 1 : 0;
+            }
+
+            const finalAlpha = new Uint8Array(total);
+            const visited = new Uint8Array(total);
+            const queue = new Int32Array(total);
+            const edgeMargin = Math.max(4, Math.round(Math.min(width, height) * 0.01));
+            const minComponentArea = Math.max(80, Math.round(total * 0.00001));
+            const maxComponentArea = Math.round(total * 0.35);
+            const keptComponents = [];
+            let minX = width;
+            let minY = height;
+            let maxX = -1;
+            let maxY = -1;
+            let keptPixels = 0;
+
+            for (let start = 0; start < total; start++) {
+                if (!candidateMask[start] || visited[start]) continue;
+
+                let head = 0;
+                let tail = 0;
+                let touchesEdge = false;
+                let area = 0;
+                let componentMinX = width;
+                let componentMinY = height;
+                let componentMaxX = -1;
+                let componentMaxY = -1;
+                visited[start] = 1;
+                queue[tail++] = start;
+
+                while (head < tail) {
+                    const current = queue[head++];
+                    area++;
+
+                    const x = current % width;
+                    const y = (current - x) / width;
+                    if (x <= edgeMargin || y <= edgeMargin || x >= width - edgeMargin || y >= height - edgeMargin) {
+                        touchesEdge = true;
+                    }
+                    if (x < componentMinX) componentMinX = x;
+                    if (y < componentMinY) componentMinY = y;
+                    if (x > componentMaxX) componentMaxX = x;
+                    if (y > componentMaxY) componentMaxY = y;
+
+                    const left = current - 1;
+                    const right = current + 1;
+                    const up = current - width;
+                    const down = current + width;
+
+                    if (x > 0 && candidateMask[left] && !visited[left]) {
+                        visited[left] = 1;
+                        queue[tail++] = left;
+                    }
+                    if (x < width - 1 && candidateMask[right] && !visited[right]) {
+                        visited[right] = 1;
+                        queue[tail++] = right;
+                    }
+                    if (y > 0 && candidateMask[up] && !visited[up]) {
+                        visited[up] = 1;
+                        queue[tail++] = up;
+                    }
+                    if (y < height - 1 && candidateMask[down] && !visited[down]) {
+                        visited[down] = 1;
+                        queue[tail++] = down;
+                    }
+                }
+
+                const keepComponent = !touchesEdge && area >= minComponentArea && area <= maxComponentArea;
+                if (!keepComponent) continue;
+
+                keptComponents.push({
+                    area,
+                    minX: componentMinX,
+                    minY: componentMinY,
+                    maxX: componentMaxX,
+                    maxY: componentMaxY
+                });
+
+                for (let j = 0; j < tail; j++) {
+                    const pixel = queue[j];
+                    const alpha = candidateAlpha[pixel];
+                    if (alpha <= 0) continue;
+
+                    finalAlpha[pixel] = alpha;
+                    keptPixels++;
+
+                    const x = pixel % width;
+                    const y = (pixel - x) / width;
+                    if (x < minX) minX = x;
+                    if (y < minY) minY = y;
+                    if (x > maxX) maxX = x;
+                    if (y > maxY) maxY = y;
+                }
+            }
+
+            if (keptPixels === 0) {
+                throw new Error(i18n(
+                    'No signature strokes were detected. Try increasing the cleanup sensitivity.',
+                    'No se detectaron trazos de firma. Prueba subir la sensibilidad de limpieza.'
+                ));
+            }
+
+            let cropMinX = minX;
+            let cropMinY = minY;
+            let cropMaxX = maxX;
+            let cropMaxY = maxY;
+            const largestComponentArea = keptComponents.reduce((largest, component) => {
+                return Math.max(largest, component.area);
+            }, 0);
+
+            if (largestComponentArea > 0) {
+                const anchorThreshold = Math.max(minComponentArea, largestComponentArea * 0.02);
+                const anchorComponents = keptComponents.filter(component => component.area >= anchorThreshold);
+
+                if (anchorComponents.length > 0) {
+                    let anchorMinX = width;
+                    let anchorMinY = height;
+                    let anchorMaxX = -1;
+                    let anchorMaxY = -1;
+
+                    anchorComponents.forEach(component => {
+                        if (component.minX < anchorMinX) anchorMinX = component.minX;
+                        if (component.minY < anchorMinY) anchorMinY = component.minY;
+                        if (component.maxX > anchorMaxX) anchorMaxX = component.maxX;
+                        if (component.maxY > anchorMaxY) anchorMaxY = component.maxY;
+                    });
+
+                    const neighborPadding = Math.max(32, Math.round(Math.max(width, height) * 0.04));
+                    const neighborMinArea = Math.max(minComponentArea, Math.round(largestComponentArea * 0.001));
+                    const selectedComponents = keptComponents.filter(component => {
+                        if (component.area >= anchorThreshold) return true;
+                        if (component.area < neighborMinArea) return false;
+
+                        return component.maxX >= anchorMinX - neighborPadding
+                            && component.minX <= anchorMaxX + neighborPadding
+                            && component.maxY >= anchorMinY - neighborPadding
+                            && component.minY <= anchorMaxY + neighborPadding;
+                    });
+
+                    cropMinX = width;
+                    cropMinY = height;
+                    cropMaxX = -1;
+                    cropMaxY = -1;
+
+                    selectedComponents.forEach(component => {
+                        if (component.minX < cropMinX) cropMinX = component.minX;
+                        if (component.minY < cropMinY) cropMinY = component.minY;
+                        if (component.maxX > cropMaxX) cropMaxX = component.maxX;
+                        if (component.maxY > cropMaxY) cropMaxY = component.maxY;
+                    });
+                }
+            }
+
+            const padding = Math.max(18, Math.round(Math.max(width, height) * 0.015));
+            const cropX = options.trim ? Math.max(0, cropMinX - padding) : 0;
+            const cropY = options.trim ? Math.max(0, cropMinY - padding) : 0;
+            const cropRight = options.trim ? Math.min(width - 1, cropMaxX + padding) : width - 1;
+            const cropBottom = options.trim ? Math.min(height - 1, cropMaxY + padding) : height - 1;
+            const outputWidth = cropRight - cropX + 1;
+            const outputHeight = cropBottom - cropY + 1;
+            const outputCanvas = document.createElement('canvas');
+            outputCanvas.width = outputWidth;
+            outputCanvas.height = outputHeight;
+
+            const outputContext = outputCanvas.getContext('2d');
+            const outputImageData = outputContext.createImageData(outputWidth, outputHeight);
+            const output = outputImageData.data;
+
+            for (let y = 0; y < outputHeight; y++) {
+                for (let x = 0; x < outputWidth; x++) {
+                    const sourcePixel = (cropY + y) * width + cropX + x;
+                    const outputIndex = (y * outputWidth + x) * 4;
+                    output[outputIndex] = 0;
+                    output[outputIndex + 1] = 0;
+                    output[outputIndex + 2] = 0;
+                    output[outputIndex + 3] = finalAlpha[sourcePixel];
+                }
+            }
+
+            outputContext.putImageData(outputImageData, 0, 0);
+            return {
+                canvas: outputCanvas,
+                width: outputWidth,
+                height: outputHeight,
+                keptPixels
+            };
+        }
+
+        function canvasToPngBlob(canvas) {
+            return new Promise((resolve, reject) => {
+                canvas.toBlob(blob => {
+                    if (blob) resolve(blob);
+                    else reject(new Error(i18n('The PNG could not be created', 'No se pudo crear el PNG')));
+                }, 'image/png');
+            });
+        }
+
+        async function generateSignaturePng() {
+            if (!signatureSourceFile) {
+                showStatus(
+                    i18n('Select a signature photo first', 'Primero selecciona una foto de la firma'),
+                    'error'
+                );
+                return;
+            }
+
+            const finishProcessing = setActionBusy(
+                'signature-generate-action',
+                i18n('Generating...', 'Generando...')
+            );
+            if (!finishProcessing) return;
+
+            showStatus(i18n('Preparing transparent PNG...', 'Preparando PNG transparente...'), 'processing');
+
+            try {
+                const image = await loadImageElementFromFile(signatureSourceFile);
+                const processed = buildPreparedSignature(image, {
+                    sensitivity: document.getElementById('signature-clean-sensitivity').value,
+                    trim: document.getElementById('signature-auto-trim').checked
+                });
+
+                preparedSignatureBlob = await canvasToPngBlob(processed.canvas);
+                preparedSignatureFileName = getFileBaseName(signatureSourceFile.name || 'firma') + '-firma.png';
+
+                if (preparedSignaturePreviewUrl) URL.revokeObjectURL(preparedSignaturePreviewUrl);
+                preparedSignaturePreviewUrl = URL.createObjectURL(preparedSignatureBlob);
+
+                const preview = document.getElementById('prepared-signature-preview');
+                const empty = document.getElementById('signature-preview-empty');
+                preview.src = preparedSignaturePreviewUrl;
+                preview.classList.add('visible');
+                empty.style.display = 'none';
+
+                document.getElementById('signature-download-action').disabled = false;
+                document.getElementById('signature-use-action').disabled = false;
+                document.getElementById('signature-generator-meta').textContent = i18n(
+                    'PNG ready: {{width}} x {{height}} px',
+                    'PNG listo: {{width}} x {{height}} px',
+                    { width: String(processed.width), height: String(processed.height) }
+                );
+
+                showStatus(
+                    i18n('Transparent signature PNG generated', 'PNG transparente de firma generado'),
+                    'success'
+                );
+            } catch (error) {
+                console.error(error);
+                showStatus(
+                    i18n('Error generating PNG: {{message}}', 'Error generando PNG: {{message}}', {
+                        message: error.message
+                    }),
+                    'error'
+                );
+            } finally {
+                finishProcessing();
+            }
+        }
+
+        function downloadPreparedSignature() {
+            if (!preparedSignatureBlob) return;
+            saveAs(preparedSignatureBlob, preparedSignatureFileName || 'firma.png');
+        }
+
+        async function usePreparedSignature() {
+            if (!preparedSignatureBlob) return;
+
+            const fileName = preparedSignatureFileName || 'firma.png';
+            const file = new File([preparedSignatureBlob], fileName, { type: 'image/png' });
+            await setSignatureImageFile(file);
+            showStatus(
+                i18n('Generated PNG loaded as the active signature', 'PNG generado cargado como firma activa'),
+                'success'
+            );
+        }
+
         // ==================== FECHAS Y AVANCE ====================
 
         // Inicializar fechas al cargar
         document.addEventListener('DOMContentLoaded', function() {
             translatePageToEnglish();
+            updateSignatureCleanSensitivity();
 
             const hoy = new Date().toISOString().split('T')[0];
             document.getElementById('fecha-calculo').value = hoy;
@@ -2830,6 +3422,10 @@
             this.value = '';
         });
 
+        document.getElementById('signature-source-file').addEventListener('click', function() {
+            this.value = '';
+        });
+
         document.getElementById('sign-pdf-file').addEventListener('change', async function(e) {
             const selectedFile = e.target.files[0];
             if (selectedFile) {
@@ -2846,6 +3442,22 @@
                     'success'
                 );
             }
+        });
+
+        document.getElementById('signature-source-file').addEventListener('change', function(e) {
+            const selectedFile = e.target.files[0];
+            if (!selectedFile) return;
+
+            signatureSourceFile = selectedFile;
+            resetPreparedSignature();
+            updateSignatureSourceLabel(selectedFile.name, true);
+            showStatus(
+                i18n(
+                    'Signature photo loaded. Generate the PNG when you are ready.',
+                    'Foto de firma cargada. Genera el PNG cuando estés listo.'
+                ),
+                'success'
+            );
         });
 
         document.addEventListener('pointermove', handleSignatureDrag);
