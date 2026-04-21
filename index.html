@@ -405,6 +405,43 @@
             box-shadow: none;
         }
 
+        .btn.is-processing {
+            position: relative;
+            opacity: 1;
+            cursor: wait;
+            padding-left: 48px;
+        }
+
+        .btn.is-processing::before {
+            content: '';
+            position: absolute;
+            left: 22px;
+            top: 50%;
+            width: 14px;
+            height: 14px;
+            margin-top: -7px;
+            border: 2px solid rgba(255, 255, 255, 0.36);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 0.78s linear infinite;
+        }
+
+        .btn-primary.is-processing:disabled {
+            opacity: 1;
+            background: linear-gradient(180deg, #2f6faa 0%, var(--accent) 100%);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.16);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.12),
+                0 10px 22px rgba(0, 113, 227, 0.18);
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         .btn-secondary {
             background: transparent;
             color: var(--accent);
@@ -495,6 +532,81 @@
             margin-bottom: 8px;
             font-size: 0.88rem;
             color: var(--muted-strong);
+        }
+
+        .file-item[draggable="true"] {
+            cursor: grab;
+        }
+
+        .file-item.dragging {
+            opacity: 0.58;
+        }
+
+        .file-item.drag-over {
+            border-color: rgba(0, 113, 227, 0.5);
+            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+        }
+
+        .file-main {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .file-order-index {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 28px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(0, 113, 227, 0.1);
+            color: var(--accent-strong);
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .file-name {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            flex: 0 0 auto;
+        }
+
+        .file-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border: 1px solid rgba(29, 29, 31, 0.1);
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.78);
+            color: var(--muted-strong);
+            cursor: pointer;
+            font-size: 0.9rem;
+            line-height: 1;
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .file-action:hover:not(:disabled) {
+            background: rgba(0, 113, 227, 0.1);
+            border-color: rgba(0, 113, 227, 0.2);
+            color: var(--accent-strong);
+        }
+
+        .file-action:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
         }
 
         .file-item .remove {
@@ -1395,7 +1507,7 @@
                     <label for="merge-bookmarks">Agregar marcadores por archivo</label>
                 </div>
 
-                <button class="btn btn-primary" style="margin-top: 16px;" onclick="unirPDFs()">
+                <button class="btn btn-primary" id="merge-action" style="margin-top: 16px;" onclick="unirPDFs()">
                     Unir PDFs
                 </button>
             </div>
@@ -1420,7 +1532,7 @@
                     <label for="split-zip">Descargar como ZIP</label>
                 </div>
 
-                <button class="btn btn-primary" style="margin-top: 16px;" onclick="separarPDF()">
+                <button class="btn btn-primary" id="split-action" style="margin-top: 16px;" onclick="separarPDF()">
                     Separar por páginas
                 </button>
             </div>
@@ -1445,7 +1557,7 @@
                     <input type="text" id="extract-pages" placeholder="1, 2, 3 o 1-5, 8, 10-12">
                 </div>
 
-                <button class="btn btn-primary" style="margin-top: 16px;" onclick="extraerPaginas()">
+                <button class="btn btn-primary" id="extract-action" style="margin-top: 16px;" onclick="extraerPaginas()">
                     Extraer páginas
                 </button>
             </div>
@@ -1525,7 +1637,7 @@
                         <label for="apply-all-pages">Aplicar a todas las páginas</label>
                     </div>
 
-                    <button class="btn btn-primary" style="margin-top: 16px; width: 100%;" onclick="applySignatures()">
+                    <button class="btn btn-primary" id="sign-action" style="margin-top: 16px; width: 100%;" onclick="applySignatures()">
                         Aplicar firma y descargar
                     </button>
 
@@ -1562,13 +1674,14 @@
     <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
     <script>
-        const { PDFDocument } = PDFLib;
+        const { PDFDocument, PDFHexString, PDFName } = PDFLib;
 
         // Configurar PDF.js worker
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
         // Estado de archivos
         let mergeFiles = [];
+        let draggedMergeIndex = null;
         let splitFile = null;
         let extractFile = null;
 
@@ -2143,6 +2256,26 @@
             }
         }
 
+        function setActionBusy(buttonId, busyText) {
+            const button = document.getElementById(buttonId);
+            if (!button) return () => {};
+            if (button.disabled) return null;
+
+            button.dataset.originalText = button.textContent.trim();
+            button.textContent = busyText;
+            button.disabled = true;
+            button.classList.add('is-processing');
+            button.setAttribute('aria-busy', 'true');
+
+            return () => {
+                button.textContent = button.dataset.originalText || '';
+                delete button.dataset.originalText;
+                button.disabled = false;
+                button.classList.remove('is-processing');
+                button.removeAttribute('aria-busy');
+            };
+        }
+
         // ==================== DRAG & DROP ====================
 
         function initDragDrop() {
@@ -2204,7 +2337,110 @@
         }
 
         function loadPdfDocument(arrayBuffer) {
-            return PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
+            return PDFDocument.load(arrayBuffer);
+        }
+
+        function isEncryptedPdfError(error) {
+            return /encrypted/i.test(error?.message || '');
+        }
+
+        async function appendRenderedPdfPages(targetPdf, arrayBuffer, pageIndices = null) {
+            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer.slice(0) });
+            const sourcePdf = await loadingTask.promise;
+            const indices = pageIndices || Array.from({ length: sourcePdf.numPages }, (_, index) => index);
+
+            try {
+                for (const pageIndex of indices) {
+                    const sourcePage = await sourcePdf.getPage(pageIndex + 1);
+                    const pdfViewport = sourcePage.getViewport({ scale: 1 });
+                    const renderViewport = sourcePage.getViewport({ scale: 2 });
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+
+                    canvas.width = Math.ceil(renderViewport.width);
+                    canvas.height = Math.ceil(renderViewport.height);
+
+                    context.fillStyle = '#ffffff';
+                    context.fillRect(0, 0, canvas.width, canvas.height);
+
+                    await sourcePage.render({
+                        canvasContext: context,
+                        viewport: renderViewport
+                    }).promise;
+
+                    const image = await targetPdf.embedPng(canvas.toDataURL('image/png'));
+                    const page = targetPdf.addPage([pdfViewport.width, pdfViewport.height]);
+                    page.drawImage(image, {
+                        x: 0,
+                        y: 0,
+                        width: pdfViewport.width,
+                        height: pdfViewport.height
+                    });
+
+                    canvas.width = 0;
+                    canvas.height = 0;
+                }
+            } finally {
+                await sourcePdf.destroy();
+            }
+
+            return indices.length;
+        }
+
+        async function appendPdfFilePages(targetPdf, file, pageIndices = null) {
+            const arrayBuffer = await file.arrayBuffer();
+
+            try {
+                const sourcePdf = await loadPdfDocument(arrayBuffer);
+                const indices = pageIndices || sourcePdf.getPageIndices();
+                const pages = await targetPdf.copyPages(sourcePdf, indices);
+                pages.forEach(page => targetPdf.addPage(page));
+                return { pageCount: indices.length, rasterized: false };
+            } catch (error) {
+                if (!isEncryptedPdfError(error)) throw error;
+
+                const pageCount = await appendRenderedPdfPages(targetPdf, arrayBuffer, pageIndices);
+                return { pageCount, rasterized: true };
+            }
+        }
+
+        function addMergeBookmarks(pdfDoc, bookmarkEntries) {
+            const entries = bookmarkEntries.filter(entry => entry.pageIndex >= 0);
+            if (entries.length === 0) return;
+
+            const context = pdfDoc.context;
+            const outlinesRef = context.nextRef();
+            const itemRefs = entries.map(() => context.nextRef());
+
+            entries.forEach((entry, index) => {
+                const page = pdfDoc.getPage(entry.pageIndex);
+                const itemDict = context.obj({
+                    Title: PDFHexString.fromText(entry.title),
+                    Parent: outlinesRef,
+                    Dest: context.obj([page.ref, PDFName.of('Fit')])
+                });
+
+                if (index > 0) {
+                    itemDict.set(PDFName.of('Prev'), itemRefs[index - 1]);
+                }
+
+                if (index < entries.length - 1) {
+                    itemDict.set(PDFName.of('Next'), itemRefs[index + 1]);
+                }
+
+                context.assign(itemRefs[index], itemDict);
+            });
+
+            const outlinesDict = context.obj({
+                Type: PDFName.of('Outlines'),
+                First: itemRefs[0],
+                Last: itemRefs[itemRefs.length - 1],
+                Count: entries.length
+            });
+
+            context.assign(outlinesRef, outlinesDict);
+            pdfDoc.catalog.set(PDFName.of('Outlines'), outlinesRef);
+            pdfDoc.catalog.set(PDFName.of('PageMode'), PDFName.of('UseOutlines'));
         }
 
         // ==================== UNIR PDFs ====================
@@ -2222,10 +2458,66 @@
             mergeFiles.forEach((file, index) => {
                 const item = document.createElement('div');
                 item.className = 'file-item';
-                item.innerHTML = `
-                    <span>${index + 1}. ${file.name}</span>
-                    <span class="remove" onclick="removerMergeFile(${index})">✕</span>
-                `;
+                item.draggable = true;
+                item.dataset.index = String(index);
+
+                item.addEventListener('dragstart', event => {
+                    draggedMergeIndex = index;
+                    item.classList.add('dragging');
+                    event.dataTransfer.effectAllowed = 'move';
+                    event.dataTransfer.setData('text/plain', String(index));
+                });
+
+                item.addEventListener('dragend', () => {
+                    draggedMergeIndex = null;
+                    item.classList.remove('dragging');
+                    document.querySelectorAll('#merge-list .drag-over').forEach(el => {
+                        el.classList.remove('drag-over');
+                    });
+                });
+
+                item.addEventListener('dragover', event => {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = 'move';
+                    item.classList.add('drag-over');
+                });
+
+                item.addEventListener('dragleave', () => {
+                    item.classList.remove('drag-over');
+                });
+
+                item.addEventListener('drop', event => {
+                    event.preventDefault();
+                    item.classList.remove('drag-over');
+                    const dragData = event.dataTransfer.getData('text/plain');
+                    const fromIndex = dragData === '' ? draggedMergeIndex : Number(dragData);
+                    moverMergeFileAIndice(fromIndex, index);
+                });
+
+                const main = document.createElement('div');
+                main.className = 'file-main';
+
+                const order = document.createElement('span');
+                order.className = 'file-order-index';
+                order.textContent = String(index + 1);
+
+                const name = document.createElement('span');
+                name.className = 'file-name';
+                name.title = file.name;
+                name.textContent = file.name;
+
+                main.append(order, name);
+
+                const actions = document.createElement('div');
+                actions.className = 'file-actions';
+
+                actions.append(
+                    crearBotonOrdenMerge('↑', i18n('Move up', 'Subir'), index === 0, () => moverMergeFile(index, -1)),
+                    crearBotonOrdenMerge('↓', i18n('Move down', 'Bajar'), index === mergeFiles.length - 1, () => moverMergeFile(index, 1)),
+                    crearBotonOrdenMerge('✕', i18n('Remove', 'Quitar'), false, () => removerMergeFile(index), 'remove')
+                );
+
+                item.append(main, actions);
                 list.appendChild(item);
             });
 
@@ -2239,6 +2531,43 @@
             } else {
                 updateMergeLabel(i18n('Click to select PDF files', 'Click para seleccionar archivos PDF'));
             }
+        }
+
+        function crearBotonOrdenMerge(text, label, disabled, onClick, extraClass = '') {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = `file-action ${extraClass}`.trim();
+            button.textContent = text;
+            button.title = label;
+            button.setAttribute('aria-label', label);
+            button.disabled = disabled;
+            button.addEventListener('click', event => {
+                event.stopPropagation();
+                onClick();
+            });
+            return button;
+        }
+
+        function moverMergeFile(index, direction) {
+            moverMergeFileAIndice(index, index + direction);
+        }
+
+        function moverMergeFileAIndice(fromIndex, toIndex) {
+            if (
+                Number.isNaN(fromIndex)
+                || Number.isNaN(toIndex)
+                || fromIndex === toIndex
+                || fromIndex < 0
+                || toIndex < 0
+                || fromIndex >= mergeFiles.length
+                || toIndex >= mergeFiles.length
+            ) {
+                return;
+            }
+
+            const [file] = mergeFiles.splice(fromIndex, 1);
+            mergeFiles.splice(toIndex, 0, file);
+            actualizarMergeList();
         }
 
         function removerMergeFile(index) {
@@ -2255,30 +2584,64 @@
                 return;
             }
 
+            const finishProcessing = setActionBusy(
+                'merge-action',
+                i18n('Merging...', 'Uniendo...')
+            );
+            if (!finishProcessing) return;
+
             showStatus(i18n('Processing...', 'Procesando...'), 'processing');
 
             try {
                 const pdfUnido = await PDFDocument.create();
                 const bookmarks = document.getElementById('merge-bookmarks').checked;
+                const rasterizedFiles = [];
+                const bookmarkEntries = [];
 
                 for (let i = 0; i < mergeFiles.length; i++) {
                     const file = mergeFiles[i];
-                    const arrayBuffer = await file.arrayBuffer();
-                    const pdf = await loadPdfDocument(arrayBuffer);
+                    showStatus(
+                        i18n('Processing {{name}}...', 'Procesando {{name}}...', {
+                            name: file.name
+                        }),
+                        'processing'
+                    );
 
-                    const indices = pdf.getPageIndices();
-                    const paginas = await pdfUnido.copyPages(pdf, indices);
-                    paginas.forEach(p => pdfUnido.addPage(p));
+                    const startPageIndex = pdfUnido.getPageCount();
+                    const result = await appendPdfFilePages(pdfUnido, file);
+                    if (bookmarks && result.pageCount > 0) {
+                        bookmarkEntries.push({
+                            title: getPdfBaseName(file.name),
+                            pageIndex: startPageIndex
+                        });
+                    }
+
+                    if (result.rasterized) rasterizedFiles.push(file.name);
+                }
+
+                if (bookmarks) {
+                    addMergeBookmarks(pdfUnido, bookmarkEntries);
                 }
 
                 const pdfBytes = await pdfUnido.save();
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
                 saveAs(blob, i18n('merged-document.pdf', 'documento-unido.pdf'));
 
-                showStatus(
-                    i18n('PDFs merged successfully!', '¡PDFs unidos exitosamente!'),
-                    'success'
-                );
+                if (rasterizedFiles.length > 0) {
+                    showStatus(
+                        i18n(
+                            'PDFs merged successfully. Protected files were flattened as images: {{files}}',
+                            'PDFs unidos exitosamente. Los archivos protegidos se aplanaron como imágenes: {{files}}',
+                            { files: rasterizedFiles.join(', ') }
+                        ),
+                        'success'
+                    );
+                } else {
+                    showStatus(
+                        i18n('PDFs merged successfully!', '¡PDFs unidos exitosamente!'),
+                        'success'
+                    );
+                }
             } catch (error) {
                 console.error(error);
                 showStatus(
@@ -2287,6 +2650,8 @@
                     }),
                     'error'
                 );
+            } finally {
+                finishProcessing();
             }
         }
 
@@ -2314,6 +2679,12 @@
                 showStatus(i18n('Select a PDF file', 'Selecciona un archivo PDF'), 'error');
                 return;
             }
+
+            const finishProcessing = setActionBusy(
+                'split-action',
+                i18n('Splitting...', 'Separando...')
+            );
+            if (!finishProcessing) return;
 
             showStatus(i18n('Processing...', 'Procesando...'), 'processing');
 
@@ -2366,6 +2737,8 @@
                     }),
                     'error'
                 );
+            } finally {
+                finishProcessing();
             }
         }
 
@@ -2399,6 +2772,12 @@
                 showStatus(i18n('Enter the pages to extract', 'Ingresa las páginas a extraer'), 'error');
                 return;
             }
+
+            const finishProcessing = setActionBusy(
+                'extract-action',
+                i18n('Extracting...', 'Extrayendo...')
+            );
+            if (!finishProcessing) return;
 
             showStatus(i18n('Processing...', 'Procesando...'), 'processing');
 
@@ -2436,6 +2815,8 @@
                     }),
                     'error'
                 );
+            } finally {
+                finishProcessing();
             }
         }
 
@@ -2717,6 +3098,12 @@
                 return;
             }
 
+            const finishProcessing = setActionBusy(
+                'sign-action',
+                i18n('Applying...', 'Aplicando...')
+            );
+            if (!finishProcessing) return;
+
             showStatus(i18n('Applying signature(s)...', 'Aplicando firma(s)...'), 'processing');
 
             try {
@@ -2782,6 +3169,8 @@
                     }),
                     'error'
                 );
+            } finally {
+                finishProcessing();
             }
         }
     </script>
