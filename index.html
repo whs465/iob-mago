@@ -1582,6 +1582,7 @@
         let signatureMarkers = []; // { page, x, y, size }
         let currentScale = 1;
         let signImagePreviewUrl = null;
+        let signImageAspectRatio = 1;
         let currentPdfPageWidth = 0;
         let currentPdfPageHeight = 0;
         let draggingSignatureIndex = null;
@@ -1781,6 +1782,30 @@
             updateSignImageLabel(nombre || i18n('Signature loaded', 'Firma cargada'), true);
         }
 
+        function loadSignatureAspectRatio(src) {
+            return new Promise((resolve, reject) => {
+                const image = new Image();
+                image.onload = () => {
+                    if (image.naturalWidth && image.naturalHeight) {
+                        resolve(image.naturalWidth / image.naturalHeight);
+                    } else {
+                        reject(new Error('Invalid signature image dimensions'));
+                    }
+                };
+                image.onerror = reject;
+                image.src = src;
+            });
+        }
+
+        async function updateSignatureAspectRatio(src) {
+            try {
+                signImageAspectRatio = await loadSignatureAspectRatio(src);
+            } catch (e) {
+                signImageAspectRatio = 1;
+            }
+            updateMarkersDisplay();
+        }
+
         function clamp(value, min, max) {
             return Math.min(Math.max(value, min), max);
         }
@@ -1794,13 +1819,38 @@
             };
         }
 
+        function getSignaturePdfDimensions(marker, aspectRatio = signImageAspectRatio) {
+            const width = marker.size;
+            const safeAspectRatio = Number.isFinite(aspectRatio) && aspectRatio > 0 ? aspectRatio : 1;
+            return {
+                width,
+                height: width / safeAspectRatio
+            };
+        }
+
+        function getSignatureCanvasDimensions(marker) {
+            const { width, height } = getCanvasMetrics();
+            const pdfDimensions = getSignaturePdfDimensions(marker);
+
+            if (!width || !height || !currentPdfPageWidth || !currentPdfPageHeight) {
+                return pdfDimensions;
+            }
+
+            return {
+                width: (pdfDimensions.width / currentPdfPageWidth) * width,
+                height: (pdfDimensions.height / currentPdfPageHeight) * height
+            };
+        }
+
         function updateMarkerPdfPosition(marker, canvasX, canvasY) {
             const { width, height } = getCanvasMetrics();
             if (!width || !height || !currentPdfPageWidth || !currentPdfPageHeight) return;
 
-            const halfSize = marker.size / 2;
-            const clampedX = clamp(canvasX, halfSize, Math.max(halfSize, width - halfSize));
-            const clampedY = clamp(canvasY, halfSize, Math.max(halfSize, height - halfSize));
+            const markerDimensions = getSignatureCanvasDimensions(marker);
+            const halfWidth = markerDimensions.width / 2;
+            const halfHeight = markerDimensions.height / 2;
+            const clampedX = clamp(canvasX, halfWidth, Math.max(halfWidth, width - halfWidth));
+            const clampedY = clamp(canvasY, halfHeight, Math.max(halfHeight, height - halfHeight));
 
             marker.canvasX = clampedX;
             marker.canvasY = clampedY;
@@ -1889,6 +1939,7 @@
                 const { dataUrl, nombre } = JSON.parse(firmaGuardada);
                 signImageBytes = dataUrlToArrayBuffer(dataUrl);
                 updateSignaturePreview(dataUrl, nombre || i18n('Signature loaded', 'Firma cargada'));
+                updateSignatureAspectRatio(dataUrl);
             } catch (e) {
                 localStorage.removeItem('firmaImagen');
             }
@@ -1900,6 +1951,7 @@
 
             const previewUrl = URL.createObjectURL(file);
             updateSignaturePreview(previewUrl, file.name, true);
+            await updateSignatureAspectRatio(previewUrl);
 
             const reader = new FileReader();
             reader.onload = function(ev) {
@@ -2565,8 +2617,9 @@
                 }
                 div.style.left = x + 'px';
                 div.style.top = y + 'px';
-                div.style.width = marker.size + 'px';
-                div.style.height = marker.size + 'px';
+                const dimensions = getSignatureCanvasDimensions(marker);
+                div.style.width = dimensions.width + 'px';
+                div.style.height = dimensions.height + 'px';
 
                 div.onpointerdown = (e) => {
                     if (e.target.closest('.signature-marker-delete')) return;
@@ -2676,19 +2729,19 @@
                 }
 
                 const aplicarFirma = (page, marker) => {
-                    const size = marker.size;
-                    const pageHeight = page.getHeight();
+                    const imageAspectRatio = pngImage.width / pngImage.height;
+                    const { width, height } = getSignaturePdfDimensions(marker, imageAspectRatio);
 
                     // Ajustar coordenadas: PDF origen en abajo-izquierda
                     // Pero necesitamos centrar la imagen en el punto seleccionado
-                    const x = marker.x - size / 2;
-                    const y = marker.y - size / 2;
+                    const x = marker.x - width / 2;
+                    const y = marker.y - height / 2;
 
                     page.drawImage(pngImage, {
                         x: x,
                         y: y,
-                        width: size,
-                        height: size
+                        width: width,
+                        height: height
                     });
                 };
 
