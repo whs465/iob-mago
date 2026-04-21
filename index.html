@@ -2203,6 +2203,10 @@
             return Array.from(result).sort((a, b) => a - b);
         }
 
+        function loadPdfDocument(arrayBuffer) {
+            return PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
+        }
+
         // ==================== UNIR PDFs ====================
 
         document.getElementById('merge-files').addEventListener('change', function(e) {
@@ -2260,7 +2264,7 @@
                 for (let i = 0; i < mergeFiles.length; i++) {
                     const file = mergeFiles[i];
                     const arrayBuffer = await file.arrayBuffer();
-                    const pdf = await PDFDocument.load(arrayBuffer);
+                    const pdf = await loadPdfDocument(arrayBuffer);
 
                     const indices = pdf.getPageIndices();
                     const paginas = await pdfUnido.copyPages(pdf, indices);
@@ -2315,7 +2319,7 @@
 
             try {
                 const arrayBuffer = await splitFile.arrayBuffer();
-                const pdf = await PDFDocument.load(arrayBuffer);
+                const pdf = await loadPdfDocument(arrayBuffer);
                 const totalPages = pdf.getPageCount();
 
                 const usarZip = document.getElementById('split-zip').checked;
@@ -2400,7 +2404,7 @@
 
             try {
                 const arrayBuffer = await extractFile.arrayBuffer();
-                const pdf = await PDFDocument.load(arrayBuffer);
+                const pdf = await loadPdfDocument(arrayBuffer);
                 const totalPages = pdf.getPageCount();
 
                 const paginas = parsePaginas(pagesStr, totalPages);
@@ -2717,7 +2721,7 @@
 
             try {
                 const arrayBuffer = await signPdfFile.arrayBuffer();
-                const pdfDoc = await PDFDocument.load(arrayBuffer);
+                const pdfDoc = await loadPdfDocument(arrayBuffer);
 
                 // Cargar la imagen de firma
                 let pngImage;
