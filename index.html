@@ -1205,6 +1205,12 @@
             cursor: pointer;
         }
 
+        .signature-tone-range:disabled,
+        .slider-group input[type="range"]:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
         .signature-tone-range::-webkit-slider-thumb {
             -webkit-appearance: none;
             width: 22px;
@@ -1215,6 +1221,11 @@
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.22);
         }
 
+        .signature-tone-range:disabled::-webkit-slider-thumb,
+        .slider-group input[type="range"]:disabled::-webkit-slider-thumb {
+            cursor: not-allowed;
+        }
+
         .signature-tone-range::-moz-range-thumb {
             width: 16px;
             height: 16px;
@@ -1222,6 +1233,11 @@
             background: #ffffff;
             border: 4px solid #0a84ff;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.22);
+        }
+
+        .signature-tone-range:disabled::-moz-range-thumb,
+        .slider-group input[type="range"]:disabled::-moz-range-thumb {
+            cursor: not-allowed;
         }
 
         .signature-generator-actions {
@@ -2041,7 +2057,7 @@
                         <div>
                             <p class="signature-generator-kicker">Preparar PNG</p>
                             <h4 id="signature-generator-title">Crear PNG transparente desde foto</h4>
-                            <p id="signature-generator-copy">Sube una foto de la firma sobre papel, genera una versión limpia con fondo transparente y descárgala. Este paso solo corre cuando tú lo pides y no cambia la firma guardada.</p>
+                            <p id="signature-generator-copy">Sube una foto de la firma sobre papel y se preparará una versión limpia con fondo transparente. Puedes ajustar el tono o la limpieza después de verla.</p>
                         </div>
                     </div>
 
@@ -2062,12 +2078,12 @@
                                         <span id="signature-tone-name">Negro</span>
                                     </span>
                                 </div>
-                                <input class="signature-tone-range" type="range" id="signature-tone-range" min="0" max="100" value="0" oninput="updateSignatureTone(true)">
+                                <input class="signature-tone-range" type="range" id="signature-tone-range" min="0" max="100" value="0" oninput="updateSignatureTone(true)" disabled>
                             </div>
 
                             <div class="slider-group">
                                 <label id="signature-sensitivity-label" for="signature-clean-sensitivity" style="color: rgba(255, 255, 255, 0.82); font-size: 0.9rem;">Sensibilidad de limpieza</label>
-                                <input type="range" id="signature-clean-sensitivity" min="20" max="100" value="58" oninput="updateSignatureCleanSensitivity()">
+                                <input type="range" id="signature-clean-sensitivity" min="20" max="100" value="58" oninput="updateSignatureCleanSensitivity()" disabled>
                                 <div class="slider-label">
                                     <span>Suave</span>
                                     <span id="signature-clean-value">58</span>
@@ -2082,7 +2098,7 @@
 
                             <div class="signature-generator-actions">
                                 <button class="btn btn-primary" id="signature-generate-action" onclick="generateSignaturePng()">
-                                    Generar PNG
+                                    Regenerar PNG
                                 </button>
                                 <button class="btn btn-secondary" id="signature-download-action" onclick="downloadPreparedSignature()" disabled>
                                     Descargar PNG
@@ -2205,6 +2221,10 @@
         let preparedSignaturePreviewUrl = null;
         let preparedSignatureCanvas = null;
         let signatureToneRefreshTimer = null;
+        let signatureRegenerateTimer = null;
+        let signatureGenerationInProgress = false;
+        let signatureRegenerateQueued = false;
+        let signatureSourceVersion = 0;
 
         const signatureDarkTones = [
             { position: 0, color: '#050505', es: 'Negro', en: 'Black' },
@@ -2378,13 +2398,13 @@
             document.getElementById('signature-preview').alt = 'Signature preview';
             document.querySelector('.signature-generator-kicker').textContent = 'Prepare PNG';
             document.getElementById('signature-generator-title').textContent = 'Create a transparent PNG from a photo';
-            document.getElementById('signature-generator-copy').textContent = 'Upload a photo of the signature on paper, generate a clean transparent version, and download it. This step only runs when you ask for it and does not change the stored signature.';
+            document.getElementById('signature-generator-copy').textContent = 'Upload a photo of the signature on paper and a clean transparent version will be prepared automatically. You can adjust the tone or cleanup after previewing it.';
             document.getElementById('signature-sensitivity-label').textContent = 'Cleanup sensitivity';
             document.querySelector('label[for="signature-auto-trim"]').textContent = 'Trim to the signature outline';
             document.getElementById('signature-tone-label').textContent = 'Signature tone';
             document.querySelector('#signature-clean-sensitivity + .slider-label span:first-child').textContent = 'Soft';
             document.querySelector('#signature-clean-sensitivity + .slider-label span:last-child').textContent = 'Strong';
-            document.getElementById('signature-generate-action').textContent = 'Generate PNG';
+            document.getElementById('signature-generate-action').textContent = 'Regenerate PNG';
             document.getElementById('signature-download-action').textContent = 'Download PNG';
             document.getElementById('signature-use-action').textContent = 'Use as signature';
             document.getElementById('prepared-signature-preview').alt = 'Generated PNG preview';
@@ -2437,9 +2457,18 @@
             updateFileInputLabel('signature-source-label', 'signature-source-file', text, hasFile);
         }
 
-        function updateSignatureCleanSensitivity() {
+        function updateSignatureGeneratorControlsState() {
+            const canAdjustSourceImage = !!signatureSourceFile && !signatureGenerationInProgress;
+            ['signature-tone-range', 'signature-clean-sensitivity'].forEach(id => {
+                const control = document.getElementById(id);
+                if (control) control.disabled = !canAdjustSourceImage;
+            });
+        }
+
+        function updateSignatureCleanSensitivity(refreshPrepared = true) {
             const value = document.getElementById('signature-clean-sensitivity').value;
             document.getElementById('signature-clean-value').textContent = value;
+            if (refreshPrepared) schedulePreparedSignatureRegenerate();
         }
 
         function hexToRgb(hex) {
@@ -2507,6 +2536,16 @@
                 signatureToneRefreshTimer = null;
                 recolorPreparedSignature();
             }, 80);
+        }
+
+        function schedulePreparedSignatureRegenerate(force = false) {
+            if (!signatureSourceFile) return;
+            if (!force && (!preparedSignatureCanvas || !preparedSignatureBlob)) return;
+            if (signatureRegenerateTimer) clearTimeout(signatureRegenerateTimer);
+            signatureRegenerateTimer = setTimeout(() => {
+                signatureRegenerateTimer = null;
+                generateSignaturePng({ silent: true });
+            }, 180);
         }
 
         async function updatePreparedSignatureBlobFromCanvas() {
@@ -2766,6 +2805,17 @@
             preparedSignatureBlob = null;
             preparedSignatureFileName = '';
             preparedSignatureCanvas = null;
+            signatureRegenerateQueued = false;
+
+            if (signatureToneRefreshTimer) {
+                clearTimeout(signatureToneRefreshTimer);
+                signatureToneRefreshTimer = null;
+            }
+
+            if (signatureRegenerateTimer) {
+                clearTimeout(signatureRegenerateTimer);
+                signatureRegenerateTimer = null;
+            }
 
             if (preparedSignaturePreviewUrl) {
                 URL.revokeObjectURL(preparedSignaturePreviewUrl);
@@ -3044,12 +3094,19 @@
             });
         }
 
-        async function generateSignaturePng() {
+        async function generateSignaturePng(options = {}) {
+            const silent = !!options.silent;
+
             if (!signatureSourceFile) {
                 showStatus(
                     i18n('Select a signature photo first', 'Primero selecciona una foto de la firma'),
                     'error'
                 );
+                return;
+            }
+
+            if (signatureGenerationInProgress) {
+                signatureRegenerateQueued = true;
                 return;
             }
 
@@ -3059,10 +3116,16 @@
             );
             if (!finishProcessing) return;
 
-            showStatus(i18n('Preparing transparent PNG...', 'Preparando PNG transparente...'), 'processing');
+            signatureGenerationInProgress = true;
+            updateSignatureGeneratorControlsState();
+            if (!silent) {
+                showStatus(i18n('Preparing transparent PNG...', 'Preparando PNG transparente...'), 'processing');
+            }
 
             try {
-                const image = await loadImageElementFromFile(signatureSourceFile);
+                const sourceFile = signatureSourceFile;
+                const sourceVersion = signatureSourceVersion;
+                const image = await loadImageElementFromFile(sourceFile);
                 const tone = getSignatureTone();
                 const processed = buildPreparedSignature(image, {
                     sensitivity: document.getElementById('signature-clean-sensitivity').value,
@@ -3070,9 +3133,14 @@
                     color: tone.rgb
                 });
 
+                if (sourceVersion !== signatureSourceVersion) {
+                    signatureRegenerateQueued = true;
+                    return;
+                }
+
                 preparedSignatureCanvas = processed.canvas;
                 preparedSignatureBlob = await canvasToPngBlob(processed.canvas);
-                preparedSignatureFileName = getFileBaseName(signatureSourceFile.name || 'firma') + '-firma.png';
+                preparedSignatureFileName = getFileBaseName(sourceFile.name || 'firma') + '-firma.png';
 
                 if (preparedSignaturePreviewUrl) URL.revokeObjectURL(preparedSignaturePreviewUrl);
                 preparedSignaturePreviewUrl = URL.createObjectURL(preparedSignatureBlob);
@@ -3091,10 +3159,12 @@
                     { width: String(processed.width), height: String(processed.height), tone: tone.label }
                 );
 
-                showStatus(
-                    i18n('Transparent signature PNG generated', 'PNG transparente de firma generado'),
-                    'success'
-                );
+                if (!silent) {
+                    showStatus(
+                        i18n('Transparent signature PNG generated', 'PNG transparente de firma generado'),
+                        'success'
+                    );
+                }
             } catch (error) {
                 console.error(error);
                 showStatus(
@@ -3104,7 +3174,13 @@
                     'error'
                 );
             } finally {
+                signatureGenerationInProgress = false;
                 finishProcessing();
+                updateSignatureGeneratorControlsState();
+                if (signatureRegenerateQueued) {
+                    signatureRegenerateQueued = false;
+                    schedulePreparedSignatureRegenerate(true);
+                }
             }
         }
 
@@ -3132,6 +3208,7 @@
             translatePageToEnglish();
             updateSignatureCleanSensitivity();
             updateSignatureTone();
+            updateSignatureGeneratorControlsState();
             setupSupportLinks();
 
             const hoy = new Date().toISOString().split('T')[0];
@@ -3999,20 +4076,15 @@
             }
         });
 
-        document.getElementById('signature-source-file').addEventListener('change', function(e) {
+        document.getElementById('signature-source-file').addEventListener('change', async function(e) {
             const selectedFile = e.target.files[0];
             if (!selectedFile) return;
 
             signatureSourceFile = selectedFile;
+            signatureSourceVersion++;
             resetPreparedSignature();
             updateSignatureSourceLabel(selectedFile.name, true);
-            showStatus(
-                i18n(
-                    'Signature photo loaded. Generate the PNG when you are ready.',
-                    'Foto de firma cargada. Genera el PNG cuando estés listo.'
-                ),
-                'success'
-            );
+            await generateSignaturePng();
         });
 
         document.addEventListener('pointermove', handleSignatureDrag);
