@@ -575,6 +575,13 @@
             white-space: nowrap;
         }
 
+        .list-help {
+            margin-top: 14px;
+            color: var(--muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
         .file-actions {
             display: inline-flex;
             align-items: center;
@@ -1835,7 +1842,7 @@
                 <p class="section-text">Calcula el porcentaje de avance de tu contrato con una lectura más clara y una presentación más editorial.</p>
             </div>
 
-            <div class="card card-full metric-card">
+            <div class="card card-full metric-card" id="progress-card">
                 <div class="card-icon">Avance</div>
                 <h3>Periodo del contrato</h3>
                 <p>Define el inicio, el fin y la fecha de cálculo para obtener una lectura rápida del estado actual del contrato.</p>
@@ -1886,14 +1893,14 @@
 
         <section class="section" id="herramientas">
             <div class="section-heading">
-                <p class="section-kicker">Herramientas rápidas</p>
-                <h2 class="section-title">Tres flujos para resolver lo esencial</h2>
-                <p class="section-text">Une, separa o extrae páginas de un PDF en pocos pasos. Elige la opción que necesitas y sigue.</p>
+                <p class="section-kicker" id="tools-kicker">Herramientas rápidas</p>
+                <h2 class="section-title" id="tools-title">Seis flujos para editar un PDF sin enredos</h2>
+                <p class="section-text" id="tools-text">Une, separa, extrae, elimina, ordena o corrige la orientación de páginas en pocos pasos, sin salir del navegador.</p>
             </div>
 
             <div class="operations">
             <!-- Unir PDFs -->
-            <div class="card">
+            <div class="card" id="merge-card">
                 <div class="card-icon">Unir</div>
                 <h3>Unir PDFs</h3>
                 <p>Combina múltiples archivos PDF en un solo documento</p>
@@ -1918,7 +1925,7 @@
             </div>
 
             <!-- Separar PDF -->
-            <div class="card">
+            <div class="card" id="split-card">
                 <div class="card-icon">Cortar</div>
                 <h3>Separar PDF</h3>
                 <p>Divide un PDF en archivos individuales por cada página</p>
@@ -1943,7 +1950,7 @@
             </div>
 
             <!-- Extraer páginas -->
-            <div class="card">
+            <div class="card" id="extract-card">
                 <div class="card-icon">Extraer</div>
                 <h3>Extraer páginas</h3>
                 <p>Selecciona páginas específicas para crear un nuevo PDF</p>
@@ -1966,6 +1973,77 @@
                     Extraer páginas
                 </button>
             </div>
+
+            <!-- Eliminar páginas -->
+            <div class="card" id="delete-card">
+                <div class="card-icon">Eliminar</div>
+                <h3>Eliminar páginas</h3>
+                <p>Quita páginas específicas de un PDF y conserva el resto en un nuevo archivo</p>
+
+                <div class="file-input-wrapper">
+                    <label class="file-input-label" id="delete-label">
+                        Click para seleccionar PDF
+                        <input type="file" id="delete-file" accept=".pdf">
+                    </label>
+                </div>
+
+                <div class="file-list" id="delete-list"></div>
+
+                <div class="input-group" style="margin-top: 16px;">
+                    <label for="delete-pages" id="delete-pages-label">Páginas a eliminar (ej: 2, 4, 7-9)</label>
+                    <input type="text" id="delete-pages" placeholder="2, 4, 7 o 2-6, 9, 12-14">
+                </div>
+
+                <button class="btn btn-primary" id="delete-action" style="margin-top: 16px;" onclick="eliminarPaginas()">
+                    Eliminar páginas
+                </button>
+            </div>
+
+            <!-- Ordenar páginas -->
+            <div class="card" id="order-card">
+                <div class="card-icon">Ordenar</div>
+                <h3>Ordenar páginas</h3>
+                <p>Reorganiza las páginas de un PDF arrastrándolas o usando las flechas antes de descargarlo</p>
+
+                <div class="file-input-wrapper">
+                    <label class="file-input-label" id="order-label">
+                        Click para seleccionar PDF
+                        <input type="file" id="order-file" accept=".pdf">
+                    </label>
+                </div>
+
+                <div class="file-list" id="order-list"></div>
+                <p class="list-help" id="order-help">Arrastra las páginas para reordenarlas o usa las flechas para subir y bajar.</p>
+
+                <button class="btn btn-primary" id="order-action" style="margin-top: 16px;" onclick="ordenarPaginasPdf()">
+                    Ordenar y descargar
+                </button>
+            </div>
+
+            <!-- Rotar a portrait -->
+            <div class="card" id="rotate-card">
+                <div class="card-icon">Rotar</div>
+                <h3>Pasar a portrait</h3>
+                <p>Revisa el PDF y gira solo las páginas horizontales para dejarlas en orientación vertical</p>
+
+                <div class="file-input-wrapper">
+                    <label class="file-input-label" id="rotate-label">
+                        Click para seleccionar PDF
+                        <input type="file" id="rotate-file" accept=".pdf">
+                    </label>
+                </div>
+
+                <div class="file-list" id="rotate-list"></div>
+
+                <div class="input-group" style="margin-top: 16px;">
+                    <label for="rotate-pages" id="rotate-pages-label">Páginas a revisar (vacío = todo el PDF)</label>
+                    <input type="text" id="rotate-pages" placeholder="Déjalo vacío o escribe 1-3, 8, 10-12">
+                </div>
+
+                <button class="btn btn-primary" id="rotate-action" style="margin-top: 16px;" onclick="rotarPaginasPortrait()">
+                    Rotar a portrait
+                </button>
+            </div>
             </div>
         </section>
 
@@ -1979,7 +2057,7 @@
                 cuidado con los amigos de lo ajeno y siempre en la juega.</p>
             </div>
 
-            <div class="card card-full signature-stage">
+            <div class="card card-full signature-stage" id="sign-card">
                 <div class="card-icon">Firma</div>
                 <h3>Firmar PDF con imagen</h3>
                 <p>Carga el PDF y la imagen de tu firma, marca la posición, muévela si hace falta y descárgalo firmado con el tamaño que prefieras.</p>
@@ -2199,6 +2277,13 @@
         let draggedMergeIndex = null;
         let splitFile = null;
         let extractFile = null;
+        let deleteFile = null;
+        let orderFile = null;
+        let orderPages = [];
+        let draggedOrderIndex = null;
+        let rotateFile = null;
+        let rotateLandscapeCount = 0;
+        let rotateTotalPages = 0;
 
         // Estado para firma
         let signPdfFile = null;
@@ -2296,6 +2381,18 @@
             updateFileInputLabel('extract-label', 'extract-file', text, hasFiles);
         }
 
+        function updateDeleteLabel(text, hasFiles = false) {
+            updateFileInputLabel('delete-label', 'delete-file', text, hasFiles);
+        }
+
+        function updateOrderLabel(text, hasFiles = false) {
+            updateFileInputLabel('order-label', 'order-file', text, hasFiles);
+        }
+
+        function updateRotateLabel(text, hasFiles = false) {
+            updateFileInputLabel('rotate-label', 'rotate-file', text, hasFiles);
+        }
+
         function updatePageInfoDisplay(page = 1, total = 1) {
             document.getElementById('page-info').textContent = i18n(
                 'Page {{page}} of {{total}}',
@@ -2321,7 +2418,7 @@
             document.querySelector('.brand-note').textContent = 'Local, fast, private PDF tools';
             document.querySelector('.hero-copy .eyebrow .eyebrow-label').textContent = 'PDF tools for everyday work';
             document.querySelector('.hero-copy h1').textContent = 'Do more with your PDFs. Without leaving the browser.';
-            document.querySelector('.hero-copy .subtitle').textContent = 'Merge, split, extract, sign and track contract progress from desktop or phone with a cleaner, calmer, fully local interface.';
+            document.querySelector('.hero-copy .subtitle').textContent = 'Merge, split, extract, remove, reorder, rotate, sign, and track contract progress from desktop or phone with a cleaner, calmer, fully local interface.';
             document.querySelector('.hero-actions .btn-primary').textContent = 'View tools';
             document.querySelector('.hero-actions .btn-secondary').textContent = 'Go to signing';
 
@@ -2337,35 +2434,64 @@
             sections[0].querySelector('.section-kicker').textContent = 'Featured tool';
             sections[0].querySelector('.section-title').textContent = 'Progress tracking';
             sections[0].querySelector('.section-text').textContent = 'Calculate your contract progress percentage with a clearer readout and a more editorial presentation.';
-            sections[1].querySelector('.section-kicker').textContent = 'Quick tools';
-            sections[1].querySelector('.section-title').textContent = 'Three flows for the essentials';
-            sections[1].querySelector('.section-text').textContent = 'Merge, split, or extract pages from a PDF in just a few steps. Pick what you need and keep going.';
+            document.getElementById('tools-kicker').textContent = 'Quick tools';
+            document.getElementById('tools-title').textContent = 'Six flows to edit a PDF without the mess';
+            document.getElementById('tools-text').textContent = 'Merge, split, extract, remove, reorder, or fix page orientation in just a few steps, without leaving the browser.';
             sections[2].querySelector('.section-kicker').textContent = 'Visual signing';
             sections[2].querySelector('.section-title').textContent = 'Place the signature directly on the PDF';
             sections[2].querySelector('.section-text').textContent = 'Upload the PDF, mark where the signature should go, and download it signed right away from desktop or phone, even while commuting.';
 
-            const cards = document.querySelectorAll('.card');
-            cards[0].querySelector('.card-icon').textContent = 'Progress';
-            cards[0].querySelector('h3').textContent = 'Contract period';
-            cards[0].querySelector('p').textContent = 'Set the start, end, and calculation date to get a quick read on the current contract status.';
-            cards[1].querySelector('.card-icon').textContent = 'Merge';
-            cards[1].querySelector('h3').textContent = 'Merge PDFs';
-            cards[1].querySelector('p').textContent = 'Combine multiple PDF files into a single document';
-            cards[1].querySelector('label[for="merge-bookmarks"]').textContent = 'Add bookmarks per file';
-            cards[1].querySelector('.btn-primary').textContent = 'Merge PDFs';
-            cards[2].querySelector('.card-icon').textContent = 'Split';
-            cards[2].querySelector('h3').textContent = 'Split PDF';
-            cards[2].querySelector('p').textContent = 'Break a PDF into one file per page';
-            cards[2].querySelector('label[for="split-zip"]').textContent = 'Download as ZIP';
-            cards[2].querySelector('.btn-primary').textContent = 'Split by pages';
-            cards[3].querySelector('.card-icon').textContent = 'Extract';
-            cards[3].querySelector('h3').textContent = 'Extract pages';
-            cards[3].querySelector('p').textContent = 'Choose specific pages to create a new PDF';
-            cards[3].querySelector('label[for="extract-pages"]').textContent = 'Pages to extract (e.g. 1, 3, 5-8)';
-            cards[3].querySelector('.btn-primary').textContent = 'Extract pages';
-            cards[4].querySelector('.card-icon').textContent = 'Sign';
-            cards[4].querySelector('.signature-stage h3').textContent = 'Sign PDF with an image';
-            cards[4].querySelector('.signature-stage > p').textContent = 'Upload the PDF and your signature image, mark the position, move it if needed, and download it signed at the size you prefer.';
+            const progressCard = document.getElementById('progress-card');
+            progressCard.querySelector('.card-icon').textContent = 'Progress';
+            progressCard.querySelector('h3').textContent = 'Contract period';
+            progressCard.querySelector('p').textContent = 'Set the start, end, and calculation date to get a quick read on the current contract status.';
+
+            const mergeCard = document.getElementById('merge-card');
+            mergeCard.querySelector('.card-icon').textContent = 'Merge';
+            mergeCard.querySelector('h3').textContent = 'Merge PDFs';
+            mergeCard.querySelector('p').textContent = 'Combine multiple PDF files into a single document';
+            mergeCard.querySelector('label[for="merge-bookmarks"]').textContent = 'Add bookmarks per file';
+            mergeCard.querySelector('.btn-primary').textContent = 'Merge PDFs';
+
+            const splitCard = document.getElementById('split-card');
+            splitCard.querySelector('.card-icon').textContent = 'Split';
+            splitCard.querySelector('h3').textContent = 'Split PDF';
+            splitCard.querySelector('p').textContent = 'Break a PDF into one file per page';
+            splitCard.querySelector('label[for="split-zip"]').textContent = 'Download as ZIP';
+            splitCard.querySelector('.btn-primary').textContent = 'Split by pages';
+
+            const extractCard = document.getElementById('extract-card');
+            extractCard.querySelector('.card-icon').textContent = 'Extract';
+            extractCard.querySelector('h3').textContent = 'Extract pages';
+            extractCard.querySelector('p').textContent = 'Choose specific pages to create a new PDF';
+            extractCard.querySelector('label[for="extract-pages"]').textContent = 'Pages to extract (e.g. 1, 3, 5-8)';
+            extractCard.querySelector('.btn-primary').textContent = 'Extract pages';
+
+            const deleteCard = document.getElementById('delete-card');
+            deleteCard.querySelector('.card-icon').textContent = 'Remove';
+            deleteCard.querySelector('h3').textContent = 'Remove pages';
+            deleteCard.querySelector('p').textContent = 'Take specific pages out of a PDF and keep the rest in a new file';
+            document.getElementById('delete-pages-label').textContent = 'Pages to remove (e.g. 2, 4, 7-9)';
+            deleteCard.querySelector('.btn-primary').textContent = 'Remove pages';
+
+            const orderCard = document.getElementById('order-card');
+            orderCard.querySelector('.card-icon').textContent = 'Reorder';
+            orderCard.querySelector('h3').textContent = 'Reorder pages';
+            orderCard.querySelector('p').textContent = 'Rearrange PDF pages by dragging them or using the arrows before downloading';
+            document.getElementById('order-help').textContent = 'Drag the pages to reorder them or use the arrows to move them up and down.';
+            orderCard.querySelector('.btn-primary').textContent = 'Reorder and download';
+
+            const rotateCard = document.getElementById('rotate-card');
+            rotateCard.querySelector('.card-icon').textContent = 'Rotate';
+            rotateCard.querySelector('h3').textContent = 'Rotate to portrait';
+            rotateCard.querySelector('p').textContent = 'Review the PDF and rotate only the landscape pages so they end up vertical';
+            document.getElementById('rotate-pages-label').textContent = 'Pages to review (leave blank = whole PDF)';
+            rotateCard.querySelector('.btn-primary').textContent = 'Rotate to portrait';
+
+            const signCard = document.getElementById('sign-card');
+            signCard.querySelector('.card-icon').textContent = 'Sign';
+            signCard.querySelector('.signature-stage h3').textContent = 'Sign PDF with an image';
+            signCard.querySelector('.signature-stage > p').textContent = 'Upload the PDF and your signature image, mark the position, move it if needed, and download it signed at the size you prefer.';
 
             document.querySelector('label[for="fecha-inicial"]').textContent = 'Contract start';
             document.querySelector('label[for="fecha-final"]').textContent = 'Contract end';
@@ -2375,10 +2501,15 @@
             document.getElementById('fecha-final').setAttribute('aria-label', 'Contract end date');
             document.getElementById('fecha-calculo').setAttribute('aria-label', 'Calculation date, today by default');
             document.getElementById('extract-pages').placeholder = '1, 2, 3 or 1-5, 8, 10-12';
+            document.getElementById('delete-pages').placeholder = '2, 4, 7 or 2-6, 9, 12-14';
+            document.getElementById('rotate-pages').placeholder = 'Leave blank or type 1-3, 8, 10-12';
 
             updateMergeLabel('Click to select PDF files');
             updateSplitLabel('Click to select PDF');
             updateExtractLabel('Click to select PDF');
+            updateDeleteLabel(deleteFile ? deleteFile.name : 'Click to select PDF', !!deleteFile);
+            updateOrderLabel(orderFile ? orderFile.name : 'Click to select PDF', !!orderFile);
+            updateRotateLabel(rotateFile ? rotateFile.name : 'Click to select PDF', !!rotateFile);
             updateSignPdfLabel('Click to select PDF to sign');
             updateSignImageLabel(signImageBytes ? 'Signature loaded' : 'Click to select signature image (PNG)', !!signImageBytes);
             updateSignatureSourceLabel(
@@ -3560,12 +3691,91 @@
             return Array.from(result).sort((a, b) => a - b);
         }
 
+        function normalizeRotationAngle(angle = 0) {
+            const numericAngle = Number(angle) || 0;
+            return ((numericAngle % 360) + 360) % 360;
+        }
+
+        function getVisiblePageDimensions(width, height, rotation = 0) {
+            return normalizeRotationAngle(rotation) % 180 === 0
+                ? { width, height }
+                : { width: height, height: width };
+        }
+
+        function isLandscapePage(width, height, rotation = 0) {
+            const visible = getVisiblePageDimensions(width, height, rotation);
+            return visible.width > visible.height;
+        }
+
         function loadPdfDocument(arrayBuffer) {
             return PDFDocument.load(arrayBuffer);
         }
 
         function isEncryptedPdfError(error) {
             return /encrypted/i.test(error?.message || '');
+        }
+
+        async function getPdfPageCountFromArrayBuffer(arrayBuffer) {
+            try {
+                const pdf = await loadPdfDocument(arrayBuffer);
+                return { pageCount: pdf.getPageCount(), rasterized: false };
+            } catch (error) {
+                if (!isEncryptedPdfError(error)) throw error;
+
+                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer.slice(0) });
+                const sourcePdf = await loadingTask.promise;
+
+                try {
+                    return { pageCount: sourcePdf.numPages, rasterized: true };
+                } finally {
+                    await sourcePdf.destroy();
+                }
+            }
+        }
+
+        async function getPdfPageMetricsFromArrayBuffer(arrayBuffer) {
+            try {
+                const pdf = await loadPdfDocument(arrayBuffer);
+                return {
+                    metrics: pdf.getPages().map((page, index) => {
+                        const { width, height } = page.getSize();
+                        const rotation = normalizeRotationAngle(page.getRotation().angle);
+                        const visible = getVisiblePageDimensions(width, height, rotation);
+                        return {
+                            index,
+                            width: visible.width,
+                            height: visible.height,
+                            rotation,
+                            isLandscape: visible.width > visible.height
+                        };
+                    }),
+                    rasterized: false
+                };
+            } catch (error) {
+                if (!isEncryptedPdfError(error)) throw error;
+
+                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer.slice(0) });
+                const sourcePdf = await loadingTask.promise;
+
+                try {
+                    const metrics = [];
+                    for (let index = 0; index < sourcePdf.numPages; index++) {
+                        const page = await sourcePdf.getPage(index + 1);
+                        const viewport = page.getViewport({ scale: 1 });
+                        metrics.push({
+                            index,
+                            width: viewport.width,
+                            height: viewport.height,
+                            rotation: normalizeRotationAngle(page.rotate || 0),
+                            isLandscape: viewport.width > viewport.height
+                        });
+                    }
+
+                    return { metrics, rasterized: true };
+                } finally {
+                    await sourcePdf.destroy();
+                }
+            }
         }
 
         async function appendRenderedPdfPages(targetPdf, arrayBuffer, pageIndices = null) {
@@ -3609,6 +3819,60 @@
             }
 
             return indices.length;
+        }
+
+        async function buildRotatedPortraitPdfFromRenderedPages(arrayBuffer, selectedPageIndices = null) {
+            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer.slice(0) });
+            const sourcePdf = await loadingTask.promise;
+            const targetPdf = await PDFDocument.create();
+            const indices = selectedPageIndices || Array.from({ length: sourcePdf.numPages }, (_, index) => index);
+            const selectedPages = new Set(indices);
+            let rotatedCount = 0;
+
+            try {
+                for (let index = 0; index < sourcePdf.numPages; index++) {
+                    const sourcePage = await sourcePdf.getPage(index + 1);
+                    const baseViewport = sourcePage.getViewport({ scale: 1 });
+                    const shouldRotate = selectedPages.has(index) && baseViewport.width > baseViewport.height;
+                    const targetRotation = normalizeRotationAngle((sourcePage.rotate || 0) + (shouldRotate ? 90 : 0));
+                    const finalViewport = sourcePage.getViewport({ scale: 1, rotation: targetRotation });
+                    const renderViewport = sourcePage.getViewport({ scale: 2, rotation: targetRotation });
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+
+                    canvas.width = Math.ceil(renderViewport.width);
+                    canvas.height = Math.ceil(renderViewport.height);
+
+                    context.fillStyle = '#ffffff';
+                    context.fillRect(0, 0, canvas.width, canvas.height);
+
+                    await sourcePage.render({
+                        canvasContext: context,
+                        viewport: renderViewport
+                    }).promise;
+
+                    const image = await targetPdf.embedPng(canvas.toDataURL('image/png'));
+                    const page = targetPdf.addPage([finalViewport.width, finalViewport.height]);
+                    page.drawImage(image, {
+                        x: 0,
+                        y: 0,
+                        width: finalViewport.width,
+                        height: finalViewport.height
+                    });
+
+                    if (shouldRotate) rotatedCount++;
+
+                    canvas.width = 0;
+                    canvas.height = 0;
+                }
+            } finally {
+                await sourcePdf.destroy();
+            }
+
+            return {
+                pdfBytes: await targetPdf.save(),
+                rotatedCount
+            };
         }
 
         async function appendPdfFilePages(targetPdf, file, pageIndices = null) {
@@ -4035,6 +4299,509 @@
                 console.error(error);
                 showStatus(
                     i18n('Error extracting pages: {{message}}', 'Error al extraer páginas: {{message}}', {
+                        message: error.message
+                    }),
+                    'error'
+                );
+            } finally {
+                finishProcessing();
+            }
+        }
+
+        // ==================== ELIMINAR PÁGINAS ====================
+
+        document.getElementById('delete-file').addEventListener('change', function(e) {
+            deleteFile = e.target.files[0];
+            actualizarDeleteList();
+        });
+
+        function actualizarDeleteList() {
+            const list = document.getElementById('delete-list');
+
+            if (deleteFile) {
+                list.innerHTML = `<div class="file-item">${deleteFile.name}</div>`;
+                updateDeleteLabel(deleteFile.name, true);
+            } else {
+                list.innerHTML = '';
+                updateDeleteLabel(i18n('Click to select PDF', 'Click para seleccionar PDF'));
+            }
+        }
+
+        async function eliminarPaginas() {
+            if (!deleteFile) {
+                showStatus(i18n('Select a PDF file', 'Selecciona un archivo PDF'), 'error');
+                return;
+            }
+
+            const pagesStr = document.getElementById('delete-pages').value.trim();
+            if (!pagesStr) {
+                showStatus(i18n('Enter the pages to remove', 'Ingresa las páginas a eliminar'), 'error');
+                return;
+            }
+
+            const finishProcessing = setActionBusy(
+                'delete-action',
+                i18n('Removing...', 'Eliminando...')
+            );
+            if (!finishProcessing) return;
+
+            showStatus(i18n('Processing...', 'Procesando...'), 'processing');
+
+            try {
+                const arrayBuffer = await deleteFile.arrayBuffer();
+                const { pageCount } = await getPdfPageCountFromArrayBuffer(arrayBuffer);
+                const paginasEliminar = parsePaginas(pagesStr, pageCount);
+
+                if (paginasEliminar.length === 0) {
+                    showStatus(i18n('No valid pages were found', 'No se encontraron páginas válidas'), 'error');
+                    return;
+                }
+
+                const paginasConservar = Array.from({ length: pageCount }, (_, index) => index)
+                    .filter(index => !paginasEliminar.includes(index));
+
+                if (paginasConservar.length === 0) {
+                    showStatus(
+                        i18n(
+                            'At least one page must remain in the PDF',
+                            'Debe quedar al menos una página en el PDF'
+                        ),
+                        'error'
+                    );
+                    return;
+                }
+
+                const nuevoPdf = await PDFDocument.create();
+                const result = await appendPdfFilePages(nuevoPdf, deleteFile, paginasConservar);
+                const pdfBytes = await nuevoPdf.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                saveAs(blob, getPdfBaseName(deleteFile.name) + i18n('-pages-removed.pdf', '-sin-paginas.pdf'));
+
+                showStatus(
+                    result.rasterized
+                        ? i18n(
+                            '{{count}} page(s) removed. Protected pages were flattened as images.',
+                            'Se eliminaron {{count}} página(s). Las páginas protegidas se aplanaron como imágenes.',
+                            { count: String(paginasEliminar.length) }
+                        )
+                        : i18n(
+                            '{{count}} page(s) removed successfully!',
+                            '¡{{count}} página(s) eliminada(s) exitosamente!',
+                            { count: String(paginasEliminar.length) }
+                        ),
+                    'success'
+                );
+            } catch (error) {
+                console.error(error);
+                showStatus(
+                    i18n('Error removing pages: {{message}}', 'Error al eliminar páginas: {{message}}', {
+                        message: error.message
+                    }),
+                    'error'
+                );
+            } finally {
+                finishProcessing();
+            }
+        }
+
+        // ==================== ORDENAR PÁGINAS ====================
+
+        document.getElementById('order-file').addEventListener('change', async function(e) {
+            const selectedFile = e.target.files[0];
+
+            if (!selectedFile) {
+                orderFile = null;
+                orderPages = [];
+                actualizarOrderList();
+                return;
+            }
+
+            showStatus(i18n('Loading page order...', 'Cargando orden de páginas...'), 'processing');
+
+            try {
+                const arrayBuffer = await selectedFile.arrayBuffer();
+                const { pageCount } = await getPdfPageCountFromArrayBuffer(arrayBuffer);
+
+                orderFile = selectedFile;
+                orderPages = Array.from({ length: pageCount }, (_, index) => ({
+                    originalIndex: index
+                }));
+
+                actualizarOrderList();
+                showStatus(
+                    i18n(
+                        'PDF ready to reorder: {{count}} page(s)',
+                        'PDF listo para reordenar: {{count}} página(s)',
+                        { count: String(pageCount) }
+                    ),
+                    'success'
+                );
+            } catch (error) {
+                console.error(error);
+                orderFile = null;
+                orderPages = [];
+                actualizarOrderList();
+                showStatus(
+                    i18n('Error loading PDF: {{message}}', 'Error al cargar PDF: {{message}}', {
+                        message: error.message
+                    }),
+                    'error'
+                );
+            }
+        });
+
+        function actualizarOrderList() {
+            const list = document.getElementById('order-list');
+            list.innerHTML = '';
+
+            orderPages.forEach((page, index) => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.draggable = true;
+                item.dataset.index = String(index);
+
+                item.addEventListener('dragstart', event => {
+                    draggedOrderIndex = index;
+                    item.classList.add('dragging');
+                    event.dataTransfer.effectAllowed = 'move';
+                    event.dataTransfer.setData('text/plain', String(index));
+                });
+
+                item.addEventListener('dragend', () => {
+                    draggedOrderIndex = null;
+                    item.classList.remove('dragging');
+                    document.querySelectorAll('#order-list .drag-over').forEach(el => {
+                        el.classList.remove('drag-over');
+                    });
+                });
+
+                item.addEventListener('dragover', event => {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = 'move';
+                    item.classList.add('drag-over');
+                });
+
+                item.addEventListener('dragleave', () => {
+                    item.classList.remove('drag-over');
+                });
+
+                item.addEventListener('drop', event => {
+                    event.preventDefault();
+                    item.classList.remove('drag-over');
+                    const dragData = event.dataTransfer.getData('text/plain');
+                    const fromIndex = dragData === '' ? draggedOrderIndex : Number(dragData);
+                    moverOrderPageAIndice(fromIndex, index);
+                });
+
+                const main = document.createElement('div');
+                main.className = 'file-main';
+
+                const order = document.createElement('span');
+                order.className = 'file-order-index';
+                order.textContent = String(index + 1);
+
+                const name = document.createElement('span');
+                name.className = 'file-name';
+                name.title = i18n('Original page {{page}}', 'Página original {{page}}', {
+                    page: String(page.originalIndex + 1)
+                });
+                name.textContent = i18n('Original page {{page}}', 'Página original {{page}}', {
+                    page: String(page.originalIndex + 1)
+                });
+
+                main.append(order, name);
+
+                const actions = document.createElement('div');
+                actions.className = 'file-actions';
+                actions.append(
+                    crearBotonOrdenMerge(
+                        '↑',
+                        i18n('Move page up', 'Subir página'),
+                        index === 0,
+                        () => moverOrderPage(index, -1)
+                    ),
+                    crearBotonOrdenMerge(
+                        '↓',
+                        i18n('Move page down', 'Bajar página'),
+                        index === orderPages.length - 1,
+                        () => moverOrderPage(index, 1)
+                    )
+                );
+
+                item.append(main, actions);
+                list.appendChild(item);
+            });
+
+            if (orderFile && orderPages.length > 0) {
+                updateOrderLabel(orderFile.name, true);
+            } else {
+                updateOrderLabel(i18n('Click to select PDF', 'Click para seleccionar PDF'));
+            }
+        }
+
+        function moverOrderPage(index, direction) {
+            moverOrderPageAIndice(index, index + direction);
+        }
+
+        function moverOrderPageAIndice(fromIndex, toIndex) {
+            if (
+                Number.isNaN(fromIndex)
+                || Number.isNaN(toIndex)
+                || fromIndex === toIndex
+                || fromIndex < 0
+                || toIndex < 0
+                || fromIndex >= orderPages.length
+                || toIndex >= orderPages.length
+            ) {
+                return;
+            }
+
+            const [page] = orderPages.splice(fromIndex, 1);
+            orderPages.splice(toIndex, 0, page);
+            actualizarOrderList();
+        }
+
+        async function ordenarPaginasPdf() {
+            if (!orderFile) {
+                showStatus(i18n('Select a PDF file', 'Selecciona un archivo PDF'), 'error');
+                return;
+            }
+
+            if (orderPages.length === 0) {
+                showStatus(i18n('No pages were loaded', 'No se cargaron páginas'), 'error');
+                return;
+            }
+
+            const finishProcessing = setActionBusy(
+                'order-action',
+                i18n('Reordering...', 'Ordenando...')
+            );
+            if (!finishProcessing) return;
+
+            showStatus(i18n('Processing...', 'Procesando...'), 'processing');
+
+            try {
+                const nuevoPdf = await PDFDocument.create();
+                const result = await appendPdfFilePages(
+                    nuevoPdf,
+                    orderFile,
+                    orderPages.map(page => page.originalIndex)
+                );
+
+                const pdfBytes = await nuevoPdf.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                saveAs(blob, getPdfBaseName(orderFile.name) + i18n('-reordered.pdf', '-ordenado.pdf'));
+
+                showStatus(
+                    result.rasterized
+                        ? i18n(
+                            'PDF reordered successfully. Protected pages were flattened as images.',
+                            'PDF ordenado exitosamente. Las páginas protegidas se aplanaron como imágenes.'
+                        )
+                        : i18n('PDF reordered successfully!', '¡PDF ordenado exitosamente!'),
+                    'success'
+                );
+            } catch (error) {
+                console.error(error);
+                showStatus(
+                    i18n('Error reordering PDF: {{message}}', 'Error al ordenar PDF: {{message}}', {
+                        message: error.message
+                    }),
+                    'error'
+                );
+            } finally {
+                finishProcessing();
+            }
+        }
+
+        // ==================== ROTAR A PORTRAIT ====================
+
+        document.getElementById('rotate-file').addEventListener('change', async function(e) {
+            const selectedFile = e.target.files[0];
+
+            if (!selectedFile) {
+                rotateFile = null;
+                rotateLandscapeCount = 0;
+                rotateTotalPages = 0;
+                actualizarRotateList();
+                return;
+            }
+
+            showStatus(i18n('Analyzing page orientation...', 'Analizando orientación de páginas...'), 'processing');
+
+            try {
+                const arrayBuffer = await selectedFile.arrayBuffer();
+                const { metrics } = await getPdfPageMetricsFromArrayBuffer(arrayBuffer);
+
+                rotateFile = selectedFile;
+                rotateTotalPages = metrics.length;
+                rotateLandscapeCount = metrics.filter(metric => metric.isLandscape).length;
+
+                actualizarRotateList();
+                showStatus(
+                    i18n(
+                        'PDF analyzed: {{count}} landscape page(s) detected',
+                        'PDF analizado: {{count}} página(s) horizontales detectadas',
+                        { count: String(rotateLandscapeCount) }
+                    ),
+                    'success'
+                );
+            } catch (error) {
+                console.error(error);
+                rotateFile = null;
+                rotateLandscapeCount = 0;
+                rotateTotalPages = 0;
+                actualizarRotateList();
+                showStatus(
+                    i18n('Error analyzing PDF: {{message}}', 'Error al analizar PDF: {{message}}', {
+                        message: error.message
+                    }),
+                    'error'
+                );
+            }
+        });
+
+        function actualizarRotateList() {
+            const list = document.getElementById('rotate-list');
+            list.innerHTML = '';
+
+            if (!rotateFile) {
+                updateRotateLabel(i18n('Click to select PDF', 'Click para seleccionar PDF'));
+                return;
+            }
+
+            const item = document.createElement('div');
+            item.className = 'file-item';
+
+            const fileName = document.createElement('span');
+            fileName.className = 'file-name';
+            fileName.title = rotateFile.name;
+            fileName.textContent = rotateFile.name;
+
+            const summary = document.createElement('span');
+            summary.textContent = rotateLandscapeCount > 0
+                ? i18n(
+                    '{{landscape}} of {{total}} landscape',
+                    '{{landscape}} de {{total}} horizontales',
+                    {
+                        landscape: String(rotateLandscapeCount),
+                        total: String(rotateTotalPages)
+                    }
+                )
+                : i18n('No landscape pages', 'Sin páginas horizontales');
+
+            item.append(fileName, summary);
+            list.appendChild(item);
+            updateRotateLabel(rotateFile.name, true);
+        }
+
+        async function rotarPaginasPortrait() {
+            if (!rotateFile) {
+                showStatus(i18n('Select a PDF file', 'Selecciona un archivo PDF'), 'error');
+                return;
+            }
+
+            const pagesStr = document.getElementById('rotate-pages').value.trim();
+            const finishProcessing = setActionBusy(
+                'rotate-action',
+                i18n('Rotating...', 'Rotando...')
+            );
+            if (!finishProcessing) return;
+
+            showStatus(i18n('Processing...', 'Procesando...'), 'processing');
+
+            try {
+                const arrayBuffer = await rotateFile.arrayBuffer();
+
+                try {
+                    const pdf = await loadPdfDocument(arrayBuffer);
+                    const totalPages = pdf.getPageCount();
+                    const paginas = pagesStr
+                        ? parsePaginas(pagesStr, totalPages)
+                        : Array.from({ length: totalPages }, (_, index) => index);
+
+                    if (paginas.length === 0) {
+                        showStatus(i18n('No valid pages were found', 'No se encontraron páginas válidas'), 'error');
+                        return;
+                    }
+
+                    let rotatedCount = 0;
+                    paginas.forEach(pageIndex => {
+                        const page = pdf.getPage(pageIndex);
+                        const { width, height } = page.getSize();
+                        const currentRotation = normalizeRotationAngle(page.getRotation().angle);
+
+                        if (!isLandscapePage(width, height, currentRotation)) return;
+
+                        page.setRotation(PDFLib.degrees(normalizeRotationAngle(currentRotation + 90)));
+                        rotatedCount++;
+                    });
+
+                    if (rotatedCount === 0) {
+                        showStatus(
+                            i18n(
+                                'No landscape pages were found in the selected range',
+                                'No se encontraron páginas horizontales en el rango seleccionado'
+                            ),
+                            'error'
+                        );
+                        return;
+                    }
+
+                    const pdfBytes = await pdf.save();
+                    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                    saveAs(blob, getPdfBaseName(rotateFile.name) + i18n('-portrait.pdf', '-vertical.pdf'));
+
+                    showStatus(
+                        i18n(
+                            '{{count}} page(s) rotated to portrait!',
+                            '¡{{count}} página(s) rotada(s) a vertical!',
+                            { count: String(rotatedCount) }
+                        ),
+                        'success'
+                    );
+                } catch (error) {
+                    if (!isEncryptedPdfError(error)) throw error;
+
+                    const { pageCount } = await getPdfPageCountFromArrayBuffer(arrayBuffer);
+                    const paginas = pagesStr
+                        ? parsePaginas(pagesStr, pageCount)
+                        : Array.from({ length: pageCount }, (_, index) => index);
+
+                    if (paginas.length === 0) {
+                        showStatus(i18n('No valid pages were found', 'No se encontraron páginas válidas'), 'error');
+                        return;
+                    }
+
+                    const result = await buildRotatedPortraitPdfFromRenderedPages(arrayBuffer, paginas);
+
+                    if (result.rotatedCount === 0) {
+                        showStatus(
+                            i18n(
+                                'No landscape pages were found in the selected range',
+                                'No se encontraron páginas horizontales en el rango seleccionado'
+                            ),
+                            'error'
+                        );
+                        return;
+                    }
+
+                    const blob = new Blob([result.pdfBytes], { type: 'application/pdf' });
+                    saveAs(blob, getPdfBaseName(rotateFile.name) + i18n('-portrait.pdf', '-vertical.pdf'));
+
+                    showStatus(
+                        i18n(
+                            '{{count}} page(s) rotated to portrait. Protected pages were flattened as images.',
+                            '{{count}} página(s) rotada(s) a vertical. Las páginas protegidas se aplanaron como imágenes.',
+                            { count: String(result.rotatedCount) }
+                        ),
+                        'success'
+                    );
+                }
+            } catch (error) {
+                console.error(error);
+                showStatus(
+                    i18n('Error rotating PDF: {{message}}', 'Error al rotar PDF: {{message}}', {
                         message: error.message
                     }),
                     'error'
