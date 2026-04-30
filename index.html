@@ -676,6 +676,56 @@
             backdrop-filter: blur(18px);
         }
 
+        .support-top {
+            display: grid;
+            grid-template-columns: minmax(0, 74ch) minmax(0, 1fr);
+            gap: 24px;
+            align-items: center;
+        }
+
+        .support-copy-block {
+            max-width: 74ch;
+        }
+
+        .support-brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            max-width: 340px;
+            justify-self: center;
+            padding: 16px 20px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, rgba(0, 113, 227, 0.08), rgba(255, 255, 255, 0.9));
+            border: 1px solid rgba(29, 29, 31, 0.08);
+            box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+        }
+
+        .support-brand img {
+            width: 72px;
+            height: 72px;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 20px rgba(15, 23, 42, 0.12));
+        }
+
+        .support-brand-copy {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            text-align: center;
+        }
+
+        .support-brand-name {
+            color: var(--text);
+            font-size: clamp(1rem, 2vw, 1.15rem);
+            line-height: 1.3;
+            letter-spacing: -0.02em;
+            font-weight: 600;
+        }
+
         .support-box h4 {
             margin: 0 0 8px;
             color: var(--text);
@@ -1689,6 +1739,15 @@
                 gap: 18px;
             }
 
+            .support-top {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+
+            .support-brand {
+                justify-content: center;
+            }
+
             .support-actions {
                 width: 100%;
                 justify-content: flex-start;
@@ -2204,9 +2263,17 @@
         <div class="divider"></div>
 
         <section class="support-box" aria-labelledby="support-title">
-            <div>
-                <h4 id="support-title">¿IOB Mago te ahorró tiempo y estrés?</h4>
-                <p id="support-copy">Si esta página te ayudó a resolver PDFs sin subir tus documentos a ningún servidor, a firmar con más privacidad o a sacar por fin una firma transparente decente sin dibujarla con el mouse, puedes apoyar a las personas que la hicieron. Ese aporte ayuda a mantener IOB Mago vivo, más pulido y útil para quienes trabajan con documentos todos los días.</p>
+            <div class="support-top">
+                <div class="support-copy-block">
+                    <h4 id="support-title">IOB Mago te ahorró tiempo y estrés?</h4>
+                    <p id="support-copy">Si esta página te ayudó a resolver PDFs sin subir tus documentos a ningún servidor, a firmar con más privacidad o a sacar por fin una firma transparente decente sin dibujarla con el mouse, puedes apoyar a las personas que la hicieron. Ese aporte ayuda a mantener IOB Mago vivo, más pulido y útil para quienes trabajan con documentos todos los días.</p>
+                </div>
+                <div class="support-brand" aria-label="El Mago">
+                    <img src="mago-icon.png" alt="El Mago">
+                    <div class="support-brand-copy">
+                        <strong class="support-brand-name">El Mago pa los PDF's</strong>
+                    </div>
+                </div>
             </div>
             <div class="support-actions" aria-label="Opciones para apoyar">
                 <button class="support-action" type="button" data-support-method="paypal" aria-label="Ver datos de PayPal" aria-expanded="false" aria-controls="support-paypal-panel">
