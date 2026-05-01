@@ -1594,6 +1594,24 @@
             gap: 2px;
         }
 
+        .avance-report-value {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 96px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.88);
+            color: #0b3a68;
+            font-size: 0.72rem;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            font-variant-numeric: tabular-nums;
+            box-shadow: 0 6px 16px rgba(0, 113, 227, 0.08);
+        }
+
         #porcentaje-numero {
             font-size: 2.4rem;
             font-weight: 800;
@@ -1629,11 +1647,21 @@
         }
 
         .avance-bar-labels {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 2px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 12px;
+            margin-top: 10px;
             font-size: 0.74rem;
             color: var(--muted);
+        }
+
+        .avance-bar-labels span:nth-child(2) {
+            justify-self: center;
+        }
+
+        .avance-bar-labels span:last-child {
+            justify-self: end;
         }
 
         /* Tablet y mobile: apilar fechas para evitar overflow en Safari/iPad */
@@ -1732,6 +1760,16 @@
             .avance-result-top {
                 flex-direction: column;
                 align-items: flex-start;
+            }
+
+            .avance-bar-labels {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .avance-bar-labels span:nth-child(2),
+            .avance-bar-labels span:last-child {
+                justify-self: start;
             }
 
             .support-box {
@@ -1941,6 +1979,7 @@
                         </div>
                         <div class="avance-bar-labels">
                             <span id="fecha-inicio-txt">—</span>
+                            <span class="avance-report-value" id="informe-periodo">—</span>
                             <span id="fecha-fin-txt">—</span>
                         </div>
                     </div>
@@ -2434,6 +2473,46 @@
             if (input) {
                 label.appendChild(input);
             }
+        }
+
+        function parseInputDate(dateStr) {
+            const [year, month, day] = String(dateStr).split('-').map(Number);
+            return new Date(year, month - 1, day);
+        }
+
+        function toDateInputValue(date = new Date()) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function getInclusiveMonthSpan(startDate, endDate) {
+            return ((endDate.getFullYear() - startDate.getFullYear()) * 12)
+                + (endDate.getMonth() - startDate.getMonth())
+                + 1;
+        }
+
+        function getContractReportInfo(startDate, endDate, calculationDate) {
+            const boundedCalculationDate = calculationDate > endDate ? endDate : calculationDate;
+            const totalReports = Math.max(getInclusiveMonthSpan(startDate, endDate), 1);
+            const currentReport = Math.min(
+                Math.max(getInclusiveMonthSpan(startDate, boundedCalculationDate), 1),
+                totalReports
+            );
+
+            return { currentReport, totalReports };
+        }
+
+        function resetContractProgressDisplay() {
+            document.getElementById('porcentaje-numero').textContent = '—';
+            document.getElementById('fecha-inicio-txt').textContent = '—';
+            document.getElementById('fecha-fin-txt').textContent = '—';
+            document.getElementById('informe-periodo').textContent = '—';
+
+            const barra = document.getElementById('barra-progreso');
+            barra.style.width = '0%';
+            barra.setAttribute('aria-valuenow', '0');
         }
 
         function updateMergeLabel(text, hasFiles = false) {
@@ -3409,7 +3488,7 @@
             updateSignatureGeneratorControlsState();
             setupSupportLinks();
 
-            const hoy = new Date().toISOString().split('T')[0];
+            const hoy = toDateInputValue();
             document.getElementById('fecha-calculo').value = hoy;
 
             // Si hay fechas guardadas, cargarlas y calcular automáticamente
@@ -3454,8 +3533,8 @@
         // Función DÍAS360 - igual que Excel
         // Asume meses de 30 días y años de 360 días
         function dias360(fechaInicio, fechaFin) {
-            const d1 = new Date(fechaInicio);
-            const d2 = new Date(fechaFin);
+            const d1 = parseInputDate(fechaInicio);
+            const d2 = parseInputDate(fechaFin);
 
             const dia1 = d1.getDate();
             const mes1 = d1.getMonth();
@@ -3481,6 +3560,7 @@
             const msg = document.getElementById('mensaje-guardado');
 
             if (!fechaInicialVal || !fechaFinalVal) {
+                resetContractProgressDisplay();
                 msg.textContent = i18n(
                     '✗ Enter the contract start and end dates to calculate',
                     '✗ Ingresa la fecha inicial y final para calcular'
@@ -3490,6 +3570,7 @@
             }
 
             if (!fechaCalculoVal) {
+                resetContractProgressDisplay();
                 msg.textContent = i18n(
                     '✗ Enter the calculation date',
                     '✗ Ingresa la fecha de cálculo'
@@ -3498,11 +3579,12 @@
                 return;
             }
 
-            const fechaInicial = new Date(fechaInicialVal);
-            const fechaFinal = new Date(fechaFinalVal);
-            const fechaCalculo = new Date(fechaCalculoVal);
+            const fechaInicial = parseInputDate(fechaInicialVal);
+            const fechaFinal = parseInputDate(fechaFinalVal);
+            const fechaCalculo = parseInputDate(fechaCalculoVal);
 
             if (fechaFinal <= fechaInicial) {
+                resetContractProgressDisplay();
                 msg.textContent = i18n(
                     '✗ The end date must be after the start date',
                     '✗ La fecha final debe ser posterior a la inicial'
@@ -3512,6 +3594,7 @@
             }
 
             if (fechaCalculo < fechaInicial) {
+                resetContractProgressDisplay();
                 msg.textContent = i18n(
                     '✗ The calculation date cannot be before the start date',
                     '✗ La fecha de cálculo no puede ser anterior al inicio'
@@ -3530,6 +3613,15 @@
 
             document.getElementById('fecha-inicio-txt').textContent = formatDate(fechaInicialVal);
             document.getElementById('fecha-fin-txt').textContent = formatDate(fechaFinalVal);
+            const reportInfo = getContractReportInfo(fechaInicial, fechaFinal, fechaCalculo);
+            document.getElementById('informe-periodo').textContent = i18n(
+                'Month {{current}} of {{total}}',
+                'Mes {{current}} de {{total}}',
+                {
+                    current: String(reportInfo.currentReport),
+                    total: String(reportInfo.totalReports)
+                }
+            );
 
             // Actualizar número de porcentaje
             document.getElementById('porcentaje-numero').textContent = porcentaje.toFixed(1);
@@ -3548,7 +3640,7 @@
                 card.classList.add('visible');
                 calcularAvance();
                 // Guardar automáticamente si el período es válido
-                if (new Date(fi) < new Date(ff)) {
+                if (parseInputDate(fi) < parseInputDate(ff)) {
                     localStorage.setItem('fechasAvance', JSON.stringify({
                         fechaInicial: fi,
                         fechaFinal: ff,
@@ -3557,11 +3649,12 @@
                 }
             } else {
                 card.classList.remove('visible');
+                resetContractProgressDisplay();
             }
         }
 
         function formatDate(dateStr) {
-            return formatDateValue(new Date(dateStr + 'T00:00:00'));
+            return formatDateValue(parseInputDate(dateStr));
         }
 
         // ==================== MOSTRAR ESTADO ====================
