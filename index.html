@@ -1571,6 +1571,31 @@
             background: linear-gradient(180deg, #f7fbff 0%, #ffffff 100%);
             border: 1px solid rgba(0, 113, 227, 0.12);
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
+        }
+
+        .avance-result-card::after {
+            content: '';
+            position: absolute;
+            inset: -35% auto -35% -45%;
+            width: 42%;
+            background: linear-gradient(
+                115deg,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.18) 42%,
+                rgba(121, 187, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0) 58%
+            );
+            opacity: 0;
+            transform: translateX(-140%) rotate(8deg);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .avance-result-card.celebrating::after {
+            animation: contractShimmer 1.8s ease-out forwards;
         }
 
         .avance-result-top {
@@ -1578,6 +1603,8 @@
             align-items: baseline;
             justify-content: space-between;
             gap: 14px;
+            position: relative;
+            z-index: 1;
         }
 
         .avance-result-label {
@@ -1636,6 +1663,8 @@
             border-radius: 999px;
             height: 10px;
             overflow: hidden;
+            position: relative;
+            z-index: 1;
         }
 
         #barra-progreso {
@@ -1654,6 +1683,8 @@
             margin-top: 10px;
             font-size: 0.74rem;
             color: var(--muted);
+            position: relative;
+            z-index: 1;
         }
 
         .avance-bar-labels span:nth-child(2) {
@@ -1662,6 +1693,207 @@
 
         .avance-bar-labels span:last-child {
             justify-self: end;
+        }
+
+        .avance-completion-badge {
+            position: absolute;
+            top: 68px;
+            left: 50%;
+            transform: translateX(-50%) translateY(8px) scale(0.96);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(0, 113, 227, 0.16);
+            box-shadow: 0 16px 36px rgba(13, 59, 107, 0.12);
+            color: #0b3a68;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .avance-completion-badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #7fd0ff 0%, #0071e3 100%);
+            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.08);
+        }
+
+        .avance-result-card.celebrating .avance-completion-badge {
+            animation: completionBadgeReveal 2.5s ease-out forwards;
+        }
+
+        .avance-celebration {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .avance-sparkle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            background:
+                radial-gradient(circle, rgba(255, 255, 255, 0.98) 0 26%, rgba(153, 220, 255, 0.9) 27% 52%, rgba(0, 113, 227, 0) 53%);
+            opacity: 0;
+            transform: scale(0.4);
+            filter: drop-shadow(0 0 10px rgba(121, 187, 255, 0.28));
+        }
+
+        .avance-sparkle::before,
+        .avance-sparkle::after {
+            content: '';
+            position: absolute;
+            inset: 50%;
+            width: 20px;
+            height: 2px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(0, 113, 227, 0), rgba(121, 187, 255, 0.85), rgba(0, 113, 227, 0));
+            transform: translate(-50%, -50%);
+        }
+
+        .avance-sparkle::after {
+            transform: translate(-50%, -50%) rotate(90deg);
+        }
+
+        .avance-sparkle.sparkle-a {
+            top: 30px;
+            right: 86px;
+        }
+
+        .avance-sparkle.sparkle-b {
+            top: 94px;
+            left: 42px;
+        }
+
+        .avance-sparkle.sparkle-c {
+            right: 36px;
+            bottom: 38px;
+        }
+
+        .avance-result-card.celebrating {
+            animation: contractCardPulse 1.25s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .avance-result-card.celebrating .avance-sparkle.sparkle-a {
+            animation: sparkleBurst 1.2s ease-out 0.12s forwards;
+        }
+
+        .avance-result-card.celebrating .avance-sparkle.sparkle-b {
+            animation: sparkleBurst 1.35s ease-out 0.28s forwards;
+        }
+
+        .avance-result-card.celebrating .avance-sparkle.sparkle-c {
+            animation: sparkleBurst 1.15s ease-out 0.44s forwards;
+        }
+
+        .avance-result-card.celebrating #barra-progreso {
+            animation: progressBarPulse 1s ease-out;
+        }
+
+        @keyframes contractCardPulse {
+            0% {
+                transform: scale(1);
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 0 0 rgba(0, 113, 227, 0);
+            }
+            38% {
+                transform: scale(1.01);
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 18px 42px rgba(0, 113, 227, 0.12);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 0 0 rgba(0, 113, 227, 0);
+            }
+        }
+
+        @keyframes progressBarPulse {
+            0% {
+                filter: saturate(1);
+            }
+            45% {
+                filter: saturate(1.18) brightness(1.08);
+            }
+            100% {
+                filter: saturate(1);
+            }
+        }
+
+        @keyframes completionBadgeReveal {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(8px) scale(0.96);
+            }
+            16%,
+            78% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-6px) scale(0.98);
+            }
+        }
+
+        @keyframes sparkleBurst {
+            0% {
+                opacity: 0;
+                transform: scale(0.3) rotate(0deg);
+            }
+            28% {
+                opacity: 1;
+                transform: scale(1) rotate(10deg);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.6) rotate(18deg);
+            }
+        }
+
+        @keyframes contractShimmer {
+            0% {
+                opacity: 0;
+                transform: translateX(-140%) rotate(8deg);
+            }
+            18% {
+                opacity: 1;
+            }
+            72% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(300%) rotate(8deg);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .avance-result-card.celebrating,
+            .avance-result-card.celebrating::after,
+            .avance-result-card.celebrating .avance-completion-badge,
+            .avance-result-card.celebrating .avance-sparkle,
+            .avance-result-card.celebrating #barra-progreso {
+                animation: none !important;
+            }
+
+            .avance-completion-badge {
+                transition: opacity 0.2s ease;
+            }
+
+            .avance-result-card.celebrating .avance-completion-badge {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0) scale(1);
+            }
         }
 
         /* Tablet y mobile: apilar fechas para evitar overflow en Safari/iPad */
@@ -1981,6 +2213,12 @@
                     </div>
 
                     <div class="avance-result-card" id="avance-result-card">
+                        <div class="avance-celebration" aria-hidden="true">
+                            <span class="avance-sparkle sparkle-a"></span>
+                            <span class="avance-sparkle sparkle-b"></span>
+                            <span class="avance-sparkle sparkle-c"></span>
+                        </div>
+                        <div class="avance-completion-badge" id="avance-completion-badge">Contrato completado</div>
                         <div class="avance-result-top">
                             <span class="avance-result-label">Avance del contrato</span>
                             <div class="avance-result-pct" aria-live="polite">
@@ -2431,6 +2669,8 @@
         let signatureGenerationInProgress = false;
         let signatureRegenerateQueued = false;
         let signatureSourceVersion = 0;
+        let contractCompletionCelebrated = false;
+        let contractCompletionTimer = null;
 
         const signatureDarkTones = [
             { position: 0, color: '#050505', es: 'Negro', en: 'Black' },
@@ -2524,10 +2764,41 @@
             document.getElementById('fecha-inicio-txt').textContent = '—';
             document.getElementById('fecha-fin-txt').textContent = '—';
             document.getElementById('informe-periodo').textContent = '—';
+            resetContractCompletionCelebration(true);
 
             const barra = document.getElementById('barra-progreso');
             barra.style.width = '0%';
             barra.setAttribute('aria-valuenow', '0');
+        }
+
+        function resetContractCompletionCelebration(resetMilestone = false) {
+            const card = document.getElementById('avance-result-card');
+            if (!card) return;
+
+            card.classList.remove('celebrating');
+            if (contractCompletionTimer) {
+                clearTimeout(contractCompletionTimer);
+                contractCompletionTimer = null;
+            }
+
+            if (resetMilestone) {
+                contractCompletionCelebrated = false;
+            }
+        }
+
+        function triggerContractCompletionCelebration() {
+            const card = document.getElementById('avance-result-card');
+            const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (!card) return;
+
+            resetContractCompletionCelebration();
+            void card.offsetWidth;
+            card.classList.add('celebrating');
+
+            contractCompletionTimer = window.setTimeout(() => {
+                card.classList.remove('celebrating');
+                contractCompletionTimer = null;
+            }, reducedMotion ? 2200 : 2800);
         }
 
         function updateMergeLabel(text, hasFiles = false) {
@@ -2658,6 +2929,7 @@
             document.querySelector('label[for="fecha-final"]').textContent = 'Contract end';
             document.querySelector('label[for="fecha-calculo"]').textContent = 'Calculated on';
             document.querySelector('.avance-result-label').textContent = 'Contract progress';
+            document.getElementById('avance-completion-badge').textContent = 'Contract completed';
             document.getElementById('fecha-inicial').setAttribute('aria-label', 'Contract start date');
             document.getElementById('fecha-final').setAttribute('aria-label', 'Contract end date');
             document.getElementById('fecha-calculo').setAttribute('aria-label', 'Calculation date, today by default');
@@ -3645,6 +3917,15 @@
             const barra = document.getElementById('barra-progreso');
             barra.style.width = porcentaje + '%';
             barra.setAttribute('aria-valuenow', porcentaje.toFixed(0));
+
+            if (porcentaje >= 100) {
+                if (!contractCompletionCelebrated) {
+                    triggerContractCompletionCelebration();
+                    contractCompletionCelebrated = true;
+                }
+            } else {
+                resetContractCompletionCelebration(true);
+            }
         }
 
         function autoCalcularAvance() {
