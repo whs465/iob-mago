@@ -3630,8 +3630,8 @@
             document.getElementById('fecha-fin-txt').textContent = formatDate(fechaFinalVal);
             const reportInfo = getContractReportInfo(fechaInicial, fechaFinal, fechaCalculo);
             document.getElementById('informe-periodo').textContent = i18n(
-                'Month {{current}} of {{total}}',
-                'Mes {{current}} de {{total}}',
+                'Month {{current}} / {{total}}',
+                'Mes {{current}} / {{total}}',
                 {
                     current: String(reportInfo.currentReport),
                     total: String(reportInfo.totalReports)
