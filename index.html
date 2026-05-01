@@ -1756,20 +1756,9 @@
                 border-radius: 28px;
             }
 
-            .hero-nav,
-            .avance-result-top {
+            .hero-nav {
                 flex-direction: column;
                 align-items: flex-start;
-            }
-
-            .avance-bar-labels {
-                grid-template-columns: 1fr;
-                gap: 8px;
-            }
-
-            .avance-bar-labels span:nth-child(2),
-            .avance-bar-labels span:last-child {
-                justify-self: start;
             }
 
             .support-box {
@@ -1805,6 +1794,32 @@
 
             .operations {
                 grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .metric-card {
+                padding: 26px 22px;
+            }
+
+            .avance-result-card.visible {
+                padding: 18px;
+            }
+
+            .avance-result-top {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .avance-bar-labels {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .avance-bar-labels span:nth-child(2),
+            .avance-bar-labels span:last-child {
+                justify-self: start;
             }
         }
 
