@@ -4286,19 +4286,150 @@
             try {
                 const sourcePdf = await loadPdfDocument(arrayBuffer);
                 const indices = pageIndices || sourcePdf.getPageIndices();
+                const sourceBookmarks = extractPdfBookmarks(sourcePdf);
+                const bookmarks = pageIndices
+                    ? remapBookmarksToCopiedPages(sourceBookmarks, indices)
+                    : sourceBookmarks;
                 const pages = await targetPdf.copyPages(sourcePdf, indices);
                 pages.forEach(page => targetPdf.addPage(page));
-                return { pageCount: indices.length, rasterized: false };
+                return { pageCount: indices.length, rasterized: false, bookmarks };
             } catch (error) {
                 if (!isEncryptedPdfError(error)) throw error;
 
                 const pageCount = await appendRenderedPdfPages(targetPdf, arrayBuffer, pageIndices);
-                return { pageCount, rasterized: true };
+                return { pageCount, rasterized: true, bookmarks: [] };
             }
         }
 
+        function getPdfDictValue(pdfDoc, dict, name) {
+            if (!dict?.get) return null;
+            const value = dict.get(PDFName.of(name));
+            return value ? pdfDoc.context.lookup(value) : null;
+        }
+
+        function getPdfRawDictValue(dict, name) {
+            return dict?.get ? dict.get(PDFName.of(name)) : null;
+        }
+
+        function getPdfArrayValue(pdfDoc, array, index) {
+            if (!array?.get) return null;
+            const value = array.get(index);
+            return value ? pdfDoc.context.lookup(value) : null;
+        }
+
+        function decodePdfBookmarkTitle(titleValue) {
+            if (!titleValue) return '';
+            if (typeof titleValue.decodeText === 'function') return titleValue.decodeText();
+            if (typeof titleValue.asString === 'function') return titleValue.asString();
+            return String(titleValue).replace(/^\((.*)\)$/, '$1');
+        }
+
+        function extractPdfDestPageIndex(pdfDoc, destValue, pageRefIndexMap) {
+            const dest = destValue ? pdfDoc.context.lookup(destValue) : null;
+            if (!dest?.get) return null;
+
+            const pageRef = dest.get(0);
+            const refKey = pageRef?.toString?.();
+            if (refKey && pageRefIndexMap.has(refKey)) return pageRefIndexMap.get(refKey);
+
+            const page = getPdfArrayValue(pdfDoc, dest, 0);
+            if (!page) return null;
+
+            const pageIndex = pdfDoc.getPages().findIndex(sourcePage => sourcePage.node === page);
+            return pageIndex >= 0 ? pageIndex : null;
+        }
+
+        function extractPdfBookmarkPageIndex(pdfDoc, itemDict, pageRefIndexMap) {
+            const directDest = getPdfRawDictValue(itemDict, 'Dest');
+            const directPageIndex = extractPdfDestPageIndex(pdfDoc, directDest, pageRefIndexMap);
+            if (directPageIndex !== null && directPageIndex >= 0) return directPageIndex;
+
+            const actionDict = getPdfDictValue(pdfDoc, itemDict, 'A');
+            const actionType = getPdfRawDictValue(actionDict, 'S')?.toString?.();
+            if (actionType && actionType !== '/GoTo') return null;
+
+            return extractPdfDestPageIndex(pdfDoc, getPdfRawDictValue(actionDict, 'D'), pageRefIndexMap);
+        }
+
+        function extractPdfBookmarkSiblings(pdfDoc, firstItem, pageRefIndexMap) {
+            const bookmarks = [];
+            const visited = new Set();
+            let current = firstItem ? pdfDoc.context.lookup(firstItem) : null;
+
+            while (current?.get && !visited.has(current)) {
+                visited.add(current);
+
+                const title = decodePdfBookmarkTitle(getPdfRawDictValue(current, 'Title'));
+                const pageIndex = extractPdfBookmarkPageIndex(pdfDoc, current, pageRefIndexMap);
+                const children = extractPdfBookmarkSiblings(
+                    pdfDoc,
+                    getPdfRawDictValue(current, 'First'),
+                    pageRefIndexMap
+                );
+
+                if (title || children.length > 0) {
+                    bookmarks.push({ title: title || 'Bookmark', pageIndex, children });
+                }
+
+                const next = getPdfRawDictValue(current, 'Next');
+                current = next ? pdfDoc.context.lookup(next) : null;
+            }
+
+            return bookmarks;
+        }
+
+        function extractPdfBookmarks(pdfDoc) {
+            const outlines = getPdfDictValue(pdfDoc, pdfDoc.catalog, 'Outlines');
+            const firstItem = getPdfRawDictValue(outlines, 'First');
+            if (!firstItem) return [];
+
+            const pageRefIndexMap = new Map();
+            pdfDoc.getPages().forEach((page, index) => {
+                pageRefIndexMap.set(page.ref.toString(), index);
+            });
+
+            return extractPdfBookmarkSiblings(pdfDoc, firstItem, pageRefIndexMap);
+        }
+
+        function flattenOffsetBookmarks(bookmarks, pageOffset) {
+            return bookmarks.flatMap(bookmark => {
+                const entries = [];
+                if (Number.isInteger(bookmark.pageIndex)) {
+                    entries.push({
+                        title: bookmark.title,
+                        pageIndex: bookmark.pageIndex + pageOffset
+                    });
+                }
+
+                entries.push(...flattenOffsetBookmarks(bookmark.children || [], pageOffset));
+                return entries;
+            });
+        }
+
+        function remapBookmarksToCopiedPages(bookmarks, copiedPageIndices) {
+            const pageIndexMap = new Map();
+            copiedPageIndices.forEach((sourcePageIndex, targetPageIndex) => {
+                if (!pageIndexMap.has(sourcePageIndex)) {
+                    pageIndexMap.set(sourcePageIndex, targetPageIndex);
+                }
+            });
+
+            return bookmarks.flatMap(bookmark => {
+                const entries = [];
+                if (Number.isInteger(bookmark.pageIndex) && pageIndexMap.has(bookmark.pageIndex)) {
+                    entries.push({
+                        title: bookmark.title,
+                        pageIndex: pageIndexMap.get(bookmark.pageIndex)
+                    });
+                }
+
+                entries.push(...remapBookmarksToCopiedPages(bookmark.children || [], copiedPageIndices));
+                return entries;
+            });
+        }
+
         function addMergeBookmarks(pdfDoc, bookmarkEntries) {
-            const entries = bookmarkEntries.filter(entry => entry.pageIndex >= 0);
+            const entries = bookmarkEntries.filter(entry => Number.isInteger(entry.pageIndex));
             if (entries.length === 0) return;
 
             const context = pdfDoc.context;
@@ -4334,6 +4465,18 @@
             context.assign(outlinesRef, outlinesDict);
             pdfDoc.catalog.set(PDFName.of('Outlines'), outlinesRef);
             pdfDoc.catalog.set(PDFName.of('PageMode'), PDFName.of('UseOutlines'));
+        }
+
+        function addMergeBookmarkEntries(bookmarkEntries, file, startPageIndex, result, addFileBookmark) {
+            if (addFileBookmark && result.pageCount > 0) {
+                bookmarkEntries.push({
+                    title: getPdfBaseName(file.name),
+                    pageIndex: startPageIndex
+                });
+            }
+
+            const existingBookmarks = flattenOffsetBookmarks(result.bookmarks || [], startPageIndex);
+            bookmarkEntries.push(...existingBookmarks);
         }
 
         // ==================== FUENTE COMPARTIDA ====================
@@ -4610,17 +4753,12 @@
 
                     const startPageIndex = pdfUnido.getPageCount();
                     const result = await appendPdfFilePages(pdfUnido, file);
-                    if (bookmarks && result.pageCount > 0) {
-                        bookmarkEntries.push({
-                            title: getPdfBaseName(file.name),
-                            pageIndex: startPageIndex
-                        });
-                    }
+                    addMergeBookmarkEntries(bookmarkEntries, file, startPageIndex, result, bookmarks);
 
                     if (result.rasterized) rasterizedFiles.push(file.name);
                 }
 
-                if (bookmarks) {
+                if (bookmarkEntries.length > 0) {
                     addMergeBookmarks(pdfUnido, bookmarkEntries);
                 }
 
@@ -4841,6 +4979,9 @@
 
                 const nuevoPdf = await PDFDocument.create();
                 const result = await appendPdfFilePages(nuevoPdf, file, paginasConservar);
+                if (result.bookmarks.length > 0) {
+                    addMergeBookmarks(nuevoPdf, result.bookmarks);
+                }
                 const pdfBytes = await nuevoPdf.save();
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
                 saveAs(blob, getPdfBaseName(file.name) + i18n('-pages-removed.pdf', '-sin-paginas.pdf'));
@@ -5009,6 +5150,9 @@
                     file,
                     orderPages.map(page => page.originalIndex)
                 );
+                if (result.bookmarks.length > 0) {
+                    addMergeBookmarks(nuevoPdf, result.bookmarks);
+                }
 
                 const pdfBytes = await nuevoPdf.save();
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
