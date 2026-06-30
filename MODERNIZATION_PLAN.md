@@ -290,3 +290,101 @@ La migracion va bien si:
 No estamos buscando una reescritura vistosa. Estamos buscando que IOB Mago siga viendose igual de bien, pero que por dentro deje de sentirse improvisado.
 
 Primero Vite + TypeScript vanilla. Luego modulos y tests. Despues, si la app lo pide de verdad, Vue o React.
+
+## Avance actual
+
+Ya se inicio la migracion sin cambiar la UI:
+
+- `index.html` conserva el markup y CSS, y carga `src/main.ts` como modulo.
+- Se agrego Vite + TypeScript.
+- Se agrego `package-lock.json` para builds reproducibles.
+- Se movio la logica legacy a `src/main.ts` y ya se retiro el puente temporal `@ts-nocheck`.
+- Se tiparon contratos globales en `src/global.d.ts` para `PDFLib`, `pdfjsLib`, `JSZip`, `saveAs` y funciones expuestas en `window`, sin `any` productivo.
+- Se endurecieron tipos de firma en `src/pdf/sign.ts` y del visor PDF de firma en `src/state/signature-viewer.ts`, reduciendo `any` en codigo productivo.
+- Se endurecieron tipos de render/rasterizado en `src/pdf/render.ts` y `src/pdf/copy-pages.ts`, incluyendo contratos estructurales para PDF-lib y PDF.js.
+- Se endurecieron tipos de `src/pdf/operations.ts` y `src/pdf/bookmarks.ts`, incluyendo contratos para documentos PDF creados, documentos rotables y diccionarios mutables de bookmarks.
+- Se quitaron casts `any` reales de los tests de bookmarks; los `any` restantes en tests son matchers de Vitest como `expect.any(...)`.
+- Se extrajo `src/pdf/bookmarks.ts` con TypeScript real.
+- Se extrajo `src/pdf/copy-pages.ts`.
+- Se extrajo `src/pdf/render.ts` para carga, metricas, rasterizado y rotacion de PDFs protegidos.
+- Se extrajo `src/pdf/operations.ts` para acciones de merge, separar, extraer, eliminar paginas, ordenar paginas y rotar paginas a vertical.
+- Se extrajo `src/pdf/sign.ts` para aplicar imagenes de firma al PDF, incluyendo aplicacion por marcador o en todas las paginas.
+- Se extrajo `src/pdf/active-signature-action.ts` para restaurar/cargar la firma activa y preparar datos de preview.
+- Se extrajo `src/pdf/prepared-signature-actions.ts` para descargar o convertir el PNG preparado en `File` reutilizable.
+- Se extrajo `src/pdf/prepared-signature-generation-action.ts` para guardar el PNG generado en estado preparado y devolver datos de preview.
+- Se extrajo `src/pdf/sign-action.ts` para validar y ejecutar la aplicacion final de firmas con un resultado tipado.
+- Se extrajo `src/pdf/sign-download-action.ts` para convertir la firma aplicada en Blob descargable y nombre localizado fuera de `src/main.ts`.
+- Se extrajo `src/pdf/signature-generation-action.ts` para preparar PNG de firma con estado de generacion, cola y versionado testeables.
+- Se extrajo `src/pdf/signature-preparation.ts` para preparar el PNG transparente de firma desde una foto con dependencias testeables.
+- Se extrajo `src/pdf/signature-pdf-load.ts` para cargar el PDF de firma via PDF.js con dependencias inyectables.
+- Se extrajo `src/pdf/signature-recolor-action.ts` para recolorear el PNG preparado, regenerar su blob y actualizar la URL temporal.
+- Se extrajo `src/pdf/merge-action.ts` para validar y ejecutar merge de PDFs con progreso inyectable.
+- Se extrajo `src/pdf/page-actions.ts` para validar rangos y ejecutar acciones de extraer, eliminar, ordenar y rotar paginas fuera de `src/main.ts`.
+- Se extrajo `src/pdf/split-action.ts` para validar y ejecutar la separacion de PDF fuera de `src/main.ts`.
+- Se extrajo `src/pdf/split-download.ts` para descargar paginas separadas como ZIP o archivos individuales con dependencias testeables.
+- Se extrajo `src/ui/dom.ts` para helpers DOM tipados de status, botones ocupados, inputs y labels de archivos.
+- Se extrajo `src/ui/source-list.ts` para renderizar la lista de archivos fuente y sus acciones.
+- Se extrajo `src/ui/order-list.ts` para renderizar la lista de paginas reordenables.
+- Se extrajo `src/ui/pdf-tools.ts` para centralizar estados DOM de herramientas PDF, checkboxes y campos de rangos.
+- Se extrajo `src/ui/pdf-status.ts` para centralizar mensajes de exito de acciones PDF con/sin rasterizacion.
+- Se extrajo `src/ui/signature-markers.ts` para coordinar/renderizar marcadores visuales, detener eventos de marcador y renderizar la lista de firmas sin `onclick` inline.
+- Se extrajo `src/ui/signature-viewer.ts` para mostrar/ocultar el visor de firma, limpiar canvas y actualizar controles de pagina.
+- Se extrajo `src/ui/signature-preview.ts` para labels de firma, previews, metadatos y controles del generador PNG.
+- Se extrajo `src/ui/signature-events.ts` para registrar inputs de firma y eventos pointer fuera de `src/main.ts`.
+- Se extrajo `src/ui/signature-render.ts` para renderizar paginas PDF de firma y actualizar controles de pagina fuera de `src/main.ts`.
+- Se extrajo `src/ui/signature-canvas-click.ts` para convertir clicks del canvas en marcadores PDF reutilizando la geometria compartida.
+- Se extrajeron `src/ui/signature-generator-controls.ts`, `src/ui/prepared-signature-flow.ts`, `src/ui/active-signature-flow.ts`, `src/ui/signature-viewer-flow.ts`, `src/ui/signature-pdf-load-flow.ts`, `src/ui/signature-navigation-flow.ts`, `src/ui/signature-marker-flow.ts`, `src/ui/signature-marker-render-flow.ts`, `src/ui/signature-drag-flow.ts`, `src/ui/signature-apply-flow.ts` y `src/ui/window-actions.ts` para seguir vaciando la orquestacion de firma fuera de `src/main.ts`.
+- Se extrajo `src/ui/english-content.ts` para aplicar el contenido en ingles fuera de `src/main.ts`.
+- Se extrajo `src/ui/support.ts` para renderizar soporte/donaciones, alternar paneles y copiar datos.
+- Se extrajo `src/ui/file-drag-drop.ts` para centralizar drag-and-drop de inputs de archivo.
+- Se extrajo `src/ui/contract-progress.ts` para renderizar y resetear el panel de avance de contrato fuera de `src/main.ts`.
+- Se extrajo `src/state/active-signature.ts` para centralizar bytes y proporcion de la firma activa.
+- Se extrajo `src/state/source-files.ts` para centralizar seleccion, reordenamiento, eliminacion y versionado de archivos fuente.
+- Se extrajo `src/state/page-order.ts` para centralizar paginas cargadas, version de fuente y reordenamiento de paginas.
+- Se extrajo `src/state/prepared-signature.ts` para centralizar blob, canvas, nombre y URL temporal del PNG preparado.
+- Se extrajo `src/state/signature-drag.ts` para centralizar indice activo y estado de movimiento de marcadores de firma.
+- Se extrajo `src/state/signature-drag-action.ts` para mover y detener drag de marcadores con geometria inyectable.
+- Se extrajo `src/state/signature-generation-schedule-action.ts` para programar recolor/regeneracion de firmas preparadas con timers testeables.
+- Se extrajo `src/state/signature-marker-actions.ts` para remover, limpiar y redimensionar marcadores con persistencia del tamano.
+- Se extrajo `src/state/signature-marker-click-action.ts` para validar imagen activa, crear y agregar marcadores desde clicks del canvas.
+- Se extrajo `src/state/signature-markers.ts` para centralizar marcadores de firma, limpieza, eliminacion y cambios de tamano.
+- Se extrajo `src/state/signature-generator.ts` para centralizar fuente, version, timers, cola y estado de generacion PNG.
+- Se extrajo `src/state/signature-preview.ts` para centralizar la URL temporal de vista previa de la firma activa.
+- Se extrajo `src/state/signature-storage.ts` para persistir/restaurar firma activa y tamano guardado.
+- Se extrajo `src/state/signature-viewer.ts` para centralizar PDF de firma cargado, pagina actual, totales, escala y metricas de pagina.
+- Se extrajeron utilidades puras y de procesamiento en `src/utils/filenames.ts`, `src/utils/page-ranges.ts`, `src/utils/page-selection.ts`, `src/utils/pdf-bytes.ts`, `src/utils/math.ts`, `src/utils/signature-geometry.ts`, `src/utils/signature-png.ts`, `src/utils/signature-tone.ts`, `src/utils/signature-image.ts`, `src/utils/signature-recolor.ts`, `src/utils/locale.ts` y `src/utils/contract-progress.ts`.
+- Se saco de `src/main.ts` la logica pura de idioma, fechas, DÍAS360 y calculo de avance de contrato.
+- Se centralizo seleccion/validacion de rangos de paginas en `src/utils/page-selection.ts`.
+- Se agrego Vitest.
+- Se agregaron pruebas iniciales para `src/utils/filenames.ts`, `src/utils/page-ranges.ts`, `src/utils/page-selection.ts`, `src/utils/pdf-bytes.ts`, `src/utils/math.ts`, `src/utils/signature-geometry.ts`, `src/utils/signature-png.ts`, `src/utils/signature-tone.ts`, `src/utils/signature-image.ts`, `src/utils/signature-recolor.ts`, `src/utils/locale.ts`, `src/utils/contract-progress.ts`, `src/pdf/active-signature-action.ts`, `src/pdf/bookmarks.ts`, `src/pdf/copy-pages.ts`, `src/pdf/operations.ts`, `src/pdf/sign.ts`, `src/pdf/prepared-signature-actions.ts`, `src/pdf/prepared-signature-generation-action.ts`, `src/pdf/sign-action.ts`, `src/pdf/sign-download-action.ts`, `src/pdf/signature-generation-action.ts`, `src/pdf/signature-preparation.ts`, `src/pdf/signature-pdf-load.ts`, `src/pdf/signature-recolor-action.ts`, `src/pdf/merge-action.ts`, `src/pdf/page-actions.ts`, `src/pdf/split-action.ts`, `src/pdf/split-download.ts`, `src/ui/dom.ts`, `src/ui/source-list.ts`, `src/ui/order-list.ts`, `src/ui/pdf-tools.ts`, `src/ui/pdf-status.ts`, `src/ui/signature-markers.ts`, `src/ui/signature-viewer.ts`, `src/ui/signature-preview.ts`, `src/ui/signature-events.ts`, `src/ui/signature-render.ts`, `src/ui/signature-canvas-click.ts`, `src/ui/signature-generator-controls.ts`, `src/ui/prepared-signature-flow.ts`, `src/ui/active-signature-flow.ts`, `src/ui/signature-viewer-flow.ts`, `src/ui/signature-pdf-load-flow.ts`, `src/ui/signature-navigation-flow.ts`, `src/ui/signature-marker-flow.ts`, `src/ui/signature-marker-render-flow.ts`, `src/ui/signature-drag-flow.ts`, `src/ui/signature-apply-flow.ts`, `src/ui/window-actions.ts`, `src/ui/contract-progress.ts`, `src/ui/support.ts`, `src/ui/file-drag-drop.ts`, `src/state/active-signature.ts`, `src/state/source-files.ts`, `src/state/page-order.ts`, `src/state/prepared-signature.ts`, `src/state/signature-drag.ts`, `src/state/signature-drag-action.ts`, `src/state/signature-generation-schedule-action.ts`, `src/state/signature-marker-actions.ts`, `src/state/signature-marker-click-action.ts`, `src/state/signature-markers.ts`, `src/state/signature-generator.ts`, `src/state/signature-preview.ts`, `src/state/signature-storage.ts` y `src/state/signature-viewer.ts`.
+- Se extrajeron `src/ui/delete-pdf-flow.ts`, `src/ui/reorder-pdf-flow.ts` y `src/ui/rotate-pdf-flow.ts` siguiendo el mismo patron que `extractPdfFlow`.
+- `eliminarPaginas()`, `ordenarPaginasPdf()` y `rotarPaginasPortrait()` ahora delegan en los nuevos flows, reduciendo `src/main.ts` de ~1178 a ~1040 lineas.
+- Se extrajo `renderOrderPageListWithI18n` a `src/ui/order-list.ts`, simplificando `actualizarOrderList()` en main.ts de 12 a 5 lineas.
+- Se agregaron tests para `renderOrderPageListWithI18n`.
+- Se eliminaron imports no usados de `src/main.ts`: `getPdfBaseName`, `pdfBytesToBlob`, `getRemovePagesSuccessMessage`, `getReorderSuccessMessage`, `getRotatePagesSuccessMessage`, `removePdfPagesFromText`, `reorderPdfPagesFromOrder`, `rotatePdfPagesFromText`, `renderOrderPageList`.
+- **Se reemplazaron todas las dependencias CDN por imports reales de npm**:
+  - `pdf-lib@1.17.1` (antes global `PDFLib`)
+  - `pdfjs-dist@2.16.105` (antes global `pdfjsLib`)
+  - `file-saver@2.0.5` con `@types/file-saver` (antes global `saveAs`)
+  - `jszip@3.10.1` (antes global `JSZip`)
+- Se eliminaron los 5 `<script>` tags CDN de `index.html`.
+- Se limpiaron las declaraciones globales (`declare const PDFLib`, `pdfjsLib`, `JSZip`, `saveAs`) de `src/global.d.ts`, dejando solo `interface Window`.
+- Se actualizaron tipos internos (`PdfJsPage.render`, `SignaturePdfPageProxy.view`) para compatibilidad con los tipos reales de pdfjs-dist.
+- **Se extrajo la orquestacion de fuente compartida y analisis** (`actualizarSourceList()`, `actualizarCardEstados()`, `scheduleSourceAnalysis()`, `analizarSourceCards()`, `actualizarRotateInfo()`) a `src/ui/source-file-flow.ts` como `setupSourceFileFlow()`.
+- Se eliminaron imports no usados de `src/main.ts`: `renderSourceFileList`, `updateFileInputLabel`, `updateSourceToolStatuses`, `getRequiredElement`.
+- **Se extrajo la orquestacion de avance de contrato** (`resetContractProgressDisplay()`, `triggerContractCompletionCelebration()`, `calcularAvance()`, `autoCalcularAvance()`, `initFromLocalStorage()`) a `src/ui/contract-progress-flow.ts` como `setupContractProgressFlow()`.
+- `npm test` corre correctamente: 75 archivos de prueba, 253 tests.
+- `npm run build` compila correctamente.
+
+## Pendientes reales
+
+`src/main.ts` tiene ~747 lineas. La migracion a Vite + TypeScript modular esta completa. No quedan bloques grandes por extraer.
+
+Proximos pasos opcionales:
+
+1. Evaluar chunk splitting en Vite (`manualChunks`) para separar `pdf-lib` y `pdfjs-dist` del bundle principal.
+2. Evaluar migracion a Vue o React solo si la app realmente necesita mas interaccion reactiva.
+
+## Siguiente corte recomendado
+
+No hay mas bloques grandes que extraer de `main.ts` (~747 lineas de orquestacion pura). El siguiente paso logico es optimizar el build con chunk splitting, o evaluar Vue/React como siguiente fase de arquitectura.

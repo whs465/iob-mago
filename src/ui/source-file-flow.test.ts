@@ -1,0 +1,130 @@
+// @vitest-environment jsdom
+
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import { setupSourceFileFlow } from './source-file-flow';
+import type { SourceFileState } from '../state/source-files';
+import type { PageOrderState } from '../state/page-order';
+
+function createMockSourceFileState(initialFiles: File[] = []): SourceFileState {
+  let files = [...initialFiles];
+  let version = 0;
+
+  return {
+    get files() { return files; },
+    get version() { return version; },
+    setFiles: vi.fn((newFiles: File[]) => { files = [...newFiles]; version++; }) as unknown as SourceFileState['setFiles'],
+    moveFile: vi.fn((from: number | null, to: number) => {
+      if (from === null || from === to) return false;
+      const arr = [...files];
+      const [moved] = arr.splice(from, 1);
+      arr.splice(to, 0, moved);
+      files = arr;
+      version++;
+      return true;
+    }) as unknown as SourceFileState['moveFile'],
+    removeFile: vi.fn((index: number) => {
+      if (index < 0 || index >= files.length) return false;
+      files = [...files.slice(0, index), ...files.slice(index + 1)];
+      version++;
+      return true;
+    }) as unknown as SourceFileState['removeFile'],
+    clear: vi.fn(() => { files = []; version++; }) as unknown as SourceFileState['clear'],
+    beginAnalysis: vi.fn(() => { version++; return version; }) as unknown as SourceFileState['beginAnalysis'],
+  };
+}
+
+function createMockPageOrderState(): PageOrderState {
+  let pages: Array<{ originalIndex: number }> = [];
+  let sourceVersion = -1;
+
+  return {
+    get pages() { return pages; },
+    get sourceVersion() { return sourceVersion; },
+    setPageCount: vi.fn((count: number, nextSourceVersion: number) => {
+      pages = Array.from({ length: count }, (_, i) => ({ originalIndex: i }));
+      sourceVersion = nextSourceVersion;
+    }) as unknown as PageOrderState['setPageCount'],
+    clear: vi.fn(() => { pages = []; sourceVersion = -1; }) as unknown as PageOrderState['clear'],
+    movePage: vi.fn() as unknown as PageOrderState['movePage'],
+    getOriginalIndexes: vi.fn(() => pages.map(p => p.originalIndex)) as unknown as PageOrderState['getOriginalIndexes'],
+  };
+}
+
+describe('setupSourceFileFlow', () => {
+  let pageOrderState: PageOrderState;
+  let onOrderListUpdate: () => void;
+
+  beforeEach(() => {
+    document.body.innerHTML = `
+      <div id="source-list"></div>
+      <div id="rotate-status"></div>
+      <input id="source-input" type="file" />
+      <label id="source-label"></label>
+    `;
+
+    pageOrderState = createMockPageOrderState();
+    onOrderListUpdate = vi.fn();
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it('returns an API with expected functions', () => {
+    const sourceFileState = createMockSourceFileState();
+    const api = setupSourceFileFlow({
+      runtime: { sourceFileState, pageOrderState },
+      deps: {
+        getPdfPageCountFromArrayBuffer: vi.fn(),
+        getPdfPageMetricsFromArrayBuffer: vi.fn(),
+      },
+      i18n: (en: string) => en,
+      onOrderListUpdate,
+    });
+
+    expect(typeof api.actualizarSourceList).toBe('function');
+    expect(typeof api.scheduleSourceAnalysis).toBe('function');
+    expect(typeof api.actualizarRotateInfo).toBe('function');
+  });
+
+  it('actualizarSourceList renders file items', () => {
+    const sourceFileState = createMockSourceFileState([
+      new File(['a'], 'doc1.pdf', { type: 'application/pdf' }),
+      new File(['b'], 'doc2.pdf', { type: 'application/pdf' }),
+    ]);
+    const api = setupSourceFileFlow({
+      runtime: { sourceFileState, pageOrderState },
+      deps: {
+        getPdfPageCountFromArrayBuffer: vi.fn(),
+        getPdfPageMetricsFromArrayBuffer: vi.fn(),
+      },
+      i18n: (en: string) => en,
+      onOrderListUpdate,
+    });
+
+    api.actualizarSourceList();
+
+    const list = document.getElementById('source-list');
+    expect(list?.children.length).toBe(2);
+  });
+
+  it('actualizarRotateInfo shows correct status message', () => {
+    const sourceFileState = createMockSourceFileState([
+      new File(['a'], 'doc.pdf', { type: 'application/pdf' }),
+    ]);
+    const api = setupSourceFileFlow({
+      runtime: { sourceFileState, pageOrderState },
+      deps: {
+        getPdfPageCountFromArrayBuffer: vi.fn(),
+        getPdfPageMetricsFromArrayBuffer: vi.fn(),
+      },
+      i18n: (en: string) => en,
+      onOrderListUpdate,
+    });
+
+    api.actualizarRotateInfo();
+
+    const el = document.getElementById('rotate-status');
+    expect(el?.textContent).toBe('Drop PDF files above first');
+  });
+});

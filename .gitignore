@@ -1,1 +1,21 @@
 .claude/
+node_modules/
+dist/
+vite-dev.*.log
+static-server.*.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+*.swp
+*.swo
+*~
+.vscode/settings.json
+.idea/
