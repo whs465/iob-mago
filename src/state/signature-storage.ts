@@ -8,6 +8,13 @@ export type StoredSignatureImage = {
   mimeType: string;
 };
 
+type StoredSignatureImageRecord = {
+  dataUrl?: unknown;
+  nombre?: unknown;
+  name?: unknown;
+  mimeType?: unknown;
+};
+
 function getDataUrlMimeType(dataUrl: string) {
   const mimeMatch = dataUrl.match(/^data:([^;,]+)[;,]/i);
   return mimeMatch?.[1]?.toLowerCase() || 'application/octet-stream';
@@ -41,19 +48,22 @@ export function loadStoredSignatureImage(storage: Storage = localStorage): Store
   if (!storedValue) return null;
 
   try {
-    const parsedValue = JSON.parse(storedValue) as { dataUrl?: unknown; nombre?: unknown; name?: unknown };
+    const parsedValue = JSON.parse(storedValue) as StoredSignatureImageRecord;
     if (typeof parsedValue.dataUrl !== 'string') throw new Error('Missing stored signature data URL.');
     const name = typeof parsedValue.nombre === 'string'
       ? parsedValue.nombre
       : typeof parsedValue.name === 'string'
         ? parsedValue.name
         : '';
+    const mimeType = typeof parsedValue.mimeType === 'string'
+      ? parsedValue.mimeType.toLowerCase()
+      : getDataUrlMimeType(parsedValue.dataUrl);
 
     return {
       dataUrl: parsedValue.dataUrl,
       name,
       bytes: dataUrlToArrayBuffer(parsedValue.dataUrl),
-      mimeType: getDataUrlMimeType(parsedValue.dataUrl),
+      mimeType,
     };
   } catch (error) {
     storage.removeItem(SIGNATURE_IMAGE_KEY);
@@ -63,10 +73,17 @@ export function loadStoredSignatureImage(storage: Storage = localStorage): Store
 
 export async function saveSignatureImageFile(file: File, storage: Storage = localStorage) {
   const dataUrl = await readFileAsDataUrl(file);
-  storage.setItem(SIGNATURE_IMAGE_KEY, JSON.stringify({
+  const serializedValue = JSON.stringify({
     dataUrl,
     nombre: file.name,
-  }));
+    mimeType: file.type || getDataUrlMimeType(dataUrl),
+  });
+
+  storage.setItem(SIGNATURE_IMAGE_KEY, serializedValue);
+
+  if (storage.getItem(SIGNATURE_IMAGE_KEY) !== serializedValue) {
+    throw new Error('The signature image could not be persisted in local storage.');
+  }
 }
 
 export function loadStoredSignatureSize(storage: Storage = localStorage) {

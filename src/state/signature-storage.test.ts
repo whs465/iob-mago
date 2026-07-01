@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   loadStoredSignatureImage,
   loadStoredSignatureSize,
+  saveSignatureImageFile,
   saveSignatureSize,
 } from './signature-storage';
 
@@ -16,6 +17,7 @@ describe('signature storage', () => {
     localStorage.setItem('firmaImagen', JSON.stringify({
       dataUrl: 'data:image/png;base64,SGk=',
       nombre: 'firma.png',
+      mimeType: 'image/png',
     }));
 
     const storedSignature = loadStoredSignatureImage();
@@ -37,5 +39,15 @@ describe('signature storage', () => {
     saveSignatureSize('140');
 
     expect(loadStoredSignatureSize()).toBe('140');
+  });
+
+  it('persists the signature image payload including mime type', async () => {
+    const file = new File(['png'], 'firma.png', { type: 'image/png' });
+
+    await saveSignatureImageFile(file);
+
+    const storedValue = localStorage.getItem('firmaImagen');
+    expect(storedValue).toContain('"nombre":"firma.png"');
+    expect(storedValue).toContain('"mimeType":"image/png"');
   });
 });
