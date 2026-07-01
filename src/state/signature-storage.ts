@@ -15,6 +15,17 @@ type StoredSignatureImageRecord = {
   mimeType?: unknown;
 };
 
+function normalizeStoredDataUrl(value: unknown) {
+  if (typeof value !== 'string') return null;
+
+  const trimmedValue = value.trim();
+  const withoutQuotes = trimmedValue.startsWith('"') && trimmedValue.endsWith('"')
+    ? trimmedValue.slice(1, -1)
+    : trimmedValue;
+
+  return withoutQuotes.startsWith('data:') ? withoutQuotes : null;
+}
+
 function getDataUrlMimeType(dataUrl: string) {
   const mimeMatch = dataUrl.match(/^data:([^;,]+)[;,]/i);
   return mimeMatch?.[1]?.toLowerCase() || 'application/octet-stream';
@@ -48,8 +59,24 @@ export function loadStoredSignatureImage(storage: Storage = localStorage): Store
   if (!storedValue) return null;
 
   try {
-    const parsedValue = JSON.parse(storedValue) as StoredSignatureImageRecord;
-    if (typeof parsedValue.dataUrl !== 'string') throw new Error('Missing stored signature data URL.');
+    const parsedValue = storedValue.trim().startsWith('data:')
+      ? storedValue
+      : JSON.parse(storedValue) as StoredSignatureImageRecord | string;
+
+    if (typeof parsedValue === 'string') {
+      const dataUrl = normalizeStoredDataUrl(parsedValue);
+      if (!dataUrl) throw new Error('Missing stored signature data URL.');
+
+      return {
+        dataUrl,
+        name: '',
+        bytes: dataUrlToArrayBuffer(dataUrl),
+        mimeType: getDataUrlMimeType(dataUrl),
+      };
+    }
+
+    const dataUrl = normalizeStoredDataUrl(parsedValue.dataUrl);
+    if (!dataUrl) throw new Error('Missing stored signature data URL.');
     const name = typeof parsedValue.nombre === 'string'
       ? parsedValue.nombre
       : typeof parsedValue.name === 'string'
@@ -57,12 +84,12 @@ export function loadStoredSignatureImage(storage: Storage = localStorage): Store
         : '';
     const mimeType = typeof parsedValue.mimeType === 'string'
       ? parsedValue.mimeType.toLowerCase()
-      : getDataUrlMimeType(parsedValue.dataUrl);
+      : getDataUrlMimeType(dataUrl);
 
     return {
-      dataUrl: parsedValue.dataUrl,
+      dataUrl,
       name,
-      bytes: dataUrlToArrayBuffer(parsedValue.dataUrl),
+      bytes: dataUrlToArrayBuffer(dataUrl),
       mimeType,
     };
   } catch (error) {
@@ -73,17 +100,11 @@ export function loadStoredSignatureImage(storage: Storage = localStorage): Store
 
 export async function saveSignatureImageFile(file: File, storage: Storage = localStorage) {
   const dataUrl = await readFileAsDataUrl(file);
-  const serializedValue = JSON.stringify({
+  storage.setItem(SIGNATURE_IMAGE_KEY, JSON.stringify({
     dataUrl,
     nombre: file.name,
     mimeType: file.type || getDataUrlMimeType(dataUrl),
-  });
-
-  storage.setItem(SIGNATURE_IMAGE_KEY, serializedValue);
-
-  if (storage.getItem(SIGNATURE_IMAGE_KEY) !== serializedValue) {
-    throw new Error('The signature image could not be persisted in local storage.');
-  }
+  }));
 }
 
 export function loadStoredSignatureSize(storage: Storage = localStorage) {

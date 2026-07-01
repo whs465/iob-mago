@@ -191,7 +191,7 @@ export function applyEnglishContent({
   requiredQuery('#clear-markers').setAttribute('title', 'Clear markers');
   setElementText('zoom-reset-label', 'Fit');
   setElementText('clear-markers-label', 'Clear markers');
-  setHtml('help-text', '<strong>Click on the PDF</strong> to mark the signature position');
+  setHtml('#help-text', '<strong>Click on the PDF</strong> to mark the signature position');
   setText('.signature-controls h4', 'Signature settings');
   setHtml(
     '.signature-storage-note',

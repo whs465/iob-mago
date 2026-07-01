@@ -35,6 +35,38 @@ describe('signature storage', () => {
     expect(localStorage.getItem('firmaImagen')).toBeNull();
   });
 
+  it('loads legacy raw data-url payloads stored as a plain string', () => {
+    localStorage.setItem('firmaImagen', JSON.stringify('data:image/png;base64,SGk='));
+
+    const storedSignature = loadStoredSignatureImage();
+
+    expect(storedSignature?.dataUrl).toBe('data:image/png;base64,SGk=');
+    expect(storedSignature?.mimeType).toBe('image/png');
+    expect(storedSignature?.name).toBe('');
+  });
+
+  it('loads legacy raw data-url payloads stored without JSON wrapping', () => {
+    localStorage.setItem('firmaImagen', 'data:image/png;base64,SGk=');
+
+    const storedSignature = loadStoredSignatureImage();
+
+    expect(storedSignature?.dataUrl).toBe('data:image/png;base64,SGk=');
+    expect(storedSignature?.mimeType).toBe('image/png');
+    expect(storedSignature?.name).toBe('');
+  });
+
+  it('loads data urls even when they were persisted with wrapping quotes', () => {
+    localStorage.setItem('firmaImagen', JSON.stringify({
+      dataUrl: '"data:image/png;base64,SGk="',
+      nombre: 'firma.png',
+    }));
+
+    const storedSignature = loadStoredSignatureImage();
+
+    expect(storedSignature?.dataUrl).toBe('data:image/png;base64,SGk=');
+    expect(storedSignature?.name).toBe('firma.png');
+  });
+
   it('saves and loads signature size', () => {
     saveSignatureSize('140');
 

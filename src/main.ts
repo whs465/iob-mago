@@ -455,7 +455,7 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
         // ==================== FECHAS Y AVANCE ====================
 
         // Inicializar fechas al cargar
-        document.addEventListener('DOMContentLoaded', function() {
+        function initializeApp() {
             translatePageToEnglish();
             updateSignatureCleanSensitivity();
             updateSignatureTone();
@@ -479,7 +479,13 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
             }
 
             restoreStoredSignature();
-        });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp, { once: true });
+        } else {
+            initializeApp();
+        }
 
         // calcularAvance, autoCalcularAvance, formatDate moved into contract-progress-flow
 
