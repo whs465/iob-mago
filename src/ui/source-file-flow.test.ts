@@ -87,6 +87,35 @@ describe('setupSourceFileFlow', () => {
     expect(typeof api.actualizarRotateInfo).toBe('function');
   });
 
+  it('loads selected PDF files from the shared source input', () => {
+    const sourceFileState = createMockSourceFileState();
+    setupSourceFileFlow({
+      runtime: { sourceFileState, pageOrderState },
+      deps: {
+        getPdfPageCountFromArrayBuffer: vi.fn(),
+        getPdfPageMetricsFromArrayBuffer: vi.fn(),
+      },
+      i18n: (en: string) => en,
+      onOrderListUpdate,
+    });
+
+    const input = document.getElementById('source-input') as HTMLInputElement;
+    const files = [
+      new File(['a'], 'doc1.pdf', { type: 'application/pdf' }),
+      new File(['b'], 'doc2.pdf', { type: 'application/pdf' }),
+    ];
+    Object.defineProperty(input, 'files', {
+      configurable: true,
+      value: files,
+    });
+
+    input.dispatchEvent(new Event('change'));
+
+    expect(sourceFileState.setFiles).toHaveBeenCalledWith(files);
+    expect(sourceFileState.files).toEqual(files);
+    expect(document.getElementById('source-list')?.children.length).toBe(2);
+  });
+
   it('actualizarSourceList renders file items', () => {
     const sourceFileState = createMockSourceFileState([
       new File(['a'], 'doc1.pdf', { type: 'application/pdf' }),

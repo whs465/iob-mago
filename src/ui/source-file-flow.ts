@@ -157,6 +157,16 @@ export function setupSourceFileFlow({
     );
   }
 
+  const sourceInput = document.getElementById('source-input') as HTMLInputElement | null;
+  sourceInput?.addEventListener('click', function() {
+    this.value = '';
+  });
+  sourceInput?.addEventListener('change', event => {
+    const selectedFiles = Array.from((event.target as HTMLInputElement).files || []);
+    sourceFileState.setFiles(selectedFiles);
+    actualizarSourceList();
+  });
+
   return {
     actualizarSourceList,
     scheduleSourceAnalysis,
