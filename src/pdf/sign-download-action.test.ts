@@ -12,6 +12,7 @@ describe('applySignedPdfDownloadAction', () => {
     await expect(applySignedPdfDownloadAction({
       file: makeFile(),
       imageBytes: null,
+      imageType: 'image/png',
       markers: [{ page: 1, x: 1, y: 1, size: 1 }],
       applyAllPages: false,
       deps: { loadPdfDocument: vi.fn() },
@@ -30,6 +31,7 @@ describe('applySignedPdfDownloadAction', () => {
     const result = await applySignedPdfDownloadAction({
       file: makeFile(),
       imageBytes: new ArrayBuffer(1),
+      imageType: 'image/png',
       markers: [{ page: 1, x: 1, y: 1, size: 1 }],
       applyAllPages: true,
       deps: { loadPdfDocument: vi.fn() },

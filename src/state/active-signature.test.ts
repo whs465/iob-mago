@@ -9,17 +9,18 @@ describe('active signature state', () => {
     expect(state.hasImage).toBe(false);
     expect(state.aspectRatio).toBe(1);
 
-    state.setImageBytes(bytes);
+    state.setImage(bytes, 'image/png');
     state.setAspectRatio(2.5);
 
     expect(state.imageBytes).toBe(bytes);
+    expect(state.imageType).toBe('image/png');
     expect(state.hasImage).toBe(true);
     expect(state.aspectRatio).toBe(2.5);
   });
 
   it('can reset aspect ratio and clear image state', () => {
     const state = createActiveSignatureState();
-    state.setImageBytes(new ArrayBuffer(1));
+    state.setImage(new ArrayBuffer(1), 'image/jpeg');
     state.setAspectRatio(1.7);
 
     state.resetAspectRatio();
@@ -28,6 +29,7 @@ describe('active signature state', () => {
 
     state.clear();
     expect(state.imageBytes).toBeNull();
+    expect(state.imageType).toBeNull();
     expect(state.aspectRatio).toBe(1);
     expect(state.hasImage).toBe(false);
   });

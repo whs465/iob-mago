@@ -2,7 +2,7 @@
 
 import { describe, expect, it, vi } from 'vitest';
 import type { SignatureViewerState } from '../state/signature-viewer';
-import { renderSignaturePdfPage } from './signature-render';
+import { getSignatureRenderWidth, renderSignaturePdfPage } from './signature-render';
 
 function createViewerState(): SignatureViewerState {
   const render = vi.fn(() => ({ promise: Promise.resolve() }));
@@ -23,6 +23,9 @@ function createViewerState(): SignatureViewerState {
     currentPage: 1,
     totalPages: 3,
     currentScale: 1,
+    zoomLevel: 1,
+    minZoomLevel: 1,
+    maxZoomLevel: 2,
     pageWidth: 0,
     pageHeight: 0,
     reset: vi.fn(),
@@ -31,10 +34,20 @@ function createViewerState(): SignatureViewerState {
     setRenderedPageMetrics: vi.fn(),
     canMovePage: vi.fn(),
     movePage: vi.fn(),
+    canZoomOut: vi.fn(),
+    canZoomIn: vi.fn(),
+    zoomOut: vi.fn(),
+    zoomIn: vi.fn(),
+    resetZoom: vi.fn(),
   };
 }
 
 describe('renderSignaturePdfPage', () => {
+  it('calculates a responsive render width from the viewport', () => {
+    expect(getSignatureRenderWidth(340, 390)).toBe(340);
+    expect(getSignatureRenderWidth(1600, 1400)).toBe(1304);
+  });
+
   it('renders the requested page and updates viewer metrics', async () => {
     document.body.innerHTML = `
       <div id="page-info"></div>
@@ -66,6 +79,72 @@ describe('renderSignaturePdfPage', () => {
     expect(canvas.height).toBe(300);
     expect(document.getElementById('page-info')?.textContent).toBe('Page 2 / 3');
     expect(onRendered).toHaveBeenCalledTimes(1);
+  });
+
+  it('caps very wide previews according to the current viewport', async () => {
+    document.body.innerHTML = `
+      <div id="page-info"></div>
+      <button id="prev-page"></button>
+      <button id="next-page"></button>
+    `;
+    const viewerState = createViewerState();
+    const canvas = document.createElement('canvas');
+    const canvasWrapper = document.createElement('div');
+    Object.defineProperty(canvasWrapper, 'clientWidth', { value: 1600 });
+    Object.defineProperty(canvas, 'getContext', {
+      value: vi.fn(() => ({})),
+    });
+    Object.defineProperty(window, 'innerWidth', {
+      value: 1400,
+      configurable: true,
+    });
+
+    await renderSignaturePdfPage({
+      viewerState,
+      pageNumber: 1,
+      canvas,
+      canvasWrapper,
+      formatPageInfo: (page, total) => `Page ${page} / ${total}`,
+    });
+
+    expect(viewerState.setRenderedPageMetrics).toHaveBeenCalledWith(1000, 500, 1.304);
+    expect(canvas.width).toBe(1304);
+    expect(canvas.height).toBe(652);
+  });
+
+  it('applies the current zoom level on top of fit width rendering', async () => {
+    document.body.innerHTML = `
+      <div id="page-info"></div>
+      <div id="zoom-info"></div>
+      <div id="signature-markers"></div>
+      <button id="prev-page"></button>
+      <button id="next-page"></button>
+      <button id="zoom-out"></button>
+      <button id="zoom-in"></button>
+    `;
+    const viewerState = {
+      ...createViewerState(),
+      zoomLevel: 1.5,
+    };
+    const canvas = document.createElement('canvas');
+    const canvasWrapper = document.createElement('div');
+    Object.defineProperty(canvasWrapper, 'clientWidth', { value: 600 });
+    Object.defineProperty(canvas, 'getContext', {
+      value: vi.fn(() => ({})),
+    });
+
+    await renderSignaturePdfPage({
+      viewerState,
+      pageNumber: 1,
+      canvas,
+      canvasWrapper,
+      formatPageInfo: (page, total) => `Page ${page} / ${total}`,
+    });
+
+    expect(viewerState.setRenderedPageMetrics).toHaveBeenCalledWith(1000, 500, 0.8999999999999999);
+    expect(canvas.width).toBe(899);
+    expect(canvas.height).toBe(449);
+    expect(document.getElementById('zoom-info')?.textContent).toBe('150%');
   });
 
   it('does nothing when no PDF is loaded', async () => {

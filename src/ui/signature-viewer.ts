@@ -1,6 +1,7 @@
 import { getElement, getRequiredElement } from './dom';
 
 export type PageInfoFormatter = (page: number, total: number) => string;
+export type ZoomInfoFormatter = (zoomLevel: number) => string;
 
 export function getPdfCanvas() {
   return getRequiredElement<HTMLCanvasElement>('pdf-canvas');
@@ -8,6 +9,13 @@ export function getPdfCanvas() {
 
 export function getPdfCanvasWrapper() {
   return getRequiredElement('canvas-wrapper');
+}
+
+export function syncSignatureMarkerLayerSize(width: number, height: number) {
+  const markerLayer = getElement('signature-markers');
+  if (!markerLayer) return;
+  markerLayer.style.width = `${width}px`;
+  markerLayer.style.height = `${height}px`;
 }
 
 export function showSignaturePdfViewer() {
@@ -42,10 +50,29 @@ export function updateSignaturePageControls(
   if (nextPage) nextPage.disabled = page >= total;
 }
 
+export function updateSignatureZoomControls(
+  zoomLevel: number,
+  minZoomLevel: number,
+  maxZoomLevel: number,
+  formatZoomInfo: ZoomInfoFormatter,
+) {
+  const zoomInfo = getElement('zoom-info');
+  const zoomOut = getElement<HTMLButtonElement>('zoom-out');
+  const zoomIn = getElement<HTMLButtonElement>('zoom-in');
+
+  if (zoomInfo) zoomInfo.textContent = formatZoomInfo(zoomLevel);
+  if (zoomOut) zoomOut.disabled = zoomLevel <= minZoomLevel;
+  if (zoomIn) zoomIn.disabled = zoomLevel >= maxZoomLevel;
+}
+
 export function resetSignaturePageControls(formatPageInfo: PageInfoFormatter) {
   updateSignaturePageControls(1, 1, formatPageInfo);
   const prevPage = getElement<HTMLButtonElement>('prev-page');
   const nextPage = getElement<HTMLButtonElement>('next-page');
   if (prevPage) prevPage.disabled = true;
   if (nextPage) nextPage.disabled = true;
+}
+
+export function resetSignatureZoomControls(formatZoomInfo: ZoomInfoFormatter) {
+  updateSignatureZoomControls(1, 1, 2, formatZoomInfo);
 }

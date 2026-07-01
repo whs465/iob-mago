@@ -38,7 +38,7 @@ describe('addSignatureMarkerFromClick', () => {
   it('adds the marker created from the click', async () => {
     const markerState = createSignatureMarkerState();
     const activeSignatureState = createActiveSignatureState();
-    activeSignatureState.setImageBytes(new ArrayBuffer(1));
+    activeSignatureState.setImage(new ArrayBuffer(1), 'image/png');
     activeSignatureState.setAspectRatio(2);
     const marker = { page: 1, x: 10, y: 20, size: 120 };
     const createMarkerFromClick = vi.fn(async () => marker);
@@ -67,7 +67,7 @@ describe('addSignatureMarkerFromClick', () => {
   it('reports when the click cannot create a marker', async () => {
     const markerState = createSignatureMarkerState();
     const activeSignatureState = createActiveSignatureState();
-    activeSignatureState.setImageBytes(new ArrayBuffer(1));
+    activeSignatureState.setImage(new ArrayBuffer(1), 'image/png');
 
     const result = await addSignatureMarkerFromClick({
       event: new MouseEvent('click'),

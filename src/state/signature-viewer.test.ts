@@ -46,6 +46,20 @@ describe('signature viewer state', () => {
     expect(state.currentScale).toBe(0.5);
   });
 
+  it('tracks zoom between fit width and the max level', () => {
+    const state = createSignatureViewerState();
+
+    expect(state.zoomLevel).toBe(1);
+    expect(state.zoomOut()).toBeNull();
+    expect(state.zoomIn()).toBe(1.25);
+    expect(state.zoomIn()).toBe(1.5);
+    expect(state.zoomIn()).toBe(1.75);
+    expect(state.zoomIn()).toBe(2);
+    expect(state.zoomIn()).toBeNull();
+    expect(state.resetZoom()).toBe(1);
+    expect(state.zoomLevel).toBe(1);
+  });
+
   it('moves only inside loaded page bounds', () => {
     const state = createSignatureViewerState();
     state.load(makeFile('contract.pdf'), makeProxy(2), 2);
@@ -54,5 +68,18 @@ describe('signature viewer state', () => {
     expect(state.movePage(1)).toBe(2);
     expect(state.currentPage).toBe(2);
     expect(state.movePage(1)).toBeNull();
+  });
+
+  it('resets zoom when a PDF session is loaded again or cleared', () => {
+    const state = createSignatureViewerState();
+    state.zoomIn();
+    state.zoomIn();
+
+    state.load(makeFile('contract.pdf'), makeProxy(2), 2);
+    expect(state.zoomLevel).toBe(1);
+
+    state.zoomIn();
+    state.clearLoadedPdf();
+    expect(state.zoomLevel).toBe(1);
   });
 });

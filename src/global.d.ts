@@ -8,6 +8,9 @@ interface Window {
   ordenarPaginasPdf: () => Promise<void>;
   rotarPaginasPortrait: () => Promise<void>;
   changePage: (direction: number) => void;
+  zoomOutPdf: () => Promise<void>;
+  resetPdfZoom: () => Promise<void>;
+  zoomInPdf: () => Promise<void>;
   clearMarkers: () => void;
   handleCanvasClick: (event: MouseEvent) => Promise<void>;
   applySignatures: () => Promise<void>;

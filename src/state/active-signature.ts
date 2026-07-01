@@ -1,8 +1,9 @@
 export type ActiveSignatureState = {
   readonly imageBytes: ArrayBuffer | null;
+  readonly imageType: string | null;
   readonly aspectRatio: number;
   readonly hasImage: boolean;
-  setImageBytes(bytes: ArrayBuffer): void;
+  setImage(bytes: ArrayBuffer, imageType?: string | null): void;
   setAspectRatio(aspectRatio: number): void;
   resetAspectRatio(): void;
   clear(): void;
@@ -10,11 +11,16 @@ export type ActiveSignatureState = {
 
 export function createActiveSignatureState(): ActiveSignatureState {
   let imageBytes: ArrayBuffer | null = null;
+  let imageType: string | null = null;
   let aspectRatio = 1;
 
   return {
     get imageBytes() {
       return imageBytes;
+    },
+
+    get imageType() {
+      return imageType;
     },
 
     get aspectRatio() {
@@ -25,8 +31,9 @@ export function createActiveSignatureState(): ActiveSignatureState {
       return !!imageBytes;
     },
 
-    setImageBytes(bytes) {
+    setImage(bytes, nextImageType = null) {
       imageBytes = bytes;
+      imageType = nextImageType;
     },
 
     setAspectRatio(nextAspectRatio) {
@@ -39,6 +46,7 @@ export function createActiveSignatureState(): ActiveSignatureState {
 
     clear() {
       imageBytes = null;
+      imageType = null;
       aspectRatio = 1;
     },
   };

@@ -20,6 +20,9 @@ export type SignatureViewerState = {
   readonly currentPage: number;
   readonly totalPages: number;
   readonly currentScale: number;
+  readonly zoomLevel: number;
+  readonly minZoomLevel: number;
+  readonly maxZoomLevel: number;
   readonly pageWidth: number;
   readonly pageHeight: number;
   reset(): void;
@@ -28,19 +31,29 @@ export type SignatureViewerState = {
   setRenderedPageMetrics(width: number, height: number, scale: number): void;
   canMovePage(delta: number): boolean;
   movePage(delta: number): number | null;
+  canZoomOut(): boolean;
+  canZoomIn(): boolean;
+  zoomOut(): number | null;
+  zoomIn(): number | null;
+  resetZoom(): number;
 };
 
 export function createSignatureViewerState(): SignatureViewerState {
+  const minZoomLevel = 1;
+  const maxZoomLevel = 2;
+  const zoomStep = 0.25;
   let file: File | null = null;
   let pdfDocProxy: SignaturePdfDocProxy | null = null;
   let currentPage = 1;
   let totalPages = 0;
   let currentScale = 1;
+  let zoomLevel = 1;
   let pageWidth = 0;
   let pageHeight = 0;
 
   const resetPageMetrics = () => {
     currentScale = 1;
+    zoomLevel = 1;
     pageWidth = 0;
     pageHeight = 0;
   };
@@ -64,6 +77,18 @@ export function createSignatureViewerState(): SignatureViewerState {
 
     get currentScale() {
       return currentScale;
+    },
+
+    get zoomLevel() {
+      return zoomLevel;
+    },
+
+    get minZoomLevel() {
+      return minZoomLevel;
+    },
+
+    get maxZoomLevel() {
+      return maxZoomLevel;
     },
 
     get pageWidth() {
@@ -113,6 +138,31 @@ export function createSignatureViewerState(): SignatureViewerState {
       if (!this.canMovePage(delta)) return null;
       currentPage += delta;
       return currentPage;
+    },
+
+    canZoomOut() {
+      return zoomLevel > minZoomLevel;
+    },
+
+    canZoomIn() {
+      return zoomLevel < maxZoomLevel;
+    },
+
+    zoomOut() {
+      if (!this.canZoomOut()) return null;
+      zoomLevel = Math.max(minZoomLevel, zoomLevel - zoomStep);
+      return zoomLevel;
+    },
+
+    zoomIn() {
+      if (!this.canZoomIn()) return null;
+      zoomLevel = Math.min(maxZoomLevel, zoomLevel + zoomStep);
+      return zoomLevel;
+    },
+
+    resetZoom() {
+      zoomLevel = 1;
+      return zoomLevel;
     },
   };
 }

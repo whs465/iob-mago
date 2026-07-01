@@ -4,6 +4,7 @@ import { type SignPdfDeps, signPdfWithImage } from './sign';
 export type ApplyPdfSignaturesInput = {
   file: File | null;
   imageBytes: ArrayBuffer | null;
+  imageType?: string | null;
   markers: SignatureMarker[];
   applyAllPages: boolean;
   deps: SignPdfDeps;
@@ -31,6 +32,7 @@ export function validatePdfSignatureInputs({
 export async function applyPdfSignatures({
   file,
   imageBytes,
+  imageType,
   markers,
   applyAllPages,
   deps,
@@ -44,6 +46,7 @@ export async function applyPdfSignatures({
     markers,
     {
       applyAllPages,
+      imageType,
       deps,
     },
   );

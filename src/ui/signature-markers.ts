@@ -51,6 +51,7 @@ export function renderSignatureMarkers(
 
     if (options.imageUrl) {
       const img = document.createElement('img');
+      img.className = 'signature-marker-image';
       img.src = options.imageUrl;
       img.style.width = '100%';
       img.style.height = '100%';
@@ -59,6 +60,11 @@ export function renderSignatureMarkers(
       img.style.pointerEvents = 'none';
       markerElement.appendChild(img);
     }
+
+    const sizeBadge = document.createElement('span');
+    sizeBadge.className = 'signature-marker-size';
+    sizeBadge.textContent = `${Math.round(marker.size)}px`;
+    markerElement.appendChild(sizeBadge);
 
     markerElement.addEventListener('pointerdown', event => {
       if ((event.target as Element | null)?.closest('.signature-marker-delete')) return;

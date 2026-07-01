@@ -16,6 +16,7 @@ describe('active signature actions', () => {
         dataUrl: 'data:image/png;base64,abc',
         name: 'stored.png',
         bytes,
+        mimeType: 'image/png',
       }),
     });
 
@@ -26,6 +27,7 @@ describe('active signature actions', () => {
       isObjectUrl: false,
     });
     expect(state.imageBytes).toBe(bytes);
+    expect(state.imageType).toBe('image/png');
   });
 
   it('reports missing stored active signatures', () => {
@@ -35,6 +37,7 @@ describe('active signature actions', () => {
       loadStoredSignatureImage: () => null,
     })).toEqual({ status: 'missing-signature' });
     expect(state.imageBytes).toBeNull();
+    expect(state.imageType).toBeNull();
   });
 
   it('loads a selected active signature file and starts persistence', async () => {
@@ -54,6 +57,7 @@ describe('active signature actions', () => {
       isObjectUrl: true,
     });
     expect(state.imageBytes).toEqual(await file.arrayBuffer());
+    expect(state.imageType).toBe('image/png');
     expect(saveSignatureImageFile).toHaveBeenCalledWith(file);
   });
 });

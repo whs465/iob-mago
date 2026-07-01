@@ -23,22 +23,28 @@ describe('signature viewer flow', () => {
     dragState.markMoved();
 
     const clearCanvas = vi.fn();
+    const syncMarkerLayerSize = vi.fn();
     const hideViewer = vi.fn();
     const resetPageControls = vi.fn();
+    const resetZoomControls = vi.fn();
     const updateMarkersDisplay = vi.fn();
     const updateSignatureList = vi.fn();
     const formatPageInfo = vi.fn((page: number, total: number) => `${page}/${total}`);
+    const formatZoomInfo = vi.fn((zoomLevel: number) => `${zoomLevel}`);
 
     resetSignaturePdfViewer({
       viewerState,
       markerState,
       dragState,
       formatPageInfo,
+      formatZoomInfo,
       updateMarkersDisplay,
       updateSignatureList,
       clearCanvas,
+      syncMarkerLayerSize,
       hideViewer,
       resetPageControls,
+      resetZoomControls,
     });
 
     expect(viewerState.file).toBeNull();
@@ -50,8 +56,10 @@ describe('signature viewer flow', () => {
     expect(dragState.activeIndex).toBeNull();
     expect(dragState.movedDuringDrag).toBe(false);
     expect(clearCanvas).toHaveBeenCalledTimes(1);
+    expect(syncMarkerLayerSize).toHaveBeenCalledWith(0, 0);
     expect(hideViewer).toHaveBeenCalledTimes(1);
     expect(resetPageControls).toHaveBeenCalledWith(formatPageInfo);
+    expect(resetZoomControls).toHaveBeenCalledWith(formatZoomInfo);
     expect(updateMarkersDisplay).toHaveBeenCalledTimes(1);
     expect(updateSignatureList).toHaveBeenCalledTimes(1);
   });

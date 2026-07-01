@@ -9,6 +9,7 @@ function makeValidOptions() {
   return {
     file: new File(['pdf'], 'contract.pdf', { type: 'application/pdf' }),
     imageBytes: new ArrayBuffer(4),
+    imageType: 'image/png',
     markers: [{ page: 1, x: 10, y: 20, size: 90 }],
     applyAllPages: true,
     deps: { loadPdfDocument: vi.fn() },

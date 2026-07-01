@@ -11,6 +11,7 @@ import type { SignPdfDeps } from './sign';
 export type ApplySignedPdfDownloadInput = {
   file: File | null;
   imageBytes: ArrayBuffer | null;
+  imageType?: string | null;
   markers: SignatureMarker[];
   applyAllPages: boolean;
   deps: SignPdfDeps;
@@ -29,6 +30,7 @@ export type ApplySignedPdfDownloadResult =
 export async function applySignedPdfDownloadAction({
   file,
   imageBytes,
+  imageType,
   markers,
   applyAllPages,
   deps,
@@ -38,6 +40,7 @@ export async function applySignedPdfDownloadAction({
   const result = await applySignatures({
     file,
     imageBytes,
+    imageType,
     markers,
     applyAllPages,
     deps,

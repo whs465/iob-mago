@@ -177,9 +177,20 @@ export function applyEnglishContent({
     !!signatureSourceFileName,
   );
 
-  setElementText('prev-page', '◀ Previous');
-  setElementText('next-page', 'Next ▶');
-  setText('.pdf-preview-controls .btn-danger', 'Clear markers');
+  requiredQuery('#prev-page').setAttribute('aria-label', 'Previous page');
+  requiredQuery('#prev-page').setAttribute('title', 'Previous page');
+  requiredQuery('#next-page').setAttribute('aria-label', 'Next page');
+  requiredQuery('#next-page').setAttribute('title', 'Next page');
+  requiredQuery('#zoom-out').setAttribute('aria-label', 'Zoom out');
+  requiredQuery('#zoom-out').setAttribute('title', 'Zoom out');
+  requiredQuery('#zoom-in').setAttribute('aria-label', 'Zoom in');
+  requiredQuery('#zoom-in').setAttribute('title', 'Zoom in');
+  requiredQuery('#zoom-reset').setAttribute('aria-label', 'Fit to width');
+  requiredQuery('#zoom-reset').setAttribute('title', 'Fit to width');
+  requiredQuery('#clear-markers').setAttribute('aria-label', 'Clear markers');
+  requiredQuery('#clear-markers').setAttribute('title', 'Clear markers');
+  setElementText('zoom-reset-label', 'Fit');
+  setElementText('clear-markers-label', 'Clear markers');
   setHtml('help-text', '<strong>Click on the PDF</strong> to mark the signature position');
   setText('.signature-controls h4', 'Signature settings');
   setHtml(

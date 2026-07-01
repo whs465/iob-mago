@@ -29,7 +29,7 @@ describe('signPdfWithImage', () => {
         { page: 1, x: 150, y: 200, size: 100 },
         { page: 3, x: 50, y: 80, size: 40 },
       ],
-      { applyAllPages: false, deps },
+      { applyAllPages: false, imageType: 'image/png', deps },
     );
 
     expect(pdfDoc.embedPng).toHaveBeenCalledOnce();
@@ -54,7 +54,7 @@ describe('signPdfWithImage', () => {
       makeFile(),
       new ArrayBuffer(4),
       [{ page: 1, x: 100, y: 100, size: 60 }],
-      { applyAllPages: true, deps },
+      { applyAllPages: true, imageType: 'image/png', deps },
     );
 
     expect(pdfDoc.getPage).toHaveBeenCalledWith(0);
@@ -63,24 +63,40 @@ describe('signPdfWithImage', () => {
     expect(pdfDoc.pages[1].drawImage).toHaveBeenCalledOnce();
   });
 
-  it('falls back to JPG embedding when PNG embedding fails', async () => {
+  it('uses JPG embedding when the signature type is JPEG', async () => {
     const pdfDoc = makePdfDoc(1);
-    pdfDoc.embedPng = vi.fn(async () => {
-      throw new Error('not png');
-    });
     const deps = { loadPdfDocument: vi.fn(async () => pdfDoc) };
 
     await signPdfWithImage(
       makeFile(),
       new ArrayBuffer(4),
       [{ page: 1, x: 100, y: 100, size: 60 }],
-      { applyAllPages: false, deps },
+      { applyAllPages: false, imageType: 'image/jpeg', deps },
     );
 
     expect(pdfDoc.embedJpg).toHaveBeenCalledOnce();
+    expect(pdfDoc.embedPng).not.toHaveBeenCalled();
     expect(pdfDoc.pages[0].drawImage).toHaveBeenCalledWith(
       expect.objectContaining({ kind: 'jpg' }),
       expect.any(Object),
     );
+  });
+
+  it('throws a clear error for unsupported signature formats', async () => {
+    const pdfDoc = makePdfDoc(1);
+    pdfDoc.embedPng = vi.fn(async () => {
+      throw new Error('not png');
+    });
+    pdfDoc.embedJpg = vi.fn(async () => {
+      throw new Error('not jpg');
+    });
+    const deps = { loadPdfDocument: vi.fn(async () => pdfDoc) };
+
+    await expect(signPdfWithImage(
+      makeFile(),
+      new Uint8Array([0x52, 0x49, 0x46, 0x46]).buffer,
+      [{ page: 1, x: 100, y: 100, size: 60 }],
+      { applyAllPages: false, deps },
+    )).rejects.toThrow('Unsupported signature image format. Use PNG or JPG.');
   });
 });

@@ -18,6 +18,9 @@ function createViewerState(): SignatureViewerState {
     currentPage: 1,
     totalPages: 1,
     currentScale: 1,
+    zoomLevel: 1,
+    minZoomLevel: 1,
+    maxZoomLevel: 2,
     pageWidth: 1000,
     pageHeight: 500,
     reset: vi.fn(),
@@ -26,6 +29,11 @@ function createViewerState(): SignatureViewerState {
     setRenderedPageMetrics: vi.fn(),
     canMovePage: vi.fn(),
     movePage: vi.fn(),
+    canZoomOut: vi.fn(),
+    canZoomIn: vi.fn(),
+    zoomOut: vi.fn(),
+    zoomIn: vi.fn(),
+    resetZoom: vi.fn(),
   };
 }
 

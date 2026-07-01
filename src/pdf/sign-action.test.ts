@@ -39,6 +39,7 @@ describe('applyPdfSignatures', () => {
     const result = await applyPdfSignatures({
       file: makeFile(),
       imageBytes: new ArrayBuffer(1),
+      imageType: 'image/png',
       markers: [{ page: 1, x: 50, y: 50, size: 20 }],
       applyAllPages: false,
       deps: {
@@ -60,6 +61,7 @@ describe('applyPdfSignatures', () => {
     await expect(applyPdfSignatures({
       file: null,
       imageBytes: new ArrayBuffer(1),
+      imageType: 'image/png',
       markers: [{ page: 1, x: 1, y: 1, size: 1 }],
       applyAllPages: false,
       deps: { loadPdfDocument },

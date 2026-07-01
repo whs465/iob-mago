@@ -22,6 +22,7 @@ describe('signature storage', () => {
 
     expect(storedSignature?.name).toBe('firma.png');
     expect(storedSignature?.dataUrl).toBe('data:image/png;base64,SGk=');
+    expect(storedSignature?.mimeType).toBe('image/png');
     expect(new TextDecoder().decode(storedSignature?.bytes)).toBe('Hi');
   });
 

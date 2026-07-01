@@ -1,390 +1,190 @@
-# Plan de modernizacion interna de IOB Mago
+# Plan de mejoras de IOB Mago
 
-## Objetivo
+## Estado actual
 
-Modernizar IOB Mago por dentro sin cambiar la UI actual. La interfaz ya esta bien lograda, asi que el trabajo debe enfocarse en arquitectura, TypeScript, modulos, pruebas y confiabilidad del procesamiento PDF.
+IOB Mago ya completo la migracion principal a Vite + TypeScript modular sin redisenar la UI.
 
-La regla principal es simple: la UI se conserva visualmente igual. No se redisenan tarjetas, botones, textos, colores, espaciados ni flujos salvo que exista un bug puntual.
+El codigo ya no depende de scripts CDN globales para las librerias principales. `pdf-lib`, `pdfjs-dist`, `file-saver` y `jszip` entran por imports reales de npm.
 
-## Decision de stack
+`src/main.ts` quedo como archivo de composicion y wiring. Tiene cerca de 747 lineas y ya delega los flujos grandes a modulos:
 
-No conviene movernos directo a React o Vue en la primera fase.
+- operaciones PDF: merge, split, extract, delete, reorder y rotate;
+- firma PDF: carga, render, navegacion, marcadores, drag, aplicacion y descarga;
+- generacion de PNG transparente de firma;
+- fuente compartida y analisis de PDFs;
+- avance de contrato;
+- soporte/donaciones;
+- helpers DOM, estado y utilidades puras.
 
-La recomendacion es empezar con:
+La ultima verificacion registrada dejo la suite en verde:
 
-- Vite
-- TypeScript
-- HTML y CSS actuales
-- modulos internos para PDF, estado, DOM y utilidades
-- Vitest para pruebas unitarias
+- `npm test`: 75 archivos, 253 tests;
+- `npm run build`: correcto.
 
-Esto permite arreglar lo amateur del codigo sin reescribir la interfaz. React o Vue pueden entrar despues, pero no son el primer problema.
+## Objetivo de la siguiente fase
 
-## Por que no React todavia
+Mejorar la experiencia de firma para que el usuario pueda trabajar sobre el documento cargado con mas comodidad.
 
-React es buena opcion si la app va a crecer hacia componentes complejos, rutas, estados ricos, vistas dinamicas o una experiencia mas parecida a producto grande. Pero migrar ya mismo a React implicaria tocar mucho markup y aumentar el riesgo de romper una UI que ya esta bonita.
+Hoy la firma funciona, pero el PDF se ve como una miniatura. El usuario puede marcar y mover la firma, pero falta una vista mas grande, navegable y con zoom para ubicar la firma con precision.
 
-Para esta app, el dolor real ahora mismo esta en otro lado:
+La regla se mantiene: mejorar UX sin reescribir la app ni cambiar la identidad visual general.
 
-- demasiada logica dentro de `index.html`;
-- estado global mezclado con DOM;
-- manipulacion PDF dificil de probar;
-- uso de dependencias globales desde CDN;
-- funciones grandes;
-- errores poco tipados;
-- cero tests para casos delicados como bookmarks.
+## Mejora prioritaria: visor de firma grande
 
-React no arregla automaticamente eso. TypeScript modular si lo ataca directamente.
+Convertir la seccion de firma en un visor de trabajo mas comodo.
 
-## Por que no Vue todavia
+Resultado esperado:
 
-Vue seria una migracion mas amable que React si queremos mantener HTML expresivo y componentes sencillos. Aun asi, meter Vue en la primera fase tambien obligaria a partir la UI en componentes y revalidar mucho comportamiento visual.
+- el PDF se puede ver mas grande dentro de la pantalla;
+- el usuario puede navegar paginas sin perder contexto;
+- el usuario puede hacer zoom in, zoom out y volver a ajustar al ancho;
+- los marcadores de firma siguen alineados al PDF al cambiar zoom o pagina;
+- firmar y descargar sigue siendo igual de directo;
+- la experiencia mejora en desktop y mobile.
 
-Vue puede ser una buena segunda fase si despues queremos:
+## Corte 1: agrandar el visor actual
 
-- componentes para cada herramienta;
-- estado reactivo mas limpio;
-- formularios mas mantenibles;
-- una app mas facil de extender.
+Archivos principales:
 
-Pero primero conviene estabilizar el nucleo.
+- `index.html`
+- `src/ui/signature-render.ts`
+- `src/ui/signature-viewer.ts`
+- `src/ui/signature-navigation-flow.ts`
 
-## Ruta recomendada
+Tareas:
 
-La ruta recomendada es:
+1. Revisar el limite actual de render en `signature-render.ts`, donde el canvas se limita a un ancho maximo aproximado de 800 px.
+2. Permitir que el canvas use mas ancho disponible en desktop.
+3. Darle a `.pdf-preview-container` y `.pdf-canvas-wrapper` un comportamiento mas cercano a visor:
+   - mas alto disponible;
+   - scroll interno cuando el PDF sea alto;
+   - canvas centrado;
+   - controles visibles y compactos.
+4. Mantener el panel de configuracion de firma sin romper mobile.
+5. Verificar que click, drag y borrado de marcadores sigan funcionando.
 
-1. Vite + TypeScript vanilla.
-2. Modulos internos claros.
-3. Tests para la logica PDF.
-4. UI congelada visualmente.
-5. Evaluar React/Vue solo despues de que el nucleo este limpio.
+Pruebas esperadas:
 
-## Arquitectura propuesta
+- actualizar tests de `signature-render.ts` si cambia el calculo de escala;
+- correr `npm run build`;
+- correr la suite con el comando Node/NPM explicito del repo.
+
+## Corte 2: zoom del visor
+
+Archivos principales:
+
+- `src/state/signature-viewer.ts`
+- `src/ui/signature-render.ts`
+- `src/ui/signature-viewer.ts`
+- `src/ui/signature-navigation-flow.ts`
+- `index.html`
+
+Tareas:
+
+1. Agregar estado de zoom al viewer:
+   - modo `fit-width`;
+   - nivel numerico, por ejemplo 0.75, 1, 1.25, 1.5, 2.
+2. Cambiar el render para calcular:
 
 ```txt
-src/
-  main.ts
-  state/
-    source-files.ts
-    signature.ts
-    page-order.ts
-  pdf/
-    load.ts
-    merge.ts
-    bookmarks.ts
-    render.ts
-    split.ts
-    extract.ts
-    delete-pages.ts
-    rotate.ts
-    sign.ts
-  ui/
-    dom.ts
-    status.ts
-    source-list.ts
-    file-input.ts
-    language.ts
-    buttons.ts
-  utils/
-    filenames.ts
-    page-ranges.ts
-    errors.ts
-    async.ts
-  types/
-    pdf.ts
-    ui.ts
+scale = fitWidthScale * zoomLevel
 ```
 
-## Fase 1: Congelar la UI actual
+3. Agregar controles en la barra del visor:
+   - zoom out;
+   - porcentaje actual;
+   - zoom in;
+   - ajustar.
+4. Re-renderizar la pagina cuando cambie el zoom.
+5. Re-renderizar marcadores despues de cada render para que se mantengan alineados.
 
-Antes de mover codigo, hay que tratar la UI como contrato.
+Pruebas esperadas:
 
-Tareas:
+- tests unitarios para el estado de zoom;
+- tests del render con escala base y zoom;
+- tests de controles de zoom si se extrae helper UI.
 
-- tomar capturas desktop y mobile de la app actual;
-- documentar flujos principales;
-- guardar estados visuales de exito, error, procesamiento y lista de archivos;
-- evitar cambios de CSS salvo correcciones necesarias;
-- mantener textos y estructura visual.
+## Corte 3: navegacion mas comoda
 
-Resultado esperado: cualquier refactor se valida contra la apariencia actual.
+Archivos principales:
 
-## Fase 2: Crear base Vite + TypeScript
-
-Crear un proyecto moderno sin cambiar comportamiento.
-
-Tareas:
-
-- agregar `package.json`;
-- configurar Vite;
-- agregar TypeScript;
-- mover el script embebido a `src/main.ts`;
-- mantener `index.html` con el markup y CSS actuales;
-- conectar el bundle generado por Vite.
-
-Resultado esperado: la app se ve igual, pero ya compila con TypeScript.
-
-## Fase 3: Tipar el DOM y el estado
-
-Reducir errores silenciosos alrededor de `document.getElementById`.
+- `index.html`
+- `src/ui/signature-viewer.ts`
+- `src/ui/signature-navigation-flow.ts`
+- `src/main.ts`
 
 Tareas:
 
-- crear helper `getRequiredElement<T>()`;
-- tipar botones, inputs, labels, listas y canvas;
-- centralizar `showStatus`;
-- centralizar `setActionBusy`;
-- tipar el estado de archivos fuente, firma, ordenamiento y rotacion.
+1. Mantener anterior/siguiente.
+2. Evaluar input numerico de pagina o selector simple.
+3. Validar limites: no ir antes de pagina 1 ni despues del total.
+4. Mantener el texto localizado `Pagina X de Y` / `Page X of Y`.
+5. Opcional: atajos de teclado solo cuando el foco esta en el visor.
 
-Resultado esperado: menos nulls invisibles y menos estado regado.
+Pruebas esperadas:
 
-## Fase 4: Extraer utilidades puras
+- tests de navegacion para pagina valida e invalida;
+- tests de UI para disabled de botones.
 
-Sacar primero lo que no depende del DOM.
+## Corte 4: modo vista grande
 
-Modulos iniciales:
+Este corte es opcional despues de probar el visor inline.
 
-- `utils/filenames.ts`
-- `utils/page-ranges.ts`
-- `utils/errors.ts`
-- `utils/async.ts`
+Idea:
 
-Tests iniciales:
+- agregar boton `Vista grande`;
+- mostrar el visor en un panel ampliado dentro de la seccion de firma;
+- mantener controles arriba y lista/configuracion de firma cerca;
+- cerrar sin perder marcadores ni pagina actual.
 
-- parseo de rangos: `1,3,5-8`;
-- rangos invalidos;
-- paginas duplicadas;
-- nombres base de archivos;
-- errores de PDF protegido.
+No conviene empezar por modal full-screen si el visor inline todavia no tiene zoom. Primero hay que estabilizar escala, marcadores y navegacion.
 
-Resultado esperado: primeras pruebas reales sin tocar la UI.
+## Criterios de calidad
 
-## Fase 5: Extraer nucleo PDF
+La mejora esta lista cuando:
 
-Mover la logica pesada fuera de la interfaz.
+- cargar PDF y firma sigue funcionando;
+- marcar firma con click sigue ubicando coordenadas correctas;
+- mover firma con drag sigue actualizando posicion;
+- borrar marcadores sigue funcionando;
+- cambiar pagina conserva los marcadores de cada pagina;
+- zoom no desalineea los marcadores;
+- aplicar firma genera el PDF final en la ubicacion correcta;
+- desktop aprovecha mas pantalla;
+- mobile no queda apretado ni con controles rotos;
+- build y tests pasan.
 
-Modulos prioritarios:
+## Riesgos a cuidar
 
-- `pdf/load.ts`
-- `pdf/bookmarks.ts`
-- `pdf/merge.ts`
-- `pdf/render.ts`
+1. Desalineacion de marcadores.
 
-`bookmarks.ts` debe cubrir:
+Los marcadores se dibujan sobre el canvas escalado, pero la firma final usa coordenadas PDF. Cada cambio de escala debe refrescar posiciones visuales usando `viewerState.currentScale`.
 
-- leer bookmarks existentes;
-- detectar destinos por pagina;
-- remapear indices al unir documentos;
-- aplanar bookmarks cuando el documento final debe tener un solo nivel;
-- crear bookmarks nuevos;
-- ignorar bookmarks sin destino valido.
+2. Scroll y click.
 
-Resultado esperado: merge y bookmarks dejan de depender de funciones gigantes dentro del HTML.
+Si el wrapper tiene scroll interno, el calculo de click debe seguir usando el rect real del canvas y no asumir posicion fija.
 
-## Fase 6: Tests de PDFs
+3. Canvas demasiado pesado.
 
-Crear fixtures pequenos para probar comportamientos reales.
+Zoom alto puede renderizar paginas grandes. Conviene limitar zoom maximo, por ejemplo 200%.
 
-Casos minimos:
+4. Mobile.
 
-- PDF sin bookmarks;
-- PDF con bookmarks de un nivel;
-- PDF con bookmarks anidados;
-- merge de dos PDFs con bookmarks;
-- merge con opcion "Agregar marcadores por archivo";
-- merge sin esa opcion;
-- PDF protegido/rasterizado;
-- remapeo correcto de paginas.
+En telefono el visor debe priorizar ancho completo, controles en varias lineas y scroll natural.
 
-Resultado esperado: bugs como bookmarks borrados o corridos se detectan antes de llegar al navegador.
+## Despues de la firma
 
-## Fase 7: Extraer herramientas restantes
+Cuando esta mejora este estable, los siguientes pasos opcionales son:
 
-Mover el resto por bloques:
+1. Evaluar `manualChunks` en Vite para separar `pdf-lib` y `pdfjs-dist` del bundle principal.
+2. Medir tiempos de carga reales antes de optimizar de mas.
+3. Evaluar Vue o React solo si empiezan a aparecer vistas mas complejas o estado reactivo dificil de sostener en vanilla TypeScript.
 
-- separar PDF;
-- extraer paginas;
-- eliminar paginas;
-- ordenar paginas;
-- rotar paginas;
-- firmar PDF;
-- procesar firma transparente.
+## Proximo paso recomendado
 
-Cada bloque debe salir con tipos y tests donde aplique.
+Empezar por el Corte 1:
 
-Resultado esperado: `main.ts` queda como orquestador, no como deposito de toda la app.
-
-## Fase 8: Dependencias reales
-
-Reemplazar dependencias globales CDN por imports.
-
-Dependencias probables:
-
-- `pdf-lib`;
-- `pdfjs-dist`;
-- `file-saver`;
-- `jszip`;
-- `vitest`;
-- `typescript`;
-- `vite`.
-
-Resultado esperado: build reproducible, autocompletado, tipos y menos magia global.
-
-## Fase 9: Verificacion visual
-
-Despues de cada fase grande:
-
-- correr la app localmente;
-- probar desktop y mobile;
-- comparar contra capturas de referencia;
-- validar flujos principales;
-- confirmar que textos, tarjetas y botones no cambiaron.
-
-Resultado esperado: arquitectura mejorada sin regresion visual.
-
-## Cuando considerar React o Vue
-
-Considerar React o Vue solo despues de completar la migracion TypeScript modular.
-
-Tiene sentido migrar a framework si aparecen necesidades como:
-
-- muchas vistas condicionales;
-- componentes repetidos dificiles de mantener;
-- estado compartido mas complejo;
-- historial de operaciones;
-- cola de procesamiento;
-- configuracion persistente;
-- modo avanzado;
-- rutas o multiples pantallas.
-
-Si llegamos a ese punto, recomendaria Vue antes que React para esta app, porque el HTML actual ya es fuerte y Vue permite una transicion mas natural hacia componentes sin cambiar tanto la manera de pensar la plantilla.
-
-Si el producto crece mucho y necesita ecosistema mas grande, React tambien seria razonable. Pero hoy la mejor jugada es TypeScript vanilla primero.
-
-## Orden de ejecucion recomendado
-
-1. Crear `package.json`, Vite y TypeScript.
-2. Mover JS embebido a `src/main.ts`.
-3. Mantener UI intacta.
-4. Extraer utilidades puras.
-5. Extraer `pdf/bookmarks.ts`.
-6. Extraer `pdf/merge.ts`.
-7. Agregar tests de bookmarks y merge.
-8. Extraer el resto de operaciones PDF.
-9. Cambiar dependencias CDN por imports.
-10. Evaluar Vue o React con la app ya limpia.
-
-## Criterio de exito
-
-La migracion va bien si:
-
-- la UI se ve igual;
-- el usuario no siente cambio visual;
-- el codigo deja de depender de un unico `index.html` gigante;
-- los bugs PDF se pueden probar;
-- TypeScript detecta errores antes del navegador;
-- agregar una herramienta nueva no obliga a tocar media app.
-
-## Resumen
-
-No estamos buscando una reescritura vistosa. Estamos buscando que IOB Mago siga viendose igual de bien, pero que por dentro deje de sentirse improvisado.
-
-Primero Vite + TypeScript vanilla. Luego modulos y tests. Despues, si la app lo pide de verdad, Vue o React.
-
-## Avance actual
-
-Ya se inicio la migracion sin cambiar la UI:
-
-- `index.html` conserva el markup y CSS, y carga `src/main.ts` como modulo.
-- Se agrego Vite + TypeScript.
-- Se agrego `package-lock.json` para builds reproducibles.
-- Se movio la logica legacy a `src/main.ts` y ya se retiro el puente temporal `@ts-nocheck`.
-- Se tiparon contratos globales en `src/global.d.ts` para `PDFLib`, `pdfjsLib`, `JSZip`, `saveAs` y funciones expuestas en `window`, sin `any` productivo.
-- Se endurecieron tipos de firma en `src/pdf/sign.ts` y del visor PDF de firma en `src/state/signature-viewer.ts`, reduciendo `any` en codigo productivo.
-- Se endurecieron tipos de render/rasterizado en `src/pdf/render.ts` y `src/pdf/copy-pages.ts`, incluyendo contratos estructurales para PDF-lib y PDF.js.
-- Se endurecieron tipos de `src/pdf/operations.ts` y `src/pdf/bookmarks.ts`, incluyendo contratos para documentos PDF creados, documentos rotables y diccionarios mutables de bookmarks.
-- Se quitaron casts `any` reales de los tests de bookmarks; los `any` restantes en tests son matchers de Vitest como `expect.any(...)`.
-- Se extrajo `src/pdf/bookmarks.ts` con TypeScript real.
-- Se extrajo `src/pdf/copy-pages.ts`.
-- Se extrajo `src/pdf/render.ts` para carga, metricas, rasterizado y rotacion de PDFs protegidos.
-- Se extrajo `src/pdf/operations.ts` para acciones de merge, separar, extraer, eliminar paginas, ordenar paginas y rotar paginas a vertical.
-- Se extrajo `src/pdf/sign.ts` para aplicar imagenes de firma al PDF, incluyendo aplicacion por marcador o en todas las paginas.
-- Se extrajo `src/pdf/active-signature-action.ts` para restaurar/cargar la firma activa y preparar datos de preview.
-- Se extrajo `src/pdf/prepared-signature-actions.ts` para descargar o convertir el PNG preparado en `File` reutilizable.
-- Se extrajo `src/pdf/prepared-signature-generation-action.ts` para guardar el PNG generado en estado preparado y devolver datos de preview.
-- Se extrajo `src/pdf/sign-action.ts` para validar y ejecutar la aplicacion final de firmas con un resultado tipado.
-- Se extrajo `src/pdf/sign-download-action.ts` para convertir la firma aplicada en Blob descargable y nombre localizado fuera de `src/main.ts`.
-- Se extrajo `src/pdf/signature-generation-action.ts` para preparar PNG de firma con estado de generacion, cola y versionado testeables.
-- Se extrajo `src/pdf/signature-preparation.ts` para preparar el PNG transparente de firma desde una foto con dependencias testeables.
-- Se extrajo `src/pdf/signature-pdf-load.ts` para cargar el PDF de firma via PDF.js con dependencias inyectables.
-- Se extrajo `src/pdf/signature-recolor-action.ts` para recolorear el PNG preparado, regenerar su blob y actualizar la URL temporal.
-- Se extrajo `src/pdf/merge-action.ts` para validar y ejecutar merge de PDFs con progreso inyectable.
-- Se extrajo `src/pdf/page-actions.ts` para validar rangos y ejecutar acciones de extraer, eliminar, ordenar y rotar paginas fuera de `src/main.ts`.
-- Se extrajo `src/pdf/split-action.ts` para validar y ejecutar la separacion de PDF fuera de `src/main.ts`.
-- Se extrajo `src/pdf/split-download.ts` para descargar paginas separadas como ZIP o archivos individuales con dependencias testeables.
-- Se extrajo `src/ui/dom.ts` para helpers DOM tipados de status, botones ocupados, inputs y labels de archivos.
-- Se extrajo `src/ui/source-list.ts` para renderizar la lista de archivos fuente y sus acciones.
-- Se extrajo `src/ui/order-list.ts` para renderizar la lista de paginas reordenables.
-- Se extrajo `src/ui/pdf-tools.ts` para centralizar estados DOM de herramientas PDF, checkboxes y campos de rangos.
-- Se extrajo `src/ui/pdf-status.ts` para centralizar mensajes de exito de acciones PDF con/sin rasterizacion.
-- Se extrajo `src/ui/signature-markers.ts` para coordinar/renderizar marcadores visuales, detener eventos de marcador y renderizar la lista de firmas sin `onclick` inline.
-- Se extrajo `src/ui/signature-viewer.ts` para mostrar/ocultar el visor de firma, limpiar canvas y actualizar controles de pagina.
-- Se extrajo `src/ui/signature-preview.ts` para labels de firma, previews, metadatos y controles del generador PNG.
-- Se extrajo `src/ui/signature-events.ts` para registrar inputs de firma y eventos pointer fuera de `src/main.ts`.
-- Se extrajo `src/ui/signature-render.ts` para renderizar paginas PDF de firma y actualizar controles de pagina fuera de `src/main.ts`.
-- Se extrajo `src/ui/signature-canvas-click.ts` para convertir clicks del canvas en marcadores PDF reutilizando la geometria compartida.
-- Se extrajeron `src/ui/signature-generator-controls.ts`, `src/ui/prepared-signature-flow.ts`, `src/ui/active-signature-flow.ts`, `src/ui/signature-viewer-flow.ts`, `src/ui/signature-pdf-load-flow.ts`, `src/ui/signature-navigation-flow.ts`, `src/ui/signature-marker-flow.ts`, `src/ui/signature-marker-render-flow.ts`, `src/ui/signature-drag-flow.ts`, `src/ui/signature-apply-flow.ts` y `src/ui/window-actions.ts` para seguir vaciando la orquestacion de firma fuera de `src/main.ts`.
-- Se extrajo `src/ui/english-content.ts` para aplicar el contenido en ingles fuera de `src/main.ts`.
-- Se extrajo `src/ui/support.ts` para renderizar soporte/donaciones, alternar paneles y copiar datos.
-- Se extrajo `src/ui/file-drag-drop.ts` para centralizar drag-and-drop de inputs de archivo.
-- Se extrajo `src/ui/contract-progress.ts` para renderizar y resetear el panel de avance de contrato fuera de `src/main.ts`.
-- Se extrajo `src/state/active-signature.ts` para centralizar bytes y proporcion de la firma activa.
-- Se extrajo `src/state/source-files.ts` para centralizar seleccion, reordenamiento, eliminacion y versionado de archivos fuente.
-- Se extrajo `src/state/page-order.ts` para centralizar paginas cargadas, version de fuente y reordenamiento de paginas.
-- Se extrajo `src/state/prepared-signature.ts` para centralizar blob, canvas, nombre y URL temporal del PNG preparado.
-- Se extrajo `src/state/signature-drag.ts` para centralizar indice activo y estado de movimiento de marcadores de firma.
-- Se extrajo `src/state/signature-drag-action.ts` para mover y detener drag de marcadores con geometria inyectable.
-- Se extrajo `src/state/signature-generation-schedule-action.ts` para programar recolor/regeneracion de firmas preparadas con timers testeables.
-- Se extrajo `src/state/signature-marker-actions.ts` para remover, limpiar y redimensionar marcadores con persistencia del tamano.
-- Se extrajo `src/state/signature-marker-click-action.ts` para validar imagen activa, crear y agregar marcadores desde clicks del canvas.
-- Se extrajo `src/state/signature-markers.ts` para centralizar marcadores de firma, limpieza, eliminacion y cambios de tamano.
-- Se extrajo `src/state/signature-generator.ts` para centralizar fuente, version, timers, cola y estado de generacion PNG.
-- Se extrajo `src/state/signature-preview.ts` para centralizar la URL temporal de vista previa de la firma activa.
-- Se extrajo `src/state/signature-storage.ts` para persistir/restaurar firma activa y tamano guardado.
-- Se extrajo `src/state/signature-viewer.ts` para centralizar PDF de firma cargado, pagina actual, totales, escala y metricas de pagina.
-- Se extrajeron utilidades puras y de procesamiento en `src/utils/filenames.ts`, `src/utils/page-ranges.ts`, `src/utils/page-selection.ts`, `src/utils/pdf-bytes.ts`, `src/utils/math.ts`, `src/utils/signature-geometry.ts`, `src/utils/signature-png.ts`, `src/utils/signature-tone.ts`, `src/utils/signature-image.ts`, `src/utils/signature-recolor.ts`, `src/utils/locale.ts` y `src/utils/contract-progress.ts`.
-- Se saco de `src/main.ts` la logica pura de idioma, fechas, DÍAS360 y calculo de avance de contrato.
-- Se centralizo seleccion/validacion de rangos de paginas en `src/utils/page-selection.ts`.
-- Se agrego Vitest.
-- Se agregaron pruebas iniciales para `src/utils/filenames.ts`, `src/utils/page-ranges.ts`, `src/utils/page-selection.ts`, `src/utils/pdf-bytes.ts`, `src/utils/math.ts`, `src/utils/signature-geometry.ts`, `src/utils/signature-png.ts`, `src/utils/signature-tone.ts`, `src/utils/signature-image.ts`, `src/utils/signature-recolor.ts`, `src/utils/locale.ts`, `src/utils/contract-progress.ts`, `src/pdf/active-signature-action.ts`, `src/pdf/bookmarks.ts`, `src/pdf/copy-pages.ts`, `src/pdf/operations.ts`, `src/pdf/sign.ts`, `src/pdf/prepared-signature-actions.ts`, `src/pdf/prepared-signature-generation-action.ts`, `src/pdf/sign-action.ts`, `src/pdf/sign-download-action.ts`, `src/pdf/signature-generation-action.ts`, `src/pdf/signature-preparation.ts`, `src/pdf/signature-pdf-load.ts`, `src/pdf/signature-recolor-action.ts`, `src/pdf/merge-action.ts`, `src/pdf/page-actions.ts`, `src/pdf/split-action.ts`, `src/pdf/split-download.ts`, `src/ui/dom.ts`, `src/ui/source-list.ts`, `src/ui/order-list.ts`, `src/ui/pdf-tools.ts`, `src/ui/pdf-status.ts`, `src/ui/signature-markers.ts`, `src/ui/signature-viewer.ts`, `src/ui/signature-preview.ts`, `src/ui/signature-events.ts`, `src/ui/signature-render.ts`, `src/ui/signature-canvas-click.ts`, `src/ui/signature-generator-controls.ts`, `src/ui/prepared-signature-flow.ts`, `src/ui/active-signature-flow.ts`, `src/ui/signature-viewer-flow.ts`, `src/ui/signature-pdf-load-flow.ts`, `src/ui/signature-navigation-flow.ts`, `src/ui/signature-marker-flow.ts`, `src/ui/signature-marker-render-flow.ts`, `src/ui/signature-drag-flow.ts`, `src/ui/signature-apply-flow.ts`, `src/ui/window-actions.ts`, `src/ui/contract-progress.ts`, `src/ui/support.ts`, `src/ui/file-drag-drop.ts`, `src/state/active-signature.ts`, `src/state/source-files.ts`, `src/state/page-order.ts`, `src/state/prepared-signature.ts`, `src/state/signature-drag.ts`, `src/state/signature-drag-action.ts`, `src/state/signature-generation-schedule-action.ts`, `src/state/signature-marker-actions.ts`, `src/state/signature-marker-click-action.ts`, `src/state/signature-markers.ts`, `src/state/signature-generator.ts`, `src/state/signature-preview.ts`, `src/state/signature-storage.ts` y `src/state/signature-viewer.ts`.
-- Se extrajeron `src/ui/delete-pdf-flow.ts`, `src/ui/reorder-pdf-flow.ts` y `src/ui/rotate-pdf-flow.ts` siguiendo el mismo patron que `extractPdfFlow`.
-- `eliminarPaginas()`, `ordenarPaginasPdf()` y `rotarPaginasPortrait()` ahora delegan en los nuevos flows, reduciendo `src/main.ts` de ~1178 a ~1040 lineas.
-- Se extrajo `renderOrderPageListWithI18n` a `src/ui/order-list.ts`, simplificando `actualizarOrderList()` en main.ts de 12 a 5 lineas.
-- Se agregaron tests para `renderOrderPageListWithI18n`.
-- Se eliminaron imports no usados de `src/main.ts`: `getPdfBaseName`, `pdfBytesToBlob`, `getRemovePagesSuccessMessage`, `getReorderSuccessMessage`, `getRotatePagesSuccessMessage`, `removePdfPagesFromText`, `reorderPdfPagesFromOrder`, `rotatePdfPagesFromText`, `renderOrderPageList`.
-- **Se reemplazaron todas las dependencias CDN por imports reales de npm**:
-  - `pdf-lib@1.17.1` (antes global `PDFLib`)
-  - `pdfjs-dist@2.16.105` (antes global `pdfjsLib`)
-  - `file-saver@2.0.5` con `@types/file-saver` (antes global `saveAs`)
-  - `jszip@3.10.1` (antes global `JSZip`)
-- Se eliminaron los 5 `<script>` tags CDN de `index.html`.
-- Se limpiaron las declaraciones globales (`declare const PDFLib`, `pdfjsLib`, `JSZip`, `saveAs`) de `src/global.d.ts`, dejando solo `interface Window`.
-- Se actualizaron tipos internos (`PdfJsPage.render`, `SignaturePdfPageProxy.view`) para compatibilidad con los tipos reales de pdfjs-dist.
-- **Se extrajo la orquestacion de fuente compartida y analisis** (`actualizarSourceList()`, `actualizarCardEstados()`, `scheduleSourceAnalysis()`, `analizarSourceCards()`, `actualizarRotateInfo()`) a `src/ui/source-file-flow.ts` como `setupSourceFileFlow()`.
-- Se eliminaron imports no usados de `src/main.ts`: `renderSourceFileList`, `updateFileInputLabel`, `updateSourceToolStatuses`, `getRequiredElement`.
-- **Se extrajo la orquestacion de avance de contrato** (`resetContractProgressDisplay()`, `triggerContractCompletionCelebration()`, `calcularAvance()`, `autoCalcularAvance()`, `initFromLocalStorage()`) a `src/ui/contract-progress-flow.ts` como `setupContractProgressFlow()`.
-- `npm test` corre correctamente: 75 archivos de prueba, 253 tests.
-- `npm run build` compila correctamente.
-
-## Pendientes reales
-
-`src/main.ts` tiene ~747 lineas. La migracion a Vite + TypeScript modular esta completa. No quedan bloques grandes por extraer.
-
-Proximos pasos opcionales:
-
-1. Evaluar chunk splitting en Vite (`manualChunks`) para separar `pdf-lib` y `pdfjs-dist` del bundle principal.
-2. Evaluar migracion a Vue o React solo si la app realmente necesita mas interaccion reactiva.
-
-## Siguiente corte recomendado
-
-No hay mas bloques grandes que extraer de `main.ts` (~747 lineas de orquestacion pura). El siguiente paso logico es optimizar el build con chunk splitting, o evaluar Vue/React como siguiente fase de arquitectura.
+1. quitar/subir el limite de 800 px en `signature-render.ts`;
+2. ajustar CSS del visor para que use mas pantalla;
+3. verificar que marcadores y firma final sigan alineados;
+4. correr build y tests.

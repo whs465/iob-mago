@@ -1,5 +1,10 @@
 import type { SignatureViewerState } from '../state/signature-viewer';
-import { type PageInfoFormatter, updateSignaturePageControls } from './signature-viewer';
+import {
+  type PageInfoFormatter,
+  syncSignatureMarkerLayerSize,
+  updateSignaturePageControls,
+  updateSignatureZoomControls,
+} from './signature-viewer';
 
 export type RenderSignaturePdfPageOptions = {
   viewerState: SignatureViewerState;
@@ -9,6 +14,13 @@ export type RenderSignaturePdfPageOptions = {
   formatPageInfo: PageInfoFormatter;
   onRendered?: () => void;
 };
+
+export function getSignatureRenderWidth(containerWidth: number, viewportWidth = containerWidth) {
+  const viewportPadding = viewportWidth <= 520 ? 24 : viewportWidth <= 900 ? 48 : 96;
+  const responsiveCap = Math.max(320, viewportWidth - viewportPadding);
+
+  return Math.min(containerWidth, responsiveCap);
+}
 
 export async function renderSignaturePdfPage({
   viewerState,
@@ -27,8 +39,11 @@ export async function renderSignaturePdfPage({
   const containerWidth = canvasWrapper.clientWidth
     || canvasWrapper.parentElement?.clientWidth
     || 800;
-  const desiredWidth = Math.min(containerWidth, 800);
-  const currentScale = desiredWidth / pageWidth;
+  const viewportWidth = typeof window !== 'undefined' && window.innerWidth > 0
+    ? window.innerWidth
+    : containerWidth;
+  const fitWidth = getSignatureRenderWidth(containerWidth, viewportWidth);
+  const currentScale = (fitWidth / pageWidth) * viewerState.zoomLevel;
   viewerState.setRenderedPageMetrics(pageWidth, pageHeight, currentScale);
 
   const viewport = page.getViewport({ scale: currentScale });
@@ -36,6 +51,7 @@ export async function renderSignaturePdfPage({
 
   canvas.height = viewport.height;
   canvas.width = viewport.width;
+  syncSignatureMarkerLayerSize(canvas.width, canvas.height);
 
   await page.render({
     canvasContext: context,
@@ -43,6 +59,12 @@ export async function renderSignaturePdfPage({
   }).promise;
 
   updateSignaturePageControls(pageNumber, viewerState.totalPages, formatPageInfo);
+  updateSignatureZoomControls(
+    viewerState.zoomLevel,
+    viewerState.minZoomLevel,
+    viewerState.maxZoomLevel,
+    zoomLevel => `${Math.round(zoomLevel * 100)}%`,
+  );
   onRendered?.();
   return true;
 }

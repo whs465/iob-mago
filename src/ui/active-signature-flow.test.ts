@@ -43,11 +43,13 @@ describe('active signature flow', () => {
         dataUrl: 'data:image/png;base64,abc',
         name: 'stored.png',
         bytes,
+        mimeType: 'image/png',
       }),
     });
 
     expect(result.status).toBe('ok');
     expect(options.activeState.imageBytes).toBe(bytes);
+    expect(options.activeState.imageType).toBe('image/png');
     expect(options.activeState.aspectRatio).toBe(2);
     expect(options.previewState.objectUrl).toBe('data:image/png;base64,abc');
     expect((document.getElementById('signature-preview') as HTMLImageElement).src).toBe('data:image/png;base64,abc');
@@ -71,6 +73,7 @@ describe('active signature flow', () => {
     expect(options.urls.createObjectURL).toHaveBeenCalledWith(file);
     expect(options.previewState.objectUrl).toBe('blob:signature');
     expect(saveSignatureImageFile).toHaveBeenCalledWith(file);
+    expect(options.activeState.imageType).toBe('image/png');
     expect(document.getElementById('sign-image-label')?.textContent).toBe('signature.png');
   });
 
@@ -86,6 +89,7 @@ describe('active signature flow', () => {
         dataUrl: 'data:image/png;base64,abc',
         name: 'stored.png',
         bytes: new ArrayBuffer(1),
+        mimeType: 'image/png',
       }),
     });
 

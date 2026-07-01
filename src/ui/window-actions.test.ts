@@ -13,6 +13,9 @@ describe('registerWindowPdfActions', () => {
       ordenarPaginasPdf: vi.fn(async () => undefined),
       rotarPaginasPortrait: vi.fn(async () => undefined),
       changePage: vi.fn(),
+      zoomOutPdf: vi.fn(async () => undefined),
+      resetPdfZoom: vi.fn(async () => undefined),
+      zoomInPdf: vi.fn(async () => undefined),
       clearMarkers: vi.fn(),
       handleCanvasClick: vi.fn(async (_event: MouseEvent) => undefined),
       applySignatures: vi.fn(async () => undefined),
@@ -31,6 +34,9 @@ describe('registerWindowPdfActions', () => {
     expect(window.ordenarPaginasPdf).toBe(actions.ordenarPaginasPdf);
     expect(window.rotarPaginasPortrait).toBe(actions.rotarPaginasPortrait);
     expect(window.changePage).toBe(actions.changePage);
+    expect(window.zoomOutPdf).toBe(actions.zoomOutPdf);
+    expect(window.resetPdfZoom).toBe(actions.resetPdfZoom);
+    expect(window.zoomInPdf).toBe(actions.zoomInPdf);
     expect(window.clearMarkers).toBe(actions.clearMarkers);
     expect(window.handleCanvasClick).toBe(actions.handleCanvasClick);
     expect(window.applySignatures).toBe(actions.applySignatures);

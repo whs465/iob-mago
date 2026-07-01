@@ -39,7 +39,7 @@ describe('signature marker flow', () => {
 
   it('refreshes marker UI after placing a new marker', async () => {
     const activeSignatureState = createActiveSignatureState();
-    activeSignatureState.setImageBytes(new ArrayBuffer(4));
+    activeSignatureState.setImage(new ArrayBuffer(4), 'image/png');
     activeSignatureState.setAspectRatio(2);
     const markerState = createSignatureMarkerState();
     const updateMarkersDisplay = vi.fn();
@@ -68,7 +68,7 @@ describe('signature marker flow', () => {
 
   it('does not refresh UI when the click produces no marker', async () => {
     const activeSignatureState = createActiveSignatureState();
-    activeSignatureState.setImageBytes(new ArrayBuffer(4));
+    activeSignatureState.setImage(new ArrayBuffer(4), 'image/png');
 
     const updateMarkersDisplay = vi.fn();
     const updateSignatureList = vi.fn();

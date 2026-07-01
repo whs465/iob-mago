@@ -178,6 +178,10 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
             );
         }
 
+        function updateZoomInfoDisplay(zoomLevel = 1) {
+            return `${Math.round(zoomLevel * 100)}%`;
+        }
+
         function translatePageToEnglish() {
             if (currentLanguage !== 'en') return;
 
@@ -315,6 +319,7 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
                 markerState: signatureMarkerState,
                 dragState: signatureDragState,
                 formatPageInfo: updatePageInfoDisplay,
+                formatZoomInfo: updateZoomInfoDisplay,
                 updateMarkersDisplay,
                 updateSignatureList
             });
@@ -661,6 +666,24 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
             });
         }
 
+        async function zoomOutPdf() {
+            if (signatureViewerState.zoomOut() === null) return;
+            await renderPage(signatureViewerState.currentPage);
+        }
+
+        async function resetPdfZoom() {
+            if (!signatureViewerState.file) return;
+            const previousZoomLevel = signatureViewerState.zoomLevel;
+            signatureViewerState.resetZoom();
+            if (previousZoomLevel === signatureViewerState.zoomLevel) return;
+            await renderPage(signatureViewerState.currentPage);
+        }
+
+        async function zoomInPdf() {
+            if (signatureViewerState.zoomIn() === null) return;
+            await renderPage(signatureViewerState.currentPage);
+        }
+
         async function handleCanvasClick(event) {
             await handleSignatureCanvasClickFlow({
                 event,
@@ -740,6 +763,7 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
             await applySignatureFlow({
                 file: signatureViewerState.file,
                 imageBytes: activeSignatureState.imageBytes,
+                imageType: activeSignatureState.imageType,
                 markers: signatureMarkerState.markers,
                 applyAllPages: getCheckboxValue('apply-all-pages'),
                 deps: { loadPdfDocument },
@@ -758,6 +782,9 @@ registerWindowPdfActions({
     ordenarPaginasPdf,
     rotarPaginasPortrait,
     changePage,
+    zoomOutPdf,
+    resetPdfZoom,
+    zoomInPdf,
     clearMarkers,
     handleCanvasClick,
     applySignatures,

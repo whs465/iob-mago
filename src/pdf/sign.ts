@@ -32,8 +32,32 @@ export type SignPdfDeps = {
 
 export type SignPdfOptions = {
   applyAllPages: boolean;
+  imageType?: string | null;
   deps: SignPdfDeps;
 };
+
+function detectImageTypeFromBytes(imageBytes: ArrayBuffer) {
+  const bytes = new Uint8Array(imageBytes);
+  if (
+    bytes.length >= 8 &&
+    bytes[0] === 0x89 &&
+    bytes[1] === 0x50 &&
+    bytes[2] === 0x4e &&
+    bytes[3] === 0x47 &&
+    bytes[4] === 0x0d &&
+    bytes[5] === 0x0a &&
+    bytes[6] === 0x1a &&
+    bytes[7] === 0x0a
+  ) {
+    return 'image/png';
+  }
+
+  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+    return 'image/jpeg';
+  }
+
+  return null;
+}
 
 export async function signPdfWithImage(
   file: File,
@@ -43,12 +67,24 @@ export async function signPdfWithImage(
 ) {
   const arrayBuffer = await file.arrayBuffer();
   const pdfDoc = await options.deps.loadPdfDocument(arrayBuffer);
+  const detectedImageType = detectImageTypeFromBytes(imageBytes);
+  const normalizedImageType = options.imageType?.toLowerCase() || detectedImageType;
 
   let signatureImage;
-  try {
-    signatureImage = await pdfDoc.embedPng(imageBytes);
-  } catch {
+  if (normalizedImageType === 'image/jpeg' || normalizedImageType === 'image/jpg') {
     signatureImage = await pdfDoc.embedJpg(imageBytes);
+  } else if (normalizedImageType === 'image/png') {
+    signatureImage = await pdfDoc.embedPng(imageBytes);
+  } else {
+    try {
+      signatureImage = await pdfDoc.embedPng(imageBytes);
+    } catch {
+      try {
+        signatureImage = await pdfDoc.embedJpg(imageBytes);
+      } catch {
+        throw new Error('Unsupported signature image format. Use PNG or JPG.');
+      }
+    }
   }
 
   const applySignature = (page: PdfPageWithDrawImage, marker: SignatureMarker) => {

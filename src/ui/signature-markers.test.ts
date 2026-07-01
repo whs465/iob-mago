@@ -42,6 +42,7 @@ describe('signature marker UI helpers', () => {
     expect(markerElement?.style.top).toBe('41.6px');
     expect(markerElement?.style.width).toBe('100px');
     expect(markerElement?.style.height).toBe('50px');
+    expect(markerElement?.querySelector('.signature-marker-size')?.textContent).toBe('100px');
 
     markerElement?.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
     container.querySelector<HTMLButtonElement>('.signature-marker-delete')?.click();
@@ -110,6 +111,26 @@ describe('signature marker UI helpers', () => {
 
     expect(container.querySelectorAll('.signature-marker')).toHaveLength(1);
     expect(list.querySelectorAll('.signature-item')).toHaveLength(2);
+  });
+
+  it('renders the signature preview image inside the marker when available', () => {
+    const container = document.createElement('div');
+
+    renderSignatureMarkerOverlay({
+      container,
+      markers,
+      activeIndex: null,
+      currentPage: 1,
+      getPosition: marker => ({ x: marker.x, y: marker.y }),
+      getDimensions: marker => ({ width: marker.size, height: marker.size / 2 }),
+      imageUrl: 'blob:signature-preview',
+    }, {
+      onStartDrag: vi.fn(),
+      onRemove: vi.fn(),
+    });
+
+    const image = container.querySelector<HTMLImageElement>('.signature-marker-image');
+    expect(image?.src).toBe('blob:signature-preview');
   });
 
   it('stops signature marker events', () => {

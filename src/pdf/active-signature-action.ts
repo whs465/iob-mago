@@ -30,7 +30,7 @@ export function restoreActiveSignatureFromStorage(
   const storedSignature = deps.loadStoredSignatureImage();
   if (!storedSignature) return { status: 'missing-signature' };
 
-  state.setImageBytes(storedSignature.bytes);
+  state.setImage(storedSignature.bytes, storedSignature.mimeType);
   return {
     status: 'ok',
     previewSrc: storedSignature.dataUrl,
@@ -44,10 +44,9 @@ export async function setActiveSignatureFromFile(
   file: File,
   deps: SetActiveSignatureDeps,
 ): Promise<ActiveSignaturePreviewResult> {
-  state.setImageBytes(await file.arrayBuffer());
+  state.setImage(await file.arrayBuffer(), file.type);
   const previewSrc = deps.urls.createObjectURL(file);
-
-  void deps.saveSignatureImageFile(file).catch(() => undefined);
+  await deps.saveSignatureImageFile(file);
 
   return {
     status: 'ok',

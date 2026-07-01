@@ -5,7 +5,13 @@ export type StoredSignatureImage = {
   dataUrl: string;
   name: string;
   bytes: ArrayBuffer;
+  mimeType: string;
 };
+
+function getDataUrlMimeType(dataUrl: string) {
+  const mimeMatch = dataUrl.match(/^data:([^;,]+)[;,]/i);
+  return mimeMatch?.[1]?.toLowerCase() || 'application/octet-stream';
+}
 
 function dataUrlToArrayBuffer(dataUrl: string) {
   const base64 = dataUrl.split(',')[1];
@@ -47,6 +53,7 @@ export function loadStoredSignatureImage(storage: Storage = localStorage): Store
       dataUrl: parsedValue.dataUrl,
       name,
       bytes: dataUrlToArrayBuffer(parsedValue.dataUrl),
+      mimeType: getDataUrlMimeType(parsedValue.dataUrl),
     };
   } catch (error) {
     storage.removeItem(SIGNATURE_IMAGE_KEY);

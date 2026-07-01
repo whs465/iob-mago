@@ -10,6 +10,7 @@ export type ApplySignatureBusyHandler = (() => void) | null;
 export type ApplySignatureFlowOptions = {
   file: File | null;
   imageBytes: ArrayBuffer | null;
+  imageType?: string | null;
   markers: SignatureMarker[];
   applyAllPages: boolean;
   deps: SignPdfDeps;
@@ -47,6 +48,7 @@ function getValidationMessage(
 export async function applySignatureFlow({
   file,
   imageBytes,
+  imageType,
   markers,
   applyAllPages,
   deps,
@@ -75,6 +77,7 @@ export async function applySignatureFlow({
     const result: ApplySignedPdfDownloadResult = await applySignedPdfDownload({
       file,
       imageBytes,
+      imageType,
       markers,
       applyAllPages,
       deps,
