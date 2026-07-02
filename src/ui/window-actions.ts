@@ -6,6 +6,8 @@ export type WindowPdfActions = Pick<Window,
   | 'ordenarPaginasPdf'
   | 'rotarPaginasPortrait'
   | 'changePage'
+  | 'goToFirstPage'
+  | 'goToLastPage'
   | 'zoomOutPdf'
   | 'resetPdfZoom'
   | 'zoomInPdf'

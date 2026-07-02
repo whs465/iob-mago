@@ -8,6 +8,8 @@ interface Window {
   ordenarPaginasPdf: () => Promise<void>;
   rotarPaginasPortrait: () => Promise<void>;
   changePage: (direction: number) => void;
+  goToFirstPage: () => Promise<void>;
+  goToLastPage: () => Promise<void>;
   zoomOutPdf: () => Promise<void>;
   resetPdfZoom: () => Promise<void>;
   zoomInPdf: () => Promise<void>;

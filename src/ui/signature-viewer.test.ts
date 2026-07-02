@@ -19,8 +19,10 @@ function setupViewerDom() {
     <div id="help-text"></div>
     <div id="page-info"></div>
     <div id="zoom-info"></div>
+    <button id="first-page"></button>
     <button id="prev-page"></button>
     <button id="next-page"></button>
+    <button id="last-page"></button>
     <button id="zoom-out"></button>
     <button id="zoom-in"></button>
     <div id="signature-markers"></div>
@@ -52,14 +54,30 @@ describe('signature viewer UI helpers', () => {
     updateSignaturePageControls(2, 3, format);
 
     expect(document.getElementById('page-info')?.textContent).toBe('Page 2 of 3');
+    expect((document.getElementById('first-page') as HTMLButtonElement).disabled).toBe(false);
     expect((document.getElementById('prev-page') as HTMLButtonElement).disabled).toBe(false);
     expect((document.getElementById('next-page') as HTMLButtonElement).disabled).toBe(false);
+    expect((document.getElementById('last-page') as HTMLButtonElement).disabled).toBe(false);
+
+    updateSignaturePageControls(3, 3, format);
+
+    expect((document.getElementById('next-page') as HTMLButtonElement).disabled).toBe(true);
+    expect((document.getElementById('last-page') as HTMLButtonElement).disabled).toBe(true);
+
+    updateSignaturePageControls(1, 3, format);
+
+    expect((document.getElementById('first-page') as HTMLButtonElement).disabled).toBe(true);
+    expect((document.getElementById('prev-page') as HTMLButtonElement).disabled).toBe(true);
+    expect((document.getElementById('next-page') as HTMLButtonElement).disabled).toBe(false);
+    expect((document.getElementById('last-page') as HTMLButtonElement).disabled).toBe(false);
 
     resetSignaturePageControls(format);
 
     expect(document.getElementById('page-info')?.textContent).toBe('Page 1 of 1');
+    expect((document.getElementById('first-page') as HTMLButtonElement).disabled).toBe(true);
     expect((document.getElementById('prev-page') as HTMLButtonElement).disabled).toBe(true);
     expect((document.getElementById('next-page') as HTMLButtonElement).disabled).toBe(true);
+    expect((document.getElementById('last-page') as HTMLButtonElement).disabled).toBe(true);
   });
 
   it('updates and resets zoom controls', () => {

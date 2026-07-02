@@ -20,8 +20,31 @@ export function updateSourceToolStatuses(files: File[], labels: SourceToolStatus
   const deleteStatus = getElement('delete-status');
   const orderFileName = getElement('order-file-name');
   const rotateStatus = getElement('rotate-status');
+  const hasFiles = files.length > 0;
 
-  if (files.length === 0) {
+  [
+    ['merge-card', 'merge-action'],
+    ['split-card', 'split-action'],
+    ['extract-card', 'extract-action'],
+    ['delete-card', 'delete-action'],
+    ['order-card', 'order-action'],
+    ['rotate-card', 'rotate-action'],
+  ].forEach(([cardId, buttonId]) => {
+    const card = getElement(cardId);
+    const button = getElement<HTMLButtonElement>(buttonId);
+
+    if (card) {
+      card.classList.toggle('tool-card-ready', hasFiles);
+      card.classList.toggle('tool-card-disabled', !hasFiles);
+    }
+
+    if (button) {
+      button.disabled = !hasFiles;
+      button.setAttribute('aria-disabled', String(!hasFiles));
+    }
+  });
+
+  if (!hasFiles) {
     [mergeStatus, splitStatus, extractStatus, deleteStatus, rotateStatus].forEach(element => {
       if (element) element.textContent = labels.noFile;
     });

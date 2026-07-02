@@ -110,6 +110,7 @@ import {
     getPdfCanvasWrapper,
     updateSignaturePageControls
 } from './ui/signature-viewer';
+import { updateSignatureProgress } from './ui/signature-progress';
 import { setupSourceFileFlow } from './ui/source-file-flow';
 import { setupContractProgressFlow } from './ui/contract-progress-flow';
 
@@ -323,6 +324,7 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
                 updateMarkersDisplay,
                 updateSignatureList
             });
+            updateSignatureProgressState();
         }
 
         function restoreStoredSignature() {
@@ -334,7 +336,7 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
                 loadSignatureAspectRatio,
                 updateMarkersDisplay,
                 loadStoredSignatureImage
-            });
+            }).then(updateSignatureProgressState);
         }
 
         async function setSignatureImageFile(file) {
@@ -346,6 +348,15 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
                 loadSignatureAspectRatio,
                 updateMarkersDisplay,
                 saveSignatureImageFile,
+            });
+            updateSignatureProgressState();
+        }
+
+        function updateSignatureProgressState() {
+            updateSignatureProgress({
+                hasPdf: !!signatureViewerState.file,
+                hasSignature: activeSignatureState.hasImage,
+                hasMarker: signatureMarkerState.markers.length > 0,
             });
         }
 
@@ -479,6 +490,7 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
             }
 
             restoreStoredSignature();
+            updateSignatureProgressState();
         }
 
         if (document.readyState === 'loading') {
@@ -617,6 +629,7 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
                     updateMarkersDisplay,
                     updateSignatureList,
                 });
+                updateSignatureProgressState();
             },
             setSignatureSource: async selectedFile => {
             signatureGeneratorState.setSourceFile(selectedFile);
@@ -650,6 +663,7 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
                 updateMarkersDisplay,
                 updateSignatureList,
             });
+            updateSignatureProgressState();
         }
 
         async function renderPage(pageNum) {
@@ -670,6 +684,16 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
                 delta,
                 onPageChange: renderPage
             });
+        }
+
+        async function goToFirstPage() {
+            if (!signatureViewerState.file || signatureViewerState.currentPage <= 1) return;
+            await renderPage(1);
+        }
+
+        async function goToLastPage() {
+            if (!signatureViewerState.file || signatureViewerState.currentPage >= signatureViewerState.totalPages) return;
+            await renderPage(signatureViewerState.totalPages);
         }
 
         async function zoomOutPdf() {
@@ -704,6 +728,7 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
                 updateMarkersDisplay,
                 updateSignatureList
             });
+            updateSignatureProgressState();
         }
 
         function updateMarkersDisplay() {
@@ -743,6 +768,7 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
                 updateMarkersDisplay,
                 updateSignatureList
             });
+            updateSignatureProgressState();
         }
 
         function clearMarkers() {
@@ -751,6 +777,7 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
                 updateMarkersDisplay,
                 updateSignatureList
             );
+            updateSignatureProgressState();
         }
 
         function updateSignatureSize() {
@@ -788,6 +815,8 @@ registerWindowPdfActions({
     ordenarPaginasPdf,
     rotarPaginasPortrait,
     changePage,
+    goToFirstPage,
+    goToLastPage,
     zoomOutPdf,
     resetPdfZoom,
     zoomInPdf,

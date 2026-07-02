@@ -102,6 +102,9 @@ export function applyEnglishContent({
   setText('.card-icon', 'Source PDF', sourceCard);
   setText('h3', 'Source document', sourceCard);
   setText('p', 'Drop one or more PDFs, then pick the operation you want. You can reorder or remove files from this list.', sourceCard);
+  setElementText('source-workbench-status', 'No PDF loaded');
+  setElementText('source-workbench-summary', 'Load one or more PDFs to activate the tools.');
+  setElementText('source-clear-action', 'Clear');
 
   const mergeCard = getRequiredElement('merge-card');
   setText('.card-icon', 'Merge', mergeCard);
@@ -177,10 +180,14 @@ export function applyEnglishContent({
     !!signatureSourceFileName,
   );
 
+  requiredQuery('#first-page').setAttribute('aria-label', 'Go to first page');
+  requiredQuery('#first-page').setAttribute('title', 'Go to first page');
   requiredQuery('#prev-page').setAttribute('aria-label', 'Previous page');
   requiredQuery('#prev-page').setAttribute('title', 'Previous page');
   requiredQuery('#next-page').setAttribute('aria-label', 'Next page');
   requiredQuery('#next-page').setAttribute('title', 'Next page');
+  requiredQuery('#last-page').setAttribute('aria-label', 'Go to last page');
+  requiredQuery('#last-page').setAttribute('title', 'Go to last page');
   requiredQuery('#zoom-out').setAttribute('aria-label', 'Zoom out');
   requiredQuery('#zoom-out').setAttribute('title', 'Zoom out');
   requiredQuery('#zoom-in').setAttribute('aria-label', 'Zoom in');
@@ -191,6 +198,10 @@ export function applyEnglishContent({
   requiredQuery('#clear-markers').setAttribute('title', 'Clear markers');
   setElementText('zoom-reset-label', 'Fit');
   setElementText('clear-markers-label', 'Clear markers');
+  requiredQuery('#signature-steps').setAttribute('aria-label', 'Signature progress');
+  setText('[data-signature-step="signature"] strong', 'Signature');
+  setText('[data-signature-step="marker"] strong', 'Position');
+  setText('[data-signature-step="download"] strong', 'Download');
   setHtml('#help-text', '<strong>Click on the PDF</strong> to mark the signature position');
   setText('.signature-controls h4', 'Signature settings');
   setHtml(

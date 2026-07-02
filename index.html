@@ -256,6 +256,34 @@
             border-color: rgba(0, 113, 227, 0.2);
         }
 
+        .operations .card.tool-card-disabled {
+            opacity: 0.68;
+            border-color: rgba(29, 29, 31, 0.08);
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.045);
+        }
+
+        .operations .card.tool-card-disabled:hover {
+            transform: none;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.045);
+            border-color: rgba(29, 29, 31, 0.08);
+        }
+
+        .operations .card.tool-card-ready {
+            border-color: rgba(47, 158, 98, 0.18);
+        }
+
+        .operations .card.tool-card-ready .card-icon {
+            background: rgba(47, 158, 98, 0.1);
+            color: #21734a;
+        }
+
+        .operations .card.tool-card-disabled .btn-primary:disabled {
+            background: rgba(29, 29, 31, 0.08);
+            border-color: rgba(29, 29, 31, 0.08);
+            color: rgba(81, 81, 84, 0.62);
+            box-shadow: none;
+        }
+
         .card-full {
             grid-column: 1 / -1;
         }
@@ -524,6 +552,86 @@
             margin-top: 14px;
             max-height: 164px;
             overflow-y: auto;
+        }
+
+        .source-workbench {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 14px;
+            align-items: center;
+            margin: 4px 0 18px;
+            padding: 14px 16px;
+            border-radius: 18px;
+            background: rgba(29, 29, 31, 0.035);
+            border: 1px solid rgba(29, 29, 31, 0.08);
+        }
+
+        .source-workbench-main {
+            min-width: 0;
+        }
+
+        .source-workbench-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            color: var(--muted-strong);
+            font-size: 0.78rem;
+            font-weight: 750;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .source-workbench-status::before {
+            content: '';
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: rgba(110, 110, 115, 0.42);
+            box-shadow: 0 0 0 4px rgba(110, 110, 115, 0.08);
+        }
+
+        .source-workbench.has-files .source-workbench-status::before {
+            background: var(--success);
+            box-shadow: 0 0 0 4px rgba(47, 158, 98, 0.1);
+        }
+
+        .source-workbench.is-analyzing .source-workbench-status::before {
+            background: var(--accent);
+            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.12);
+        }
+
+        .source-workbench-summary {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.92rem;
+            line-height: 1.5;
+            max-width: none;
+        }
+
+        .source-clear-action {
+            align-self: stretch;
+            min-width: 108px;
+            padding: 0 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(29, 29, 31, 0.1);
+            background: rgba(255, 255, 255, 0.76);
+            color: var(--muted-strong);
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 700;
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+        }
+
+        .source-clear-action:hover:not(:disabled) {
+            background: rgba(217, 48, 37, 0.08);
+            border-color: rgba(217, 48, 37, 0.18);
+            color: var(--danger);
+        }
+
+        .source-clear-action:disabled {
+            opacity: 0.42;
+            cursor: not-allowed;
         }
 
         .file-item {
@@ -978,9 +1086,78 @@
             align-items: start;
         }
 
+        .signature-steps {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin: 14px 0 20px;
+        }
+
+        .signature-step {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            min-width: 0;
+            padding: 4px 0;
+            color: rgba(255, 255, 255, 0.52);
+            transition: color 0.2s ease;
+        }
+
+        .signature-step span {
+            width: 20px;
+            height: 20px;
+            flex: 0 0 20px;
+            display: grid;
+            place-items: center;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: transparent;
+            font-weight: 800;
+            font-size: 0.68rem;
+        }
+
+        .signature-step strong {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 0.82rem;
+        }
+
+        .signature-step.signature-step-active {
+            color: rgba(255, 255, 255, 0.94);
+        }
+
+        .signature-step.signature-step-active span {
+            border-color: rgba(255, 255, 255, 0.36);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .signature-step.signature-step-complete {
+            color: rgba(255, 255, 255, 0.72);
+        }
+
+        .signature-step.signature-step-complete span {
+            color: transparent;
+            position: relative;
+        }
+
+        .signature-step.signature-step-complete span::before {
+            content: '✓';
+            color: rgba(255, 255, 255, 0.78);
+            font-size: 0.78rem;
+            line-height: 1;
+            transform: translateY(-0.5px);
+        }
+
         @media (max-width: 900px) {
             .signature-container {
                 grid-template-columns: 1fr;
+            }
+
+            .signature-steps {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
             }
         }
 
@@ -1026,7 +1203,7 @@
         }
 
         .pdf-toolbar-nav {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
         }
 
         .pdf-toolbar-zoom {
@@ -1035,27 +1212,27 @@
 
         .pdf-preview-controls button {
             padding: 12px 18px;
-            border-radius: 999px;
-            border: 1px solid rgba(125, 211, 252, 0.2);
-            background: rgba(255, 255, 255, 0.12);
-            color: rgba(255, 255, 255, 0.96);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.92);
             cursor: pointer;
             font: inherit;
             font-weight: 600;
             letter-spacing: -0.01em;
             box-shadow:
                 inset 0 1px 0 rgba(255, 255, 255, 0.1),
-                0 10px 22px rgba(0, 0, 0, 0.18);
+                0 8px 18px rgba(0, 0, 0, 0.14);
             transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease, border-color 0.22s ease, color 0.22s ease;
         }
 
         .pdf-preview-controls button:hover:not(:disabled) {
             transform: translateY(-1px);
-            background: rgba(255, 255, 255, 0.18);
-            border-color: rgba(125, 211, 252, 0.34);
+            background: rgba(255, 255, 255, 0.13);
+            border-color: rgba(255, 255, 255, 0.2);
             box-shadow:
                 inset 0 1px 0 rgba(255, 255, 255, 0.14),
-                0 12px 24px rgba(0, 0, 0, 0.22);
+                0 10px 22px rgba(0, 0, 0, 0.18);
         }
 
         .pdf-preview-controls .btn-danger {
@@ -1083,7 +1260,7 @@
             font-weight: 600;
             text-align: center;
             padding: 10px 14px;
-            border-radius: 999px;
+            border-radius: 10px;
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
@@ -2173,6 +2350,14 @@
             .operations {
                 grid-template-columns: 1fr;
             }
+
+            .source-workbench {
+                grid-template-columns: 1fr;
+            }
+
+            .source-clear-action {
+                min-height: 42px;
+            }
         }
 
         @media (max-width: 360px) {
@@ -2241,6 +2426,23 @@
                 margin-bottom: 14px;
             }
 
+            #firma .signature-steps {
+                display: flex;
+                gap: 20px;
+                overflow-x: auto;
+                padding-bottom: 1px;
+                scrollbar-width: none;
+            }
+
+            #firma .signature-steps::-webkit-scrollbar {
+                display: none;
+            }
+
+            #firma .signature-step {
+                flex: 0 0 auto;
+                min-width: max-content;
+            }
+
             #firma .pdf-preview-controls button {
                 padding: 10px 14px;
                 font-size: 0.9rem;
@@ -2289,7 +2491,7 @@
             }
 
             #firma .pdf-toolbar-nav {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+                grid-template-columns: repeat(4, minmax(0, 1fr));
             }
 
             #firma .pdf-toolbar-zoom {
@@ -2429,6 +2631,13 @@
                 <div class="card-icon">PDF fuente</div>
                 <h3>Documento fuente</h3>
                 <p>Carga uno o varios PDFs y elige la operación que quieras aplicar. Puedes reordenar o quitar archivos desde esta lista.</p>
+                <div class="source-workbench" id="source-workbench">
+                    <div class="source-workbench-main">
+                        <div class="source-workbench-status" id="source-workbench-status">Sin PDF cargado</div>
+                        <p class="source-workbench-summary" id="source-workbench-summary">Carga uno o varios PDFs para activar las herramientas.</p>
+                    </div>
+                    <button class="source-clear-action" id="source-clear-action" type="button" disabled>Limpiar</button>
+                </div>
                 <div class="file-input-wrapper">
                     <label class="file-input-label" id="source-label">
                         Click para seleccionar archivos PDF
@@ -2561,6 +2770,25 @@
                 <h3>Firmar PDF con imagen</h3>
                 <p>Carga el PDF y la imagen de tu firma, marca la posición, muévela si hace falta y descárgalo firmado con el tamaño que prefieras.</p>
 
+                <div class="signature-steps" id="signature-steps" aria-label="Progreso de firma">
+                    <div class="signature-step" data-signature-step="pdf">
+                        <span>1</span>
+                        <strong>PDF</strong>
+                    </div>
+                    <div class="signature-step" data-signature-step="signature">
+                        <span>2</span>
+                        <strong>Firma</strong>
+                    </div>
+                    <div class="signature-step" data-signature-step="marker">
+                        <span>3</span>
+                        <strong>Marca</strong>
+                    </div>
+                    <div class="signature-step" data-signature-step="download">
+                        <span>4</span>
+                        <strong>Descargar</strong>
+                    </div>
+                </div>
+
                 <div class="signature-container">
                 <!-- Columna izquierda: Vista previa del PDF -->
                 <div class="pdf-preview-container">
@@ -2578,6 +2806,19 @@
                         </div>
                         <div class="pdf-preview-toolbar">
                             <div class="pdf-toolbar-group pdf-toolbar-nav">
+                                <button
+                                    id="first-page"
+                                    class="icon-button"
+                                    type="button"
+                                    aria-label="Ir a la primera página"
+                                    title="Ir a la primera página"
+                                    onclick="goToFirstPage()">
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M7 6v12"></path>
+                                        <path d="m17 18-6-6 6-6"></path>
+                                    </svg>
+                                    <span class="sr-only">Ir a la primera página</span>
+                                </button>
                                 <button
                                     id="prev-page"
                                     class="icon-button"
@@ -2601,6 +2842,19 @@
                                         <path d="m9 18 6-6-6-6"></path>
                                     </svg>
                                     <span class="sr-only">Página siguiente</span>
+                                </button>
+                                <button
+                                    id="last-page"
+                                    class="icon-button"
+                                    type="button"
+                                    aria-label="Ir a la última página"
+                                    title="Ir a la última página"
+                                    onclick="goToLastPage()">
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="m7 18 6-6-6-6"></path>
+                                        <path d="M17 6v12"></path>
+                                    </svg>
+                                    <span class="sr-only">Ir a la última página</span>
                                 </button>
                             </div>
                             <div class="pdf-toolbar-group pdf-toolbar-zoom">

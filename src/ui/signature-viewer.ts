@@ -42,12 +42,16 @@ export function updateSignaturePageControls(
   formatPageInfo: PageInfoFormatter,
 ) {
   const pageInfo = getElement('page-info');
+  const firstPage = getElement<HTMLButtonElement>('first-page');
   const prevPage = getElement<HTMLButtonElement>('prev-page');
   const nextPage = getElement<HTMLButtonElement>('next-page');
+  const lastPage = getElement<HTMLButtonElement>('last-page');
 
   if (pageInfo) pageInfo.textContent = formatPageInfo(page, total);
+  if (firstPage) firstPage.disabled = page <= 1;
   if (prevPage) prevPage.disabled = page <= 1;
   if (nextPage) nextPage.disabled = page >= total;
+  if (lastPage) lastPage.disabled = page >= total;
 }
 
 export function updateSignatureZoomControls(
@@ -67,10 +71,14 @@ export function updateSignatureZoomControls(
 
 export function resetSignaturePageControls(formatPageInfo: PageInfoFormatter) {
   updateSignaturePageControls(1, 1, formatPageInfo);
+  const firstPage = getElement<HTMLButtonElement>('first-page');
   const prevPage = getElement<HTMLButtonElement>('prev-page');
   const nextPage = getElement<HTMLButtonElement>('next-page');
+  const lastPage = getElement<HTMLButtonElement>('last-page');
+  if (firstPage) firstPage.disabled = true;
   if (prevPage) prevPage.disabled = true;
   if (nextPage) nextPage.disabled = true;
+  if (lastPage) lastPage.disabled = true;
 }
 
 export function resetSignatureZoomControls(formatZoomInfo: ZoomInfoFormatter) {

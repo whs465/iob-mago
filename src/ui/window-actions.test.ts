@@ -13,6 +13,8 @@ describe('registerWindowPdfActions', () => {
       ordenarPaginasPdf: vi.fn(async () => undefined),
       rotarPaginasPortrait: vi.fn(async () => undefined),
       changePage: vi.fn(),
+      goToFirstPage: vi.fn(async () => undefined),
+      goToLastPage: vi.fn(async () => undefined),
       zoomOutPdf: vi.fn(async () => undefined),
       resetPdfZoom: vi.fn(async () => undefined),
       zoomInPdf: vi.fn(async () => undefined),
@@ -34,6 +36,8 @@ describe('registerWindowPdfActions', () => {
     expect(window.ordenarPaginasPdf).toBe(actions.ordenarPaginasPdf);
     expect(window.rotarPaginasPortrait).toBe(actions.rotarPaginasPortrait);
     expect(window.changePage).toBe(actions.changePage);
+    expect(window.goToFirstPage).toBe(actions.goToFirstPage);
+    expect(window.goToLastPage).toBe(actions.goToLastPage);
     expect(window.zoomOutPdf).toBe(actions.zoomOutPdf);
     expect(window.resetPdfZoom).toBe(actions.resetPdfZoom);
     expect(window.zoomInPdf).toBe(actions.zoomInPdf);

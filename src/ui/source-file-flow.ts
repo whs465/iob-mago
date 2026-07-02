@@ -42,6 +42,47 @@ export function setupSourceFileFlow({
   let rotateSourceVersion = -1;
   let sourceAnalysisTimer: ReturnType<typeof setTimeout> | null = null;
 
+  function updateSourceWorkbench(state: 'empty' | 'analyzing' | 'ready' = 'empty') {
+    const workbench = document.getElementById('source-workbench');
+    const status = document.getElementById('source-workbench-status');
+    const summary = document.getElementById('source-workbench-summary');
+    const clearAction = document.getElementById('source-clear-action') as HTMLButtonElement | null;
+    const fileCount = sourceFileState.files.length;
+
+    if (workbench) {
+      workbench.classList.toggle('has-files', fileCount > 0);
+      workbench.classList.toggle('is-analyzing', state === 'analyzing');
+    }
+    if (clearAction) clearAction.disabled = fileCount === 0;
+
+    if (!status || !summary) return;
+
+    if (fileCount === 0) {
+      status.textContent = i18n('No PDF loaded', 'Sin PDF cargado');
+      summary.textContent = i18n(
+        'Load one or more PDFs to activate the tools.',
+        'Carga uno o varios PDFs para activar las herramientas.',
+      );
+      return;
+    }
+
+    if (state === 'analyzing') {
+      status.textContent = i18n('Analyzing PDF', 'Analizando PDF');
+    } else {
+      status.textContent = i18n('Ready to work', 'Listo para trabajar');
+    }
+
+    const firstFile = sourceFileState.files[0];
+    summary.textContent = i18n(
+      '{{count}} file(s) loaded. First file: {{name}}',
+      '{{count}} archivo(s) cargado(s). Primero: {{name}}',
+      {
+        count: String(fileCount),
+        name: firstFile?.name || '',
+      },
+    );
+  }
+
   function actualizarSourceList() {
     const list = document.getElementById('source-list');
     if (!list) return;
@@ -70,12 +111,14 @@ export function setupSourceFileFlow({
 
     actualizarCardEstados();
     if (sourceFileState.files.length > 0) {
+      updateSourceWorkbench('analyzing');
       scheduleSourceAnalysis();
     } else {
       pageOrderState.clear();
       rotateLandscapeCount = 0;
       rotateTotalPages = 0;
       rotateSourceVersion = -1;
+      updateSourceWorkbench('empty');
       onOrderListUpdate();
       actualizarRotateInfo();
     }
@@ -87,6 +130,11 @@ export function setupSourceFileFlow({
 
   function removerSourceFile(index: number) {
     if (sourceFileState.removeFile(index)) actualizarSourceList();
+  }
+
+  function limpiarSourceFiles() {
+    sourceFileState.clear();
+    actualizarSourceList();
   }
 
   function actualizarCardEstados() {
@@ -129,6 +177,7 @@ export function setupSourceFileFlow({
       rotateTotalPages = metrics.length;
       rotateLandscapeCount = metrics.filter(m => m.isLandscape).length;
       rotateSourceVersion = sourceFileState.version;
+      updateSourceWorkbench('ready');
       actualizarRotateInfo();
     } catch (error) {
       console.error(error);
@@ -166,6 +215,11 @@ export function setupSourceFileFlow({
     sourceFileState.setFiles(selectedFiles);
     actualizarSourceList();
   });
+  document.getElementById('source-clear-action')?.addEventListener('click', limpiarSourceFiles);
+
+  updateSourceWorkbench('empty');
+  actualizarCardEstados();
+  actualizarRotateInfo();
 
   return {
     actualizarSourceList,

@@ -57,6 +57,11 @@ describe('setupSourceFileFlow', () => {
   beforeEach(() => {
     document.body.innerHTML = `
       <div id="source-list"></div>
+      <div id="source-workbench">
+        <div id="source-workbench-status"></div>
+        <p id="source-workbench-summary"></p>
+      </div>
+      <button id="source-clear-action"></button>
       <div id="rotate-status"></div>
       <input id="source-input" type="file" />
       <label id="source-label"></label>
@@ -114,6 +119,32 @@ describe('setupSourceFileFlow', () => {
     expect(sourceFileState.setFiles).toHaveBeenCalledWith(files);
     expect(sourceFileState.files).toEqual(files);
     expect(document.getElementById('source-list')?.children.length).toBe(2);
+    expect(document.getElementById('source-workbench-status')?.textContent).toBe('Analyzing PDF');
+    expect((document.getElementById('source-clear-action') as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it('clears selected PDF files from the workbench action', () => {
+    const sourceFileState = createMockSourceFileState([
+      new File(['a'], 'doc1.pdf', { type: 'application/pdf' }),
+    ]);
+    const api = setupSourceFileFlow({
+      runtime: { sourceFileState, pageOrderState },
+      deps: {
+        getPdfPageCountFromArrayBuffer: vi.fn(),
+        getPdfPageMetricsFromArrayBuffer: vi.fn(),
+      },
+      i18n: (en: string) => en,
+      onOrderListUpdate,
+    });
+
+    api.actualizarSourceList();
+    document.getElementById('source-clear-action')?.dispatchEvent(new Event('click'));
+
+    expect(sourceFileState.clear).toHaveBeenCalledOnce();
+    expect(sourceFileState.files).toEqual([]);
+    expect(document.getElementById('source-list')?.children.length).toBe(0);
+    expect(document.getElementById('source-workbench-status')?.textContent).toBe('No PDF loaded');
+    expect((document.getElementById('source-clear-action') as HTMLButtonElement).disabled).toBe(true);
   });
 
   it('actualizarSourceList renders file items', () => {

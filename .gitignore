@@ -1,6 +1,7 @@
 .claude/
 node_modules/
 dist/
+out/
 vite-dev.*.log
 static-server.*.log
 
