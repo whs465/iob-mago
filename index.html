@@ -268,15 +268,6 @@
             border-color: rgba(29, 29, 31, 0.08);
         }
 
-        .operations .card.tool-card-ready {
-            border-color: rgba(47, 158, 98, 0.18);
-        }
-
-        .operations .card.tool-card-ready .card-icon {
-            background: rgba(47, 158, 98, 0.1);
-            color: #21734a;
-        }
-
         .operations .card.tool-card-disabled .btn-primary:disabled {
             background: rgba(29, 29, 31, 0.08);
             border-color: rgba(29, 29, 31, 0.08);
@@ -592,13 +583,13 @@
         }
 
         .source-workbench.has-files .source-workbench-status::before {
-            background: var(--success);
-            box-shadow: 0 0 0 4px rgba(47, 158, 98, 0.1);
+            background: rgba(29, 29, 31, 0.58);
+            box-shadow: 0 0 0 4px rgba(29, 29, 31, 0.06);
         }
 
         .source-workbench.is-analyzing .source-workbench-status::before {
-            background: var(--accent);
-            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.12);
+            background: rgba(29, 29, 31, 0.42);
+            box-shadow: 0 0 0 4px rgba(29, 29, 31, 0.06);
         }
 
         .source-workbench-summary {
@@ -610,23 +601,9 @@
         }
 
         .source-clear-action {
-            align-self: stretch;
-            min-width: 108px;
-            padding: 0 16px;
-            border-radius: 999px;
-            border: 1px solid rgba(29, 29, 31, 0.1);
-            background: rgba(255, 255, 255, 0.76);
-            color: var(--muted-strong);
-            cursor: pointer;
-            font-family: inherit;
-            font-weight: 700;
-            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
-        }
-
-        .source-clear-action:hover:not(:disabled) {
-            background: rgba(217, 48, 37, 0.08);
-            border-color: rgba(217, 48, 37, 0.18);
-            color: var(--danger);
+            align-self: center;
+            min-width: 96px;
+            padding: 11px 18px;
         }
 
         .source-clear-action:disabled {
@@ -2636,7 +2613,7 @@
                         <div class="source-workbench-status" id="source-workbench-status">Sin PDF cargado</div>
                         <p class="source-workbench-summary" id="source-workbench-summary">Carga uno o varios PDFs para activar las herramientas.</p>
                     </div>
-                    <button class="source-clear-action" id="source-clear-action" type="button" disabled>Limpiar</button>
+                    <button class="btn btn-primary source-clear-action" id="source-clear-action" type="button" disabled>Limpiar</button>
                 </div>
                 <div class="file-input-wrapper">
                     <label class="file-input-label" id="source-label">
