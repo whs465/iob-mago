@@ -688,11 +688,15 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
 
         async function goToFirstPage() {
             if (!signatureViewerState.file || signatureViewerState.currentPage <= 1) return;
+            const delta = 1 - signatureViewerState.currentPage;
+            if (signatureViewerState.movePage(delta) === null) return;
             await renderPage(1);
         }
 
         async function goToLastPage() {
             if (!signatureViewerState.file || signatureViewerState.currentPage >= signatureViewerState.totalPages) return;
+            const delta = signatureViewerState.totalPages - signatureViewerState.currentPage;
+            if (signatureViewerState.movePage(delta) === null) return;
             await renderPage(signatureViewerState.totalPages);
         }
 
