@@ -33,10 +33,16 @@ import { createPreparedSignatureState } from './state/prepared-signature';
 import { createSignaturePreviewState } from './state/signature-preview';
 import { createActiveSignatureState } from './state/active-signature';
 import {
+    hasStoredSignatureSlot,
     loadStoredSignatureImage,
+    loadStoredSignatureImageFromSlot,
     loadStoredSignatureSize,
+    loadStoredSignatureSlot,
+    migrateLegacySignatureToSlot1,
     saveSignatureImageFile,
-    saveSignatureSize
+    saveSignatureImageFileToSlot,
+    saveSignatureSize,
+    saveSignatureSlot
 } from './state/signature-storage';
 import { createSignatureViewerState } from './state/signature-viewer';
 import {
@@ -95,7 +101,8 @@ import {
 } from './ui/prepared-signature-flow';
 import {
     restoreStoredActiveSignature,
-    setActiveSignatureImageFileFlow
+    setActiveSignatureImageFileFlow,
+    switchActiveSignatureSlot
 } from './ui/active-signature-flow';
 import {
     renderPreparedSignatureReady,
@@ -335,7 +342,7 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
                 i18n,
                 loadSignatureAspectRatio,
                 updateMarkersDisplay,
-                loadStoredSignatureImage
+                loadStoredSignatureImage: loadStoredSignatureImageFromSlot
             }).then(updateSignatureProgressState);
         }
 
@@ -347,9 +354,60 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
                 i18n,
                 loadSignatureAspectRatio,
                 updateMarkersDisplay,
-                saveSignatureImageFile,
+                saveSignatureImageFile: saveSignatureImageFileToSlot,
             });
             updateSignatureProgressState();
+            updateSignatureSlotUI();
+        }
+
+        function updateSignatureSlotUI() {
+            const slot = activeSignatureState.currentSlot;
+
+            // Update tab active state
+            const tab1 = document.getElementById('signature-slot-tab-1');
+            const tab2 = document.getElementById('signature-slot-tab-2');
+            const content1 = document.getElementById('signature-slot-content-1');
+            const content2 = document.getElementById('signature-slot-content-2');
+
+            if (tab1 && tab2) {
+                tab1.classList.toggle('signature-slot-tab-active', slot === 1);
+                tab2.classList.toggle('signature-slot-tab-active', slot === 2);
+            }
+            if (content1 && content2) {
+                content1.style.display = slot === 1 ? '' : 'none';
+                content2.style.display = slot === 2 ? '' : 'none';
+            }
+
+            // Update slot name labels
+            const nameEl1 = document.getElementById('sign-image-name-1');
+            const nameEl2 = document.getElementById('sign-image-name-2');
+
+            if (nameEl1) {
+                const img1 = loadStoredSignatureImageFromSlot(1);
+                nameEl1.textContent = img1?.name ? '(' + img1.name + ')' : '';
+            }
+            if (nameEl2) {
+                const img2 = loadStoredSignatureImageFromSlot(2);
+                nameEl2.textContent = img2?.name ? '(' + img2.name + ')' : '';
+            }
+        }
+
+        function switchSignatureSlot(slot: 1 | 2) {
+            void switchActiveSignatureSlot(slot, {
+                activeState: activeSignatureState,
+                previewState: signaturePreviewState,
+                preparedState: preparedSignatureState,
+                generatorState: signatureGeneratorState,
+                urls: URL,
+                i18n,
+                loadSignatureAspectRatio,
+                updateMarkersDisplay,
+                loadStoredSignatureImage: loadStoredSignatureImageFromSlot,
+                saveSignatureSlot,
+            }).then(() => {
+                updateSignatureSlotUI();
+                updateSignatureProgressState();
+            });
         }
 
         function updateSignatureProgressState() {
@@ -481,6 +539,13 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
 
             initFileInputDragDrop();
 
+            // Migrate legacy signature to new slot-based storage
+            migrateLegacySignatureToSlot1();
+
+            // Restore the selected slot from storage
+            const storedSlot = loadStoredSignatureSlot();
+            activeSignatureState.setSlot(storedSlot);
+
             // Restaurar tamaño de firma guardado
             const tamanoGuardado = loadStoredSignatureSize();
             if (tamanoGuardado) {
@@ -491,6 +556,7 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
 
             restoreStoredSignature();
             updateSignatureProgressState();
+            updateSignatureSlotUI();
         }
 
         if (document.readyState === 'loading') {
@@ -837,3 +903,4 @@ registerWindowPdfActions({
 (window as unknown as Record<string, unknown>).updateSignatureSize = updateSignatureSize;
 (window as unknown as Record<string, unknown>).updateSignatureTone = updateSignatureTone;
 (window as unknown as Record<string, unknown>).updateSignatureCleanSensitivity = updateSignatureCleanSensitivity;
+(window as unknown as Record<string, unknown>).switchSignatureSlot = switchSignatureSlot;

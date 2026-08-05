@@ -6,7 +6,8 @@ import { setupSignatureEventHandlers } from './signature-events';
 function renderSignatureInputs() {
   document.body.innerHTML = `
     <input id="sign-pdf-file" type="file" />
-    <input id="sign-image-file" type="file" />
+    <input id="sign-image-file-1" type="file" />
+    <input id="sign-image-file-2" type="file" />
     <input id="signature-source-file" type="file" />
   `;
 }
@@ -60,19 +61,38 @@ describe('setupSignatureEventHandlers', () => {
     const image = new File(['png'], 'signature.png', { type: 'image/png' });
     const source = new File(['jpg'], 'photo.jpg', { type: 'image/jpeg' });
     const pdfInput = document.getElementById('sign-pdf-file') as HTMLInputElement;
-    const imageInput = document.getElementById('sign-image-file') as HTMLInputElement;
+    const imageInput1 = document.getElementById('sign-image-file-1') as HTMLInputElement;
     const sourceInput = document.getElementById('signature-source-file') as HTMLInputElement;
 
     setInputFiles(pdfInput, [pdf]);
-    setInputFiles(imageInput, [image]);
+    setInputFiles(imageInput1, [image]);
     setInputFiles(sourceInput, [source]);
     pdfInput.dispatchEvent(new Event('change'));
-    imageInput.dispatchEvent(new Event('change'));
+    imageInput1.dispatchEvent(new Event('change'));
     sourceInput.dispatchEvent(new Event('change'));
 
     expect(loadPdf).toHaveBeenCalledWith(pdf);
     expect(setSignatureImage).toHaveBeenCalledWith(image);
     expect(setSignatureSource).toHaveBeenCalledWith(source);
+  });
+
+  it('handles file selection from slot 2', () => {
+    const setSignatureImage = vi.fn(async () => undefined);
+    setupSignatureEventHandlers({
+      loadPdf: vi.fn(),
+      setSignatureImage,
+      setSignatureSource: vi.fn(),
+      handlePointerMove: vi.fn(),
+      handlePointerEnd: vi.fn(),
+    });
+
+    const image = new File(['png2'], 'signature2.png', { type: 'image/png' });
+    const imageInput2 = document.getElementById('sign-image-file-2') as HTMLInputElement;
+
+    setInputFiles(imageInput2, [image]);
+    imageInput2.dispatchEvent(new Event('change'));
+
+    expect(setSignatureImage).toHaveBeenCalledWith(image);
   });
 
   it('delegates document pointer events', () => {

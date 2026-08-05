@@ -39,7 +39,7 @@ describe('active signature flow', () => {
 
     const result = await restoreStoredActiveSignature({
       ...options,
-      loadStoredSignatureImage: () => ({
+      loadStoredSignatureImage: (_slot) => ({
         dataUrl: 'data:image/png;base64,abc',
         name: 'stored.png',
         bytes,
@@ -58,7 +58,7 @@ describe('active signature flow', () => {
     expect(options.updateMarkersDisplay).toHaveBeenCalledTimes(1);
   });
 
-  it('loads a signature file, tracks its object URL and persists it', async () => {
+  it('loads a signature file, tracks its object URL and persists it to the active slot', async () => {
     renderPreviewDom();
     const options = createFlowOptions();
     const saveSignatureImageFile = vi.fn(async () => undefined);
@@ -72,7 +72,7 @@ describe('active signature flow', () => {
     expect(result.status).toBe('ok');
     expect(options.urls.createObjectURL).toHaveBeenCalledWith(file);
     expect(options.previewState.objectUrl).toBe('blob:signature');
-    expect(saveSignatureImageFile).toHaveBeenCalledWith(file);
+    expect(saveSignatureImageFile).toHaveBeenCalledWith(file, 1);
     expect(options.activeState.imageType).toBe('image/png');
     expect(document.getElementById('sign-image-label')?.textContent).toBe('signature.png');
   });
@@ -85,7 +85,7 @@ describe('active signature flow', () => {
 
     await restoreStoredActiveSignature({
       ...options,
-      loadStoredSignatureImage: () => ({
+      loadStoredSignatureImage: (_slot) => ({
         dataUrl: 'data:image/png;base64,abc',
         name: 'stored.png',
         bytes: new ArrayBuffer(1),

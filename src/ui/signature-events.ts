@@ -32,16 +32,20 @@ export function setupSignatureEventHandlers({
   handlePointerEnd,
 }: SetupSignatureEventHandlersOptions) {
   const pdfInput = getRequiredElement<HTMLInputElement>('sign-pdf-file');
-  const imageInput = getRequiredElement<HTMLInputElement>('sign-image-file');
   const sourceInput = getRequiredElement<HTMLInputElement>('signature-source-file');
 
   clearFileInputOnClick(pdfInput);
-  clearFileInputOnClick(imageInput);
   clearFileInputOnClick(sourceInput);
 
   onFileChange(pdfInput, loadPdf);
-  onFileChange(imageInput, setSignatureImage);
   onFileChange(sourceInput, setSignatureSource);
+
+  // Wire both signature image slots
+  for (const slot of [1, 2] as const) {
+    const imageInput = getRequiredElement<HTMLInputElement>(`sign-image-file-${slot}`);
+    clearFileInputOnClick(imageInput);
+    onFileChange(imageInput, setSignatureImage);
+  }
 
   document.addEventListener('pointermove', handlePointerMove);
   document.addEventListener('pointerup', handlePointerEnd);

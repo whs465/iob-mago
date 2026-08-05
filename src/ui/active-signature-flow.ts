@@ -7,8 +7,16 @@ import type { ActiveSignatureState } from '../state/active-signature';
 import type { ObjectUrlRuntime } from '../state/prepared-signature';
 import type { SignaturePreviewState } from '../state/signature-preview';
 import type { StoredSignatureImage } from '../state/signature-storage';
+import {
+  clearPreparedSignaturePreview,
+  setPreparedSignatureActionsEnabled,
+  showSignaturePreview,
+  updateSignImageLabel,
+  updateSignatureGeneratorMeta,
+} from './signature-preview';
 import type { SignatureMetaTranslator } from './signature-preview';
-import { showSignaturePreview, updateSignImageLabel } from './signature-preview';
+import type { PreparedSignatureState } from '../state/prepared-signature';
+import type { SignatureGeneratorState } from '../state/signature-generator';
 
 export type ActiveSignatureFlowOptions = {
   activeState: ActiveSignatureState;
@@ -54,7 +62,7 @@ export async function applyActiveSignaturePreviewResult(
 }
 
 export type RestoreStoredActiveSignatureOptions = ActiveSignatureFlowOptions & {
-  loadStoredSignatureImage(): StoredSignatureImage | null;
+  loadStoredSignatureImage(slot: 1 | 2): StoredSignatureImage | null;
 };
 
 export function restoreStoredActiveSignature({
@@ -70,7 +78,7 @@ export function restoreStoredActiveSignature({
 }
 
 export type SetActiveSignatureImageFileOptions = ActiveSignatureFlowOptions & {
-  saveSignatureImageFile(file: File): Promise<void>;
+  saveSignatureImageFile(file: File, slot: 1 | 2): Promise<void>;
 };
 
 export async function setActiveSignatureImageFileFlow(
@@ -91,5 +99,51 @@ export async function setActiveSignatureImageFileFlow(
     ...flowOptions,
     activeState,
     urls,
+  });
+}
+
+export type SwitchActiveSignatureSlotOptions = {
+  activeState: ActiveSignatureState;
+  previewState: SignaturePreviewState;
+  preparedState: PreparedSignatureState;
+  generatorState: SignatureGeneratorState;
+  loadStoredSignatureImage(slot: 1 | 2): StoredSignatureImage | null;
+  saveSignatureSlot(slot: 1 | 2): void;
+} & ActiveSignatureFlowOptions;
+
+export async function switchActiveSignatureSlot(
+  slot: 1 | 2,
+  options: SwitchActiveSignatureSlotOptions,
+) {
+  const {
+    activeState,
+    previewState,
+    preparedState,
+    generatorState,
+    loadStoredSignatureImage,
+    saveSignatureSlot,
+    urls,
+  } = options;
+
+  // No-op when already on the requested slot
+  if (activeState.currentSlot === slot) return;
+
+  // Save the selected slot
+  saveSignatureSlot(slot);
+  activeState.setSlot(slot);
+
+  // Reset prepared signature and generator state
+  preparedState.reset(urls);
+  generatorState.reset();
+  clearPreparedSignaturePreview();
+  updateSignatureGeneratorMeta('');
+  setPreparedSignatureActionsEnabled(false);
+
+  // Restore the stored signature for the new slot
+  const result = restoreActiveSignatureFromStorage(activeState, { loadStoredSignatureImage });
+  await applyActiveSignaturePreviewResult(result, {
+    ...options,
+    activeState,
+    previewState,
   });
 }

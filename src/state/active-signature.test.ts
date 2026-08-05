@@ -33,4 +33,17 @@ describe('active signature state', () => {
     expect(state.aspectRatio).toBe(1);
     expect(state.hasImage).toBe(false);
   });
+
+  it('defaults to slot 1', () => {
+    const state = createActiveSignatureState();
+    expect(state.currentSlot).toBe(1);
+  });
+
+  it('can set and read the active slot', () => {
+    const state = createActiveSignatureState();
+    state.setSlot(2);
+    expect(state.currentSlot).toBe(2);
+    state.setSlot(1);
+    expect(state.currentSlot).toBe(1);
+  });
 });

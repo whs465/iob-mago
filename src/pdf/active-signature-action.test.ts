@@ -12,7 +12,7 @@ describe('active signature actions', () => {
     const bytes = new Uint8Array([1, 2, 3]).buffer;
 
     const result = restoreActiveSignatureFromStorage(state, {
-      loadStoredSignatureImage: () => ({
+      loadStoredSignatureImage: (_slot) => ({
         dataUrl: 'data:image/png;base64,abc',
         name: 'stored.png',
         bytes,
@@ -28,6 +28,28 @@ describe('active signature actions', () => {
     });
     expect(state.imageBytes).toBe(bytes);
     expect(state.imageType).toBe('image/png');
+  });
+
+  it('restores from the active slot', () => {
+    const state = createActiveSignatureState();
+    state.setSlot(2);
+    const bytes = new Uint8Array([4, 5, 6]).buffer;
+    const loadFn = vi.fn((slot: 1 | 2) =>
+      slot === 2 ? {
+        dataUrl: 'data:image/png;base64,slot2',
+        name: 'slot2.png',
+        bytes,
+        mimeType: 'image/png',
+      } : null
+    );
+
+    const result = restoreActiveSignatureFromStorage(state, {
+      loadStoredSignatureImage: loadFn,
+    });
+
+    expect(loadFn).toHaveBeenCalledWith(2);
+    expect(result.status).toBe('ok');
+    expect(state.imageBytes).toBe(bytes);
   });
 
   it('reports missing stored active signatures', () => {
@@ -58,6 +80,20 @@ describe('active signature actions', () => {
     });
     expect(state.imageBytes).toEqual(await file.arrayBuffer());
     expect(state.imageType).toBe('image/png');
-    expect(saveSignatureImageFile).toHaveBeenCalledWith(file);
+    expect(saveSignatureImageFile).toHaveBeenCalledWith(file, 1);
+  });
+
+  it('persists to the active slot', async () => {
+    const state = createActiveSignatureState();
+    state.setSlot(2);
+    const file = makeFile();
+    const saveSignatureImageFile = vi.fn(async () => undefined);
+
+    await setActiveSignatureFromFile(state, file, {
+      saveSignatureImageFile,
+      urls: { createObjectURL: vi.fn(() => 'blob:signature') },
+    });
+
+    expect(saveSignatureImageFile).toHaveBeenCalledWith(file, 2);
   });
 });

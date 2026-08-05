@@ -1662,6 +1662,56 @@
             font-weight: 600;
         }
 
+        /* Tabs para slots de firma */
+        .signature-slot-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .signature-slot-tab {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.62);
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .signature-slot-tab:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.82);
+        }
+
+        .signature-slot-tab-active {
+            background: rgba(255, 255, 255, 0.13);
+            color: rgba(255, 255, 255, 0.94);
+            border-color: rgba(255, 255, 255, 0.24);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .signature-slot-name {
+            display: block;
+            font-size: 0.68rem;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.48);
+            margin-top: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 120px;
+        }
+
+        .signature-slot-tab-active .signature-slot-name {
+            color: rgba(255, 255, 255, 0.64);
+        }
+
         .signature-list {
             margin-top: 18px;
             max-height: 220px;
@@ -2911,16 +2961,31 @@
                 <div class="signature-controls">
                     <h4>Configuración de firma</h4>
 
-                    <div class="file-input-wrapper">
-                        <label class="file-input-label" id="sign-image-label">
-                            Click para seleccionar imagen de firma (PNG)
-                            <input type="file" id="sign-image-file" accept="image/png,image/jpeg">
+                    <div class="signature-slot-tabs">
+                        <button class="signature-slot-tab signature-slot-tab-active" id="signature-slot-tab-1" data-slot="1" onclick="switchSignatureSlot(1)">
+                            Firma 1 <span id="sign-image-name-1" class="signature-slot-name"></span>
+                        </button>
+                        <button class="signature-slot-tab" id="signature-slot-tab-2" data-slot="2" onclick="switchSignatureSlot(2)">
+                            Firma 2 <span id="sign-image-name-2" class="signature-slot-name"></span>
+                        </button>
+                    </div>
+
+                    <div class="file-input-wrapper signature-slot-content" id="signature-slot-content-1">
+                        <label class="file-input-label" id="sign-image-label-1">
+                            Click para seleccionar imagen de firma 1 (PNG)
+                            <input type="file" id="sign-image-file-1" accept="image/png,image/jpeg">
+                        </label>
+                    </div>
+                    <div class="file-input-wrapper signature-slot-content" id="signature-slot-content-2" style="display: none;">
+                        <label class="file-input-label" id="sign-image-label-2">
+                            Click para seleccionar imagen de firma 2 (PNG)
+                            <input type="file" id="sign-image-file-2" accept="image/png,image/jpeg">
                         </label>
                     </div>
 
                     <img id="signature-preview" class="signature-preview" alt="Vista previa de firma">
                     <p class="signature-storage-note">
-                        <strong>La imagen de tu firma se guarda en este navegador</strong> para que no tengas que subirla cada vez. Si la cambias, se actualiza aquí mismo.
+                        <strong>Puedes guardar hasta dos firmas en este navegador</strong>. Selecciona la pestaña (Firma 1 o Firma 2) y sube tu imagen. Usa las pestañas para cambiar entre ellas al firmar.
                     </p>
 
                     <div class="slider-group">
