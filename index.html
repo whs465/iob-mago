@@ -238,6 +238,11 @@
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 24px;
             margin-bottom: 0;
+            min-width: 0;
+        }
+
+        .operations > .card {
+            min-width: 0;
         }
 
         .card {
@@ -272,6 +277,12 @@
             background: rgba(29, 29, 31, 0.08);
             border-color: rgba(29, 29, 31, 0.08);
             color: rgba(81, 81, 84, 0.62);
+            box-shadow: none;
+        }
+
+        .operations .card.tool-card-disabled .btn-secondary:disabled {
+            color: rgba(0, 113, 227, 0.45);
+            cursor: not-allowed;
             box-shadow: none;
         }
 
@@ -348,18 +359,75 @@
 
         .file-input-label {
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            gap: 12px;
             min-height: 120px;
             padding: 22px;
             background: var(--surface-muted);
-            border: 1.5px solid rgba(29, 29, 31, 0.12);
+            border: 1.5px dashed rgba(29, 29, 31, 0.2);
             border-radius: 22px;
             text-align: center;
             cursor: pointer;
             transition: all 0.25s ease;
             color: var(--muted);
             font-weight: 500;
+        }
+
+        .file-dropzone-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            background: linear-gradient(145deg, rgba(0, 113, 227, 0.13), rgba(0, 113, 227, 0.05));
+            color: var(--accent);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.76);
+            transition: transform 0.25s ease, background 0.25s ease;
+        }
+
+        .file-dropzone-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke-width: 1.8;
+        }
+
+        .file-dropzone-copy {
+            display: grid;
+            justify-items: center;
+            gap: 5px;
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        .file-dropzone-copy strong {
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--text);
+            font-size: 0.98rem;
+            font-weight: 720;
+            letter-spacing: -0.015em;
+        }
+
+        .file-dropzone-help {
+            color: var(--muted);
+            font-size: 0.8rem;
+            font-weight: 500;
+            line-height: 1.45;
+        }
+
+        .file-input-label:hover .file-dropzone-icon,
+        .file-input-label.drag-over .file-dropzone-icon {
+            transform: translateY(-2px);
+            background: rgba(0, 113, 227, 0.16);
+        }
+
+        .file-input-label.has-files .file-dropzone-icon {
+            background: rgba(0, 113, 227, 0.14);
         }
 
         .file-input-label:hover {
@@ -378,6 +446,78 @@
             background: rgba(255, 255, 255, 0.05);
             border-color: rgba(255, 255, 255, 0.14);
             color: rgba(255, 255, 255, 0.68);
+        }
+
+        .signature-stage .file-dropzone-icon {
+            background: rgba(125, 211, 252, 0.1);
+            color: #7dd3fc;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        }
+
+        .signature-stage .file-dropzone-copy strong {
+            color: #ffffff;
+        }
+
+        .signature-stage .file-dropzone-help {
+            color: rgba(255, 255, 255, 0.52);
+        }
+
+        .signature-source-actions {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 142px;
+            gap: 10px;
+            align-items: stretch;
+        }
+
+        .signature-source-actions .file-input-wrapper {
+            min-width: 0;
+            margin-bottom: 0;
+        }
+
+        .camera-action {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            min-height: 88px;
+            padding: 14px 12px;
+            border: 1px solid rgba(125, 211, 252, 0.2);
+            border-radius: 20px;
+            background: rgba(125, 211, 252, 0.08);
+            color: #e0f2fe;
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.82rem;
+            font-weight: 700;
+            transition: transform 0.22s ease, background 0.22s ease, border-color 0.22s ease;
+        }
+
+        .camera-action:hover {
+            transform: translateY(-2px);
+            background: rgba(125, 211, 252, 0.13);
+            border-color: rgba(125, 211, 252, 0.34);
+        }
+
+        .camera-action svg {
+            width: 25px;
+            height: 25px;
+            stroke-width: 1.8;
+        }
+
+        .camera-action input {
+            display: none;
+        }
+
+        @media (max-width: 560px) {
+            .signature-source-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .camera-action {
+                min-height: 62px;
+                flex-direction: row;
+            }
         }
 
         .signature-stage .file-input-label:hover {
@@ -516,7 +656,8 @@
         }
 
         .input-group input[type="text"],
-        .input-group input[type="number"] {
+        .input-group input[type="number"],
+        .input-group select {
             width: 100%;
             padding: 14px 16px;
             border: 1px solid rgba(29, 29, 31, 0.12);
@@ -527,7 +668,8 @@
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .input-group input:focus {
+        .input-group input:focus,
+        .input-group select:focus {
             outline: none;
             border-color: rgba(0, 113, 227, 0.38);
             box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.08);
@@ -537,6 +679,59 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
+        }
+
+        .tool-note {
+            margin: 12px 0 0 !important;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: rgba(0, 113, 227, 0.055);
+            border: 1px solid rgba(0, 113, 227, 0.1);
+            color: var(--muted-strong) !important;
+            font-size: 0.86rem !important;
+            line-height: 1.5 !important;
+        }
+
+        .tool-note.tool-warning {
+            background: rgba(180, 83, 9, 0.06);
+            border-color: rgba(180, 83, 9, 0.14);
+        }
+
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0 16px;
+        }
+
+        .metadata-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .metadata-dates {
+            margin: -2px 0 14px !important;
+            font-size: 0.86rem !important;
+        }
+
+        .range-control {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 64px;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .range-control input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+        }
+
+        @media (max-width: 640px) {
+            .metadata-grid,
+            .input-row {
+                grid-template-columns: 1fr;
+            }
         }
 
         .file-list {
@@ -623,6 +818,8 @@
             margin-bottom: 8px;
             font-size: 0.88rem;
             color: var(--muted-strong);
+            min-width: 0;
+            max-width: 100%;
         }
 
         .file-item[draggable="true"] {
@@ -643,6 +840,9 @@
             align-items: center;
             gap: 10px;
             min-width: 0;
+            flex: 1 1 0;
+            width: 0;
+            overflow: hidden;
         }
 
         .file-order-index {
@@ -661,6 +861,9 @@
 
         .file-name {
             min-width: 0;
+            max-width: 100%;
+            flex: 1 1 auto;
+            display: block;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -673,11 +876,64 @@
             line-height: 1.6;
         }
 
+        .operations [id$="-status"],
+        #order-file-name {
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        #compress-status.tool-status-processing,
+        #compress-status.tool-status-success,
+        #compress-status.tool-status-error {
+            white-space: normal;
+            overflow: visible;
+            padding: 10px 12px;
+            border-radius: 12px;
+            line-height: 1.45;
+        }
+
+        #compress-status.tool-status-processing {
+            background: rgba(0, 113, 227, 0.07);
+            color: var(--accent-strong);
+        }
+
+        #compress-status.tool-status-success {
+            background: rgba(47, 158, 98, 0.08);
+            color: #21734a;
+        }
+
+        #compress-status.tool-status-error {
+            background: rgba(217, 48, 37, 0.08);
+            color: #b3261e;
+        }
+
         .file-actions {
             display: inline-flex;
             align-items: center;
             gap: 4px;
             flex: 0 0 auto;
+        }
+
+        @media (max-width: 520px) {
+            .file-item {
+                gap: 8px;
+                padding: 10px;
+            }
+
+            .file-actions {
+                gap: 2px;
+            }
+
+            .file-item .file-action {
+                width: 28px;
+                height: 28px;
+            }
+
+            .source-workbench-summary {
+                overflow-wrap: anywhere;
+            }
         }
 
         .file-action {
@@ -1004,7 +1260,7 @@
             margin-top: 26px;
             text-align: center;
             color: var(--muted);
-            font-size: 0.95rem;
+            font-size: 0.75rem;
             letter-spacing: -0.01em;
         }
 
@@ -2285,6 +2541,12 @@
             transform: scale(1.01);
         }
 
+        .signature-stage .file-input-label.drag-over {
+            border-color: rgba(125, 211, 252, 0.52);
+            background: rgba(125, 211, 252, 0.12);
+            color: #ffffff;
+        }
+
         /* Spinner procesando */
         @keyframes spin {
             to { transform: rotate(360deg); }
@@ -2648,8 +2910,8 @@
         <section class="section" id="herramientas">
             <div class="section-heading">
                 <p class="section-kicker" id="tools-kicker">Herramientas rápidas</p>
-                <h2 class="section-title" id="tools-title">Seis flujos para editar un PDF sin enredos</h2>
-                <p class="section-text" id="tools-text">Une, separa, extrae, elimina, ordena o corrige la orientación de páginas en pocos pasos, sin salir del navegador.</p>
+                <h2 class="section-title" id="tools-title">Nueve flujos para trabajar un PDF sin enredos</h2>
+                <p class="section-text" id="tools-text">Une, separa, comprime, organiza, revisa metadatos o agrega una marca de agua sin sacar el documento del navegador.</p>
             </div>
 
             <div class="operations">
@@ -2667,7 +2929,13 @@
                 </div>
                 <div class="file-input-wrapper">
                     <label class="file-input-label" id="source-label">
-                        Click para seleccionar archivos PDF
+                        <span class="file-dropzone-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M12 18v-6"></path><path d="m9 15 3-3 3 3"></path></svg>
+                        </span>
+                        <span class="file-dropzone-copy">
+                            <strong data-file-label-text>Selecciona o arrastra tus PDFs</strong>
+                            <span class="file-dropzone-help" id="source-drop-help">Uno o varios archivos PDF · se procesan localmente</span>
+                        </span>
                         <input type="file" id="source-input" accept=".pdf" multiple>
                     </label>
                 </div>
@@ -2779,6 +3047,83 @@
                     Rotar a portrait
                 </button>
             </div>
+
+            <!-- Comprimir PDF -->
+            <div class="card" id="compress-card">
+                <div class="card-icon">Comprimir</div>
+                <h3>Reducir tamaño</h3>
+                <p>Baja el peso del PDF con un modo seguro o una reducción visual más fuerte.</p>
+                <p class="list-help" id="compress-status" style="margin: 0 0 14px;"></p>
+                <div class="input-group">
+                    <label for="compress-mode">Nivel de compresión</label>
+                    <select id="compress-mode">
+                        <option value="safe">Seguro · conserva texto y enlaces</option>
+                        <option value="balanced">Equilibrado · buena calidad visual</option>
+                        <option value="compact">Compacto · archivo más liviano</option>
+                    </select>
+                </div>
+                <p class="tool-note" id="compress-note">El modo seguro nunca reemplaza el original por una copia más pesada. La reducción visual aplana las páginas y puede perder texto seleccionable, enlaces o formularios.</p>
+                <button class="btn btn-primary" id="compress-action" style="margin-top: 16px;" onclick="comprimirPDF()">Comprimir y descargar</button>
+            </div>
+
+            <!-- Marca de agua -->
+            <div class="card" id="watermark-card">
+                <div class="card-icon">Marca</div>
+                <h3>Marca de agua</h3>
+                <p>Agrega un texto discreto en el centro de todas o algunas páginas.</p>
+                <p class="list-help" id="watermark-status" style="margin: 0 0 14px;"></p>
+                <div class="input-group">
+                    <label for="watermark-text">Texto</label>
+                    <input type="text" id="watermark-text" maxlength="120" placeholder="CONFIDENCIAL">
+                </div>
+                <div class="input-group">
+                    <label for="watermark-pages">Páginas (vacío = todo el PDF)</label>
+                    <input type="text" id="watermark-pages" placeholder="1-3, 8, 10-12">
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="watermark-opacity">Opacidad</label>
+                        <div class="range-control"><input type="range" id="watermark-opacity" min="5" max="70" value="18"><span id="watermark-opacity-value">18%</span></div>
+                    </div>
+                    <div class="input-group">
+                        <label for="watermark-size">Tamaño</label>
+                        <input type="number" id="watermark-size" min="8" max="200" value="48">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="watermark-angle">Ángulo</label>
+                    <select id="watermark-angle">
+                        <option value="45">Diagonal ↗</option>
+                        <option value="0">Horizontal</option>
+                        <option value="-45">Diagonal ↘</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" id="watermark-action" onclick="agregarMarcaAgua()">Agregar y descargar</button>
+            </div>
+
+            <!-- Metadatos PDF -->
+            <div class="card card-full" id="metadata-card">
+                <div class="card-icon">Metadatos</div>
+                <h3>Información del documento</h3>
+                <p>Revisa y edita la información interna del primer PDF cargado, o limpia sus campos descriptivos.</p>
+                <p class="list-help" id="metadata-status" style="margin: 0 0 14px;"></p>
+                <button class="btn btn-secondary" id="metadata-load-action" onclick="verMetadatosPDF()">Ver metadatos</button>
+                <div id="metadata-editor" hidden style="margin-top: 20px;">
+                    <div class="metadata-grid">
+                        <div class="input-group"><label for="metadata-title">Título</label><input type="text" id="metadata-title"></div>
+                        <div class="input-group"><label for="metadata-author">Autor</label><input type="text" id="metadata-author"></div>
+                        <div class="input-group"><label for="metadata-subject">Asunto</label><input type="text" id="metadata-subject"></div>
+                        <div class="input-group"><label for="metadata-keywords">Palabras clave</label><input type="text" id="metadata-keywords" placeholder="contrato, informe, 2026"></div>
+                        <div class="input-group"><label for="metadata-creator">Aplicación creadora</label><input type="text" id="metadata-creator"></div>
+                        <div class="input-group"><label for="metadata-producer">Productor PDF</label><input type="text" id="metadata-producer"></div>
+                    </div>
+                    <p class="metadata-dates" id="metadata-dates" aria-label="Fechas de creación y modificación"></p>
+                    <div class="metadata-actions">
+                        <button class="btn btn-primary" id="metadata-save-action" onclick="guardarMetadatosPDF()">Guardar copia editada</button>
+                        <button class="btn btn-danger" id="metadata-clear-action" onclick="borrarMetadatosPDF()">Borrar metadatos y descargar</button>
+                    </div>
+                </div>
+            </div>
             </div>
         </section>
 
@@ -2821,7 +3166,13 @@
                 <div class="pdf-preview-container">
                     <div class="file-input-wrapper" style="width: 100%;">
                         <label class="file-input-label" id="sign-pdf-label">
-                            Click para seleccionar PDF a firmar
+                            <span class="file-dropzone-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M12 18v-6"></path><path d="m9 15 3-3 3 3"></path></svg>
+                            </span>
+                            <span class="file-dropzone-copy">
+                                <strong data-file-label-text>Selecciona o arrastra el PDF a firmar</strong>
+                                <span class="file-dropzone-help" id="sign-pdf-drop-help">Un archivo PDF · permanece en este dispositivo</span>
+                            </span>
                             <input type="file" id="sign-pdf-file" accept=".pdf">
                         </label>
                     </div>
@@ -2972,13 +3323,15 @@
 
                     <div class="file-input-wrapper signature-slot-content" id="signature-slot-content-1">
                         <label class="file-input-label" id="sign-image-label-1">
-                            Click para seleccionar imagen de firma 1 (PNG)
+                            <span class="file-dropzone-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="m21 15-5-5L5 21"></path></svg></span>
+                            <span class="file-dropzone-copy"><strong data-file-label-text>Selecciona o arrastra la firma 1</strong><span class="file-dropzone-help" id="sign-image-help-1">PNG o JPG · preferiblemente con fondo transparente</span></span>
                             <input type="file" id="sign-image-file-1" accept="image/png,image/jpeg">
                         </label>
                     </div>
                     <div class="file-input-wrapper signature-slot-content" id="signature-slot-content-2" style="display: none;">
                         <label class="file-input-label" id="sign-image-label-2">
-                            Click para seleccionar imagen de firma 2 (PNG)
+                            <span class="file-dropzone-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="m21 15-5-5L5 21"></path></svg></span>
+                            <span class="file-dropzone-copy"><strong data-file-label-text>Selecciona o arrastra la firma 2</strong><span class="file-dropzone-help" id="sign-image-help-2">PNG o JPG · preferiblemente con fondo transparente</span></span>
                             <input type="file" id="sign-image-file-2" accept="image/png,image/jpeg">
                         </label>
                     </div>
@@ -3026,10 +3379,18 @@
 
                     <div class="signature-generator-grid">
                         <div class="signature-generator-controls">
-                            <div class="file-input-wrapper">
-                                <label class="file-input-label" id="signature-source-label">
-                                    Click para seleccionar foto de la firma
-                                    <input type="file" id="signature-source-file" accept="image/png,image/jpeg,image/webp">
+                            <div class="signature-source-actions">
+                                <div class="file-input-wrapper">
+                                    <label class="file-input-label" id="signature-source-label">
+                                        <span class="file-dropzone-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16.5V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2.5"></path><path d="M12 3v12"></path><path d="m7.5 7.5 4.5-4.5 4.5 4.5"></path></svg></span>
+                                        <span class="file-dropzone-copy"><strong data-file-label-text>Elige o arrastra la foto</strong><span class="file-dropzone-help" id="signature-source-help">PNG, JPG o WebP · papel claro y buena luz</span></span>
+                                        <input type="file" id="signature-source-file" accept="image/png,image/jpeg,image/webp">
+                                    </label>
+                                </div>
+                                <label class="camera-action" for="signature-camera-file">
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L8 6H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3z"></path><circle cx="12" cy="12.5" r="3.5"></circle></svg>
+                                    <span id="camera-action-text">Tomar foto</span>
+                                    <input type="file" id="signature-camera-file" accept="image/*" capture="environment">
                                 </label>
                             </div>
 

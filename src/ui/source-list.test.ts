@@ -50,4 +50,22 @@ describe('source-list ui helpers', () => {
     expect(onMove).toHaveBeenCalledWith(1, 0);
     expect(onRemove).toHaveBeenCalledWith(1);
   });
+
+  it('keeps a long filename in a dedicated truncatable element', () => {
+    const list = document.createElement('div');
+    const longName = `${'informe-mensual-con-anexos-y-soportes-'.repeat(8)}.pdf`;
+
+    renderSourceFileList(
+      list,
+      [makeFile(longName)],
+      { moveUp: 'Move up', moveDown: 'Move down', remove: 'Remove' },
+      { onMove: vi.fn(), onRemove: vi.fn() },
+    );
+
+    const main = list.querySelector('.file-main');
+    const name = list.querySelector('.file-name');
+    expect(main?.children).toHaveLength(2);
+    expect(name?.textContent).toBe(longName);
+    expect(name?.getAttribute('title')).toBe(longName);
+  });
 });

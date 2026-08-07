@@ -68,7 +68,8 @@ export type PdfLibRenderableDocument = {
 };
 
 type PdfLibCreatedDocument = PdfLibRenderableDocument & {
-  save(): Promise<Uint8Array>;
+  embedJpg(imageBytes: ArrayBuffer): Promise<EmbeddedPng>;
+  save(options?: { useObjectStreams?: boolean }): Promise<Uint8Array>;
 };
 
 type PdfDocumentFactory = {
@@ -98,6 +99,18 @@ type PdfJsLib = {
     promise: Promise<PdfJsDocument>;
   };
 };
+
+function canvasToJpegArrayBuffer(canvas: HTMLCanvasElement, quality: number) {
+  return new Promise<ArrayBuffer>((resolve, reject) => {
+    canvas.toBlob(blob => {
+      if (!blob) {
+        reject(new Error('Could not encode the rendered PDF page'));
+        return;
+      }
+      blob.arrayBuffer().then(resolve, reject);
+    }, 'image/jpeg', quality);
+  });
+}
 
 export function normalizeRotationAngle(angle = 0) {
   const numericAngle = Number(angle) || 0;
@@ -303,11 +316,59 @@ export function createPdfRenderRuntime({
     };
   }
 
+  async function buildCompressedPdfFromRenderedPages(
+    arrayBuffer: ArrayBuffer,
+    {
+      scale,
+      quality,
+      onProgress,
+    }: {
+      scale: number;
+      quality: number;
+      onProgress?: (completed: number, total: number) => void;
+    },
+  ) {
+    const loadingTask = pdfjsLib.getDocument({ data: cloneArrayBuffer(arrayBuffer) });
+    const sourcePdf = await loadingTask.promise;
+    const targetPdf = await PDFDocument.create();
+
+    try {
+      for (let index = 0; index < sourcePdf.numPages; index++) {
+        const sourcePage = await sourcePdf.getPage(index + 1);
+        const pdfViewport = sourcePage.getViewport({ scale: 1 });
+        const renderViewport = sourcePage.getViewport({ scale });
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        if (!context) throw new Error('Canvas 2D context unavailable');
+
+        canvas.width = Math.ceil(renderViewport.width);
+        canvas.height = Math.ceil(renderViewport.height);
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        await sourcePage.render({ canvasContext: context, viewport: renderViewport }).promise;
+        const jpgBytes = await canvasToJpegArrayBuffer(canvas, quality);
+        const image = await targetPdf.embedJpg(jpgBytes);
+        const page = targetPdf.addPage([pdfViewport.width, pdfViewport.height]);
+        page.drawImage(image, { x: 0, y: 0, width: pdfViewport.width, height: pdfViewport.height });
+
+        canvas.width = 0;
+        canvas.height = 0;
+        onProgress?.(index + 1, sourcePdf.numPages);
+      }
+    } finally {
+      await sourcePdf.destroy();
+    }
+
+    return targetPdf.save({ useObjectStreams: true });
+  }
+
   return {
     loadPdfDocument,
     getPdfPageCountFromArrayBuffer,
     getPdfPageMetricsFromArrayBuffer,
     appendRenderedPdfPages,
     buildRotatedPortraitPdfFromRenderedPages,
+    buildCompressedPdfFromRenderedPages,
   };
 }

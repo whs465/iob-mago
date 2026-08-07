@@ -1,4 +1,4 @@
-import { getRequiredElement } from './dom';
+import { getElement, getRequiredElement } from './dom';
 
 export type SetupSignatureEventHandlersOptions = {
   loadPdf(file: File): Promise<void>;
@@ -33,12 +33,15 @@ export function setupSignatureEventHandlers({
 }: SetupSignatureEventHandlersOptions) {
   const pdfInput = getRequiredElement<HTMLInputElement>('sign-pdf-file');
   const sourceInput = getRequiredElement<HTMLInputElement>('signature-source-file');
+  const cameraInput = getElement<HTMLInputElement>('signature-camera-file');
 
   clearFileInputOnClick(pdfInput);
   clearFileInputOnClick(sourceInput);
+  if (cameraInput) clearFileInputOnClick(cameraInput);
 
   onFileChange(pdfInput, loadPdf);
   onFileChange(sourceInput, setSignatureSource);
+  if (cameraInput) onFileChange(cameraInput, setSignatureSource);
 
   // Wire both signature image slots
   for (const slot of [1, 2] as const) {

@@ -54,7 +54,7 @@ export function applyEnglishContent({
   setText('.hero-copy h1', 'Do more with your PDFs. Without leaving the browser.');
   setText(
     '.hero-copy .subtitle',
-    'Merge, split, extract, remove, reorder, rotate, sign, and track contract progress from desktop or phone with a cleaner, calmer, fully local interface.',
+    'Merge, split, compress, watermark, edit metadata, sign, and track contract progress from desktop or phone with a cleaner, calmer, fully local interface.',
   );
   setText('.hero-actions .btn-primary', 'View tools');
   setText('.hero-actions .btn-secondary', 'Go to signing');
@@ -80,10 +80,10 @@ export function applyEnglishContent({
     sections[0],
   );
   setElementText('tools-kicker', 'Quick tools');
-  setElementText('tools-title', 'Six flows to edit a PDF without the mess');
+  setElementText('tools-title', 'Nine flows to work with a PDF without the mess');
   setElementText(
     'tools-text',
-    'Merge, split, extract, remove, reorder, or fix page orientation in just a few steps, without leaving the browser.',
+    'Merge, split, compress, organize, review metadata, or add a watermark without taking the document out of the browser.',
   );
   setText('.section-kicker', 'Visual signing', sections[2]);
   setText('.section-title', 'Place the signature directly on the PDF', sections[2]);
@@ -148,6 +148,43 @@ export function applyEnglishContent({
   setElementText('rotate-pages-label', 'Pages to review (leave blank = whole PDF)');
   setText('.btn-primary', 'Rotate to portrait', rotateCard);
 
+  const compressCard = getRequiredElement('compress-card');
+  setText('.card-icon', 'Compress', compressCard);
+  setText('h3', 'Reduce file size', compressCard);
+  setText('p', 'Reduce PDF size with a safe mode or stronger visual compression.', compressCard);
+  setText('label[for="compress-mode"]', 'Compression level', compressCard);
+  const compressionOptions = requiredQueryAll<HTMLOptionElement>('#compress-mode option');
+  compressionOptions[0].textContent = 'Safe · keeps text and links';
+  compressionOptions[1].textContent = 'Balanced · good visual quality';
+  compressionOptions[2].textContent = 'Compact · lighter file';
+  setElementText('compress-note', 'Safe mode never replaces the original with a larger copy. Visual compression flattens pages and may remove selectable text, links, or forms.');
+  setText('.btn-primary', 'Compress and download', compressCard);
+
+  const watermarkCard = getRequiredElement('watermark-card');
+  setText('.card-icon', 'Watermark', watermarkCard);
+  setText('h3', 'Text watermark', watermarkCard);
+  setText('p', 'Add subtle text to the center of every page or a selected range.', watermarkCard);
+  setText('label[for="watermark-text"]', 'Text', watermarkCard);
+  setText('label[for="watermark-pages"]', 'Pages (blank = whole PDF)', watermarkCard);
+  setText('label[for="watermark-opacity"]', 'Opacity', watermarkCard);
+  setText('label[for="watermark-size"]', 'Size', watermarkCard);
+  setText('label[for="watermark-angle"]', 'Angle', watermarkCard);
+  setText('.btn-primary', 'Add and download', watermarkCard);
+
+  const metadataCard = getRequiredElement('metadata-card');
+  setText('.card-icon', 'Metadata', metadataCard);
+  setText('h3', 'Document information', metadataCard);
+  setText('p', 'Review and edit the internal information of the first loaded PDF, or clear its descriptive fields.', metadataCard);
+  setElementText('metadata-load-action', 'View metadata');
+  setText('label[for="metadata-title"]', 'Title', metadataCard);
+  setText('label[for="metadata-author"]', 'Author', metadataCard);
+  setText('label[for="metadata-subject"]', 'Subject', metadataCard);
+  setText('label[for="metadata-keywords"]', 'Keywords', metadataCard);
+  setText('label[for="metadata-creator"]', 'Creator application', metadataCard);
+  setText('label[for="metadata-producer"]', 'PDF producer', metadataCard);
+  setElementText('metadata-save-action', 'Save edited copy');
+  setElementText('metadata-clear-action', 'Clear metadata and download');
+
   const signCard = getRequiredElement('sign-card');
   setText('.card-icon', 'Sign', signCard);
   setText('.signature-stage h3', 'Sign PDF with an image', signCard);
@@ -168,17 +205,26 @@ export function applyEnglishContent({
   setInputPlaceholder('extract-pages', '1, 2, 3 or 1-5, 8, 10-12');
   setInputPlaceholder('delete-pages', '2, 4, 7 or 2-6, 9, 12-14');
   setInputPlaceholder('rotate-pages', 'Leave blank or type 1-3, 8, 10-12');
+  setInputPlaceholder('watermark-pages', '1-3, 8, 10-12');
 
-  updateFileInputLabel('source-label', 'source-input', 'Click to select PDF files');
-  updateSignPdfLabel('Click to select PDF to sign');
+  updateFileInputLabel('source-label', 'source-input', 'Select or drop your PDFs');
+  setElementText('source-drop-help', 'One or more PDF files · processed locally');
+  updateSignPdfLabel('Select or drop the PDF to sign');
+  setElementText('sign-pdf-drop-help', 'One PDF file · stays on this device');
+  getRequiredElement('sign-image-label-1').querySelector<HTMLElement>('[data-file-label-text]')!.textContent = 'Select or drop signature 1';
+  getRequiredElement('sign-image-label-2').querySelector<HTMLElement>('[data-file-label-text]')!.textContent = 'Select or drop signature 2';
+  setElementText('sign-image-help-1', 'PNG or JPG · transparent background recommended');
+  setElementText('sign-image-help-2', 'PNG or JPG · transparent background recommended');
   updateSignImageLabel(
-    hasSignatureImage ? 'Signature loaded' : 'Click to select signature image (PNG)',
+    hasSignatureImage ? 'Signature loaded' : 'Select or drop signature 1',
     hasSignatureImage,
   );
   updateSignatureSourceLabel(
-    signatureSourceFileName || 'Click to select signature photo',
+    signatureSourceFileName || 'Choose or drop the photo',
     !!signatureSourceFileName,
   );
+  setElementText('signature-source-help', 'PNG, JPG, or WebP · light paper and good lighting');
+  setElementText('camera-action-text', 'Take photo');
 
   requiredQuery('#first-page').setAttribute('aria-label', 'Go to first page');
   requiredQuery('#first-page').setAttribute('title', 'Go to first page');

@@ -40,6 +40,24 @@ describe('dom helpers', () => {
     expect(label.querySelector('#source-input')).toBeInstanceOf(HTMLInputElement);
   });
 
+  it('preserves structured dropzone content while updating its main text', () => {
+    document.body.innerHTML = `
+      <label id="source-label">
+        <span class="file-dropzone-icon">icon</span>
+        <strong data-file-label-text>Select files</strong>
+        <span class="file-dropzone-help">PDF only</span>
+        <input id="source-input" type="file">
+      </label>`;
+
+    updateFileInputLabel('source-label', 'source-input', '2 files selected', true);
+
+    const label = getRequiredElement('source-label');
+    expect(label.querySelector('[data-file-label-text]')?.textContent).toBe('2 files selected');
+    expect(label.querySelector('.file-dropzone-icon')?.textContent).toBe('icon');
+    expect(label.querySelector('.file-dropzone-help')?.textContent).toBe('PDF only');
+    expect(label.querySelector('#source-input')).toBeInstanceOf(HTMLInputElement);
+  });
+
   it('reads and writes input values by id', () => {
     document.body.innerHTML = '<input id="name" value="old">';
 

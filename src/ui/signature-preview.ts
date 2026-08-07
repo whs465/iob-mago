@@ -6,6 +6,12 @@ export function updateSignPdfLabel(text: string, hasFile = false) {
 }
 
 export function updateSignImageLabel(text: string, hasFile = false) {
+  const activeSlot = document.querySelector<HTMLElement>('.signature-slot-tab-active')?.dataset.slot;
+  const slot = activeSlot === '2' ? 2 : 1;
+  if (getElement(`sign-image-label-${slot}`)) {
+    updateFileInputLabel(`sign-image-label-${slot}`, `sign-image-file-${slot}`, text, hasFile);
+    return;
+  }
   updateFileInputLabel('sign-image-label', 'sign-image-file', text, hasFile);
 }
 

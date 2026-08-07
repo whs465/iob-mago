@@ -12,6 +12,11 @@ describe('registerWindowPdfActions', () => {
       eliminarPaginas: vi.fn(async () => undefined),
       ordenarPaginasPdf: vi.fn(async () => undefined),
       rotarPaginasPortrait: vi.fn(async () => undefined),
+      comprimirPDF: vi.fn(async () => undefined),
+      verMetadatosPDF: vi.fn(async () => undefined),
+      guardarMetadatosPDF: vi.fn(async () => undefined),
+      borrarMetadatosPDF: vi.fn(async () => undefined),
+      agregarMarcaAgua: vi.fn(async () => undefined),
       changePage: vi.fn(),
       goToFirstPage: vi.fn(async () => undefined),
       goToLastPage: vi.fn(async () => undefined),
@@ -35,6 +40,11 @@ describe('registerWindowPdfActions', () => {
     expect(window.eliminarPaginas).toBe(actions.eliminarPaginas);
     expect(window.ordenarPaginasPdf).toBe(actions.ordenarPaginasPdf);
     expect(window.rotarPaginasPortrait).toBe(actions.rotarPaginasPortrait);
+    expect(window.comprimirPDF).toBe(actions.comprimirPDF);
+    expect(window.verMetadatosPDF).toBe(actions.verMetadatosPDF);
+    expect(window.guardarMetadatosPDF).toBe(actions.guardarMetadatosPDF);
+    expect(window.borrarMetadatosPDF).toBe(actions.borrarMetadatosPDF);
+    expect(window.agregarMarcaAgua).toBe(actions.agregarMarcaAgua);
     expect(window.changePage).toBe(actions.changePage);
     expect(window.goToFirstPage).toBe(actions.goToFirstPage);
     expect(window.goToLastPage).toBe(actions.goToLastPage);

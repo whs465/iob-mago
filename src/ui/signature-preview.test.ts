@@ -29,6 +29,18 @@ describe('signature preview UI helpers', () => {
     expect(label.querySelector('input')?.id).toBe('sign-image-file');
   });
 
+  it('updates the structured label for the active signature slot', () => {
+    document.body.innerHTML = `
+      <button class="signature-slot-tab signature-slot-tab-active" data-slot="2"></button>
+      <label id="sign-image-label-2"><strong data-file-label-text>Select</strong><span>PNG</span><input id="sign-image-file-2" type="file"></label>`;
+
+    updateSignImageLabel('signature-two.png', true);
+
+    expect(document.querySelector('[data-file-label-text]')?.textContent).toBe('signature-two.png');
+    expect(document.getElementById('sign-image-label-2')?.classList.contains('has-files')).toBe(true);
+    expect(document.getElementById('sign-image-file-2')).toBeInstanceOf(HTMLInputElement);
+  });
+
   it('shows active and prepared signature previews', () => {
     document.body.innerHTML = `
       <img id="signature-preview">

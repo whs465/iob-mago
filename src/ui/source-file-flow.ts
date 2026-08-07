@@ -87,6 +87,10 @@ export function setupSourceFileFlow({
     const list = document.getElementById('source-list');
     if (!list) return;
 
+    // Metadata belongs to the current first file; never leave stale values visible
+    // after the shared source list changes or is reordered.
+    document.getElementById('metadata-editor')?.setAttribute('hidden', '');
+
     renderSourceFileList(list, sourceFileState.files, {
       moveUp: i18n('Move up', 'Subir'),
       moveDown: i18n('Move down', 'Bajar'),
@@ -105,7 +109,7 @@ export function setupSourceFileFlow({
       );
     } else {
       updateFileInputLabel('source-label', 'source-input',
-        i18n('Click to select PDF files', 'Click para seleccionar archivos PDF'),
+        i18n('Select or drop your PDFs', 'Selecciona o arrastra tus PDFs'),
       );
     }
 

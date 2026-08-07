@@ -9,6 +9,7 @@ function renderSignatureInputs() {
     <input id="sign-image-file-1" type="file" />
     <input id="sign-image-file-2" type="file" />
     <input id="signature-source-file" type="file" />
+    <input id="signature-camera-file" type="file" accept="image/*" capture="environment" />
   `;
 }
 
@@ -63,17 +64,23 @@ describe('setupSignatureEventHandlers', () => {
     const pdfInput = document.getElementById('sign-pdf-file') as HTMLInputElement;
     const imageInput1 = document.getElementById('sign-image-file-1') as HTMLInputElement;
     const sourceInput = document.getElementById('signature-source-file') as HTMLInputElement;
+    const cameraInput = document.getElementById('signature-camera-file') as HTMLInputElement;
+    const cameraPhoto = new File(['camera'], 'camera.jpg', { type: 'image/jpeg' });
 
     setInputFiles(pdfInput, [pdf]);
     setInputFiles(imageInput1, [image]);
     setInputFiles(sourceInput, [source]);
+    setInputFiles(cameraInput, [cameraPhoto]);
     pdfInput.dispatchEvent(new Event('change'));
     imageInput1.dispatchEvent(new Event('change'));
     sourceInput.dispatchEvent(new Event('change'));
+    cameraInput.dispatchEvent(new Event('change'));
 
     expect(loadPdf).toHaveBeenCalledWith(pdf);
     expect(setSignatureImage).toHaveBeenCalledWith(image);
     expect(setSignatureSource).toHaveBeenCalledWith(source);
+    expect(setSignatureSource).toHaveBeenCalledWith(cameraPhoto);
+    expect(cameraInput.getAttribute('capture')).toBe('environment');
   });
 
   it('handles file selection from slot 2', () => {

@@ -86,6 +86,10 @@ import { extractPdfFlow } from './ui/extract-pdf-flow';
 import { deletePdfFlow } from './ui/delete-pdf-flow';
 import { reorderPdfFlow } from './ui/reorder-pdf-flow';
 import { rotatePdfFlow } from './ui/rotate-pdf-flow';
+import { compressPdfFlow } from './ui/compress-pdf-flow';
+import { loadPdfMetadataFlow, savePdfMetadataFlow } from './ui/pdf-metadata-flow';
+import { watermarkPdfFlow } from './ui/watermark-pdf-flow';
+import type { CompressionMode } from './pdf/compress';
 import { registerWindowPdfActions } from './ui/window-actions';
 import { loadSignaturePdfFlow } from './ui/signature-pdf-load-flow';
 import { resetSignaturePdfViewer } from './ui/signature-viewer-flow';
@@ -126,7 +130,8 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
             getPdfPageCountFromArrayBuffer,
             getPdfPageMetricsFromArrayBuffer,
             appendRenderedPdfPages,
-            buildRotatedPortraitPdfFromRenderedPages
+            buildRotatedPortraitPdfFromRenderedPages,
+            buildCompressedPdfFromRenderedPages
         } = createPdfRenderRuntime({ PDFDocument, pdfjsLib });
         const pdfBookmarkDeps = { PDFHexString, PDFName };
         const pdfPageCopyDeps = {
@@ -557,6 +562,12 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
             restoreStoredSignature();
             updateSignatureProgressState();
             updateSignatureSlotUI();
+
+            const opacityInput = document.getElementById('watermark-opacity') as HTMLInputElement | null;
+            const opacityValue = document.getElementById('watermark-opacity-value');
+            opacityInput?.addEventListener('input', () => {
+                if (opacityValue) opacityValue.textContent = `${opacityInput.value}%`;
+            });
         }
 
         if (document.readyState === 'loading') {
@@ -669,6 +680,68 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
                 file: sourceFileState.files[0],
                 pagesText: getTrimmedInputValue('rotate-pages'),
                 deps: { getPageCountFromArrayBuffer: getPdfPageCountFromArrayBuffer, operationDeps: pdfOperationDeps },
+                i18n,
+                showStatus,
+                setActionBusy,
+                saveAs
+            });
+        }
+
+        // ==================== COMPRIMIR, METADATOS Y MARCA DE AGUA ====================
+
+        async function comprimirPDF() {
+            const modeElement = document.getElementById('compress-mode') as HTMLSelectElement | null;
+            const selectedMode = modeElement?.value;
+            const mode: CompressionMode = selectedMode === 'balanced' || selectedMode === 'compact'
+                ? selectedMode
+                : 'safe';
+            await compressPdfFlow({
+                file: sourceFileState.files[0],
+                mode,
+                deps: { loadPdfDocument, buildCompressedPdfFromRenderedPages },
+                i18n,
+                showStatus,
+                setActionBusy,
+                saveAs
+            });
+        }
+
+        const metadataFlowOptions = () => ({
+            file: sourceFileState.files[0],
+            deps: {
+                loadPdfDocument: (buffer: ArrayBuffer, options?: { updateMetadata?: boolean }) => PDFDocument.load(buffer, options)
+            },
+            i18n,
+            showStatus,
+            setActionBusy,
+            saveAs
+        });
+
+        async function verMetadatosPDF() {
+            const { saveAs: _saveAs, ...options } = metadataFlowOptions();
+            await loadPdfMetadataFlow(options);
+        }
+
+        async function guardarMetadatosPDF() {
+            await savePdfMetadataFlow(metadataFlowOptions());
+        }
+
+        async function borrarMetadatosPDF() {
+            await savePdfMetadataFlow(metadataFlowOptions(), true);
+        }
+
+        async function agregarMarcaAgua() {
+            await watermarkPdfFlow({
+                file: sourceFileState.files[0],
+                text: getInputValue('watermark-text'),
+                pagesText: getTrimmedInputValue('watermark-pages'),
+                opacity: Number(getInputValue('watermark-opacity')) / 100,
+                fontSize: Number(getInputValue('watermark-size')),
+                angle: Number(getInputValue('watermark-angle')),
+                deps: {
+                    loadPdfDocument: (buffer: ArrayBuffer) => PDFDocument.load(buffer),
+                    getPageCountFromArrayBuffer: getPdfPageCountFromArrayBuffer
+                },
                 i18n,
                 showStatus,
                 setActionBusy,
@@ -884,6 +957,11 @@ registerWindowPdfActions({
     eliminarPaginas,
     ordenarPaginasPdf,
     rotarPaginasPortrait,
+    comprimirPDF,
+    verMetadatosPDF,
+    guardarMetadatosPDF,
+    borrarMetadatosPDF,
+    agregarMarcaAgua,
     changePage,
     goToFirstPage,
     goToLastPage,

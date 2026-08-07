@@ -7,6 +7,11 @@ interface Window {
   eliminarPaginas: () => Promise<void>;
   ordenarPaginasPdf: () => Promise<void>;
   rotarPaginasPortrait: () => Promise<void>;
+  comprimirPDF: () => Promise<void>;
+  verMetadatosPDF: () => Promise<void>;
+  guardarMetadatosPDF: () => Promise<void>;
+  borrarMetadatosPDF: () => Promise<void>;
+  agregarMarcaAgua: () => Promise<void>;
   changePage: (direction: number) => void;
   goToFirstPage: () => Promise<void>;
   goToLastPage: () => Promise<void>;

@@ -20,6 +20,9 @@ export function updateSourceToolStatuses(files: File[], labels: SourceToolStatus
   const deleteStatus = getElement('delete-status');
   const orderFileName = getElement('order-file-name');
   const rotateStatus = getElement('rotate-status');
+  const compressStatus = getElement('compress-status');
+  const watermarkStatus = getElement('watermark-status');
+  const metadataStatus = getElement('metadata-status');
   const hasFiles = files.length > 0;
 
   [
@@ -29,6 +32,9 @@ export function updateSourceToolStatuses(files: File[], labels: SourceToolStatus
     ['delete-card', 'delete-action'],
     ['order-card', 'order-action'],
     ['rotate-card', 'rotate-action'],
+    ['compress-card', 'compress-action'],
+    ['watermark-card', 'watermark-action'],
+    ['metadata-card', 'metadata-load-action'],
   ].forEach(([cardId, buttonId]) => {
     const card = getElement(cardId);
     const button = getElement<HTMLButtonElement>(buttonId);
@@ -45,7 +51,7 @@ export function updateSourceToolStatuses(files: File[], labels: SourceToolStatus
   });
 
   if (!hasFiles) {
-    [mergeStatus, splitStatus, extractStatus, deleteStatus, rotateStatus].forEach(element => {
+    [mergeStatus, splitStatus, extractStatus, deleteStatus, rotateStatus, compressStatus, watermarkStatus, metadataStatus].forEach(element => {
       if (element) element.textContent = labels.noFile;
     });
     if (orderFileName) orderFileName.textContent = labels.noFile;
@@ -60,4 +66,7 @@ export function updateSourceToolStatuses(files: File[], labels: SourceToolStatus
   if (deleteStatus) deleteStatus.textContent = firstName;
   if (orderFileName) orderFileName.textContent = firstName;
   if (rotateStatus) rotateStatus.textContent = firstName;
+  if (compressStatus) compressStatus.textContent = firstName;
+  if (watermarkStatus) watermarkStatus.textContent = firstName;
+  if (metadataStatus) metadataStatus.textContent = firstName;
 }

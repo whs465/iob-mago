@@ -34,9 +34,14 @@ export function updateFileInputLabel(
   const input = label?.querySelector<HTMLInputElement>('input[type="file"]') || getElement<HTMLInputElement>(inputId);
   if (!label) return;
 
-  label.textContent = text;
+  const textTarget = label.querySelector<HTMLElement>('[data-file-label-text]');
+  if (textTarget) {
+    textTarget.textContent = text;
+  } else {
+    label.textContent = text;
+  }
   label.classList.toggle('has-files', hasFiles);
-  if (input) {
+  if (input && !label.contains(input)) {
     label.appendChild(input);
   }
 }
