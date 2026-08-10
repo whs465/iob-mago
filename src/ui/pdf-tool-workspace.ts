@@ -12,15 +12,30 @@ export function setupPdfToolWorkspace(root: ParentNode = document) {
   const categoryButtons = Array.from(
     workspace.querySelectorAll<CategoryButton>('[data-pdf-category][role="tab"]'),
   );
+  const categoryTabs = workspace.querySelector<HTMLElement>('.pdf-category-tabs');
   const toolButtons = Array.from(
     workspace.querySelectorAll<ToolButton>('[data-pdf-tool]'),
   );
+  const operationNav = workspace.querySelector<HTMLElement>('.pdf-operation-nav');
   const panels = Array.from(workspace.querySelectorAll<HTMLElement>('[role="tabpanel"]'));
   const lastToolByCategory = new Map<PdfToolCategory, string>();
   const cleanups: Array<() => void> = [];
 
   const isCategory = (value?: string): value is PdfToolCategory =>
     value === 'files' || value === 'pages' || value === 'document';
+
+  function updateToolIndicator(button: ToolButton) {
+    if (!operationNav) return;
+    operationNav.dataset.activeTool = button.dataset.pdfTool || '';
+    operationNav.style.setProperty('--pdf-operation-indicator-left', `${button.offsetLeft}px`);
+    operationNav.style.setProperty('--pdf-operation-indicator-width', `${button.offsetWidth}px`);
+    operationNav.dataset.indicatorReady = String(button.offsetWidth > 0);
+  }
+
+  function scheduleToolIndicator(button: ToolButton) {
+    updateToolIndicator(button);
+    workspace.ownerDocument.defaultView?.requestAnimationFrame(() => updateToolIndicator(button));
+  }
 
   function selectTool(toolId: string) {
     const selected = toolButtons.find((button) => button.dataset.pdfTool === toolId);
@@ -30,12 +45,14 @@ export function setupPdfToolWorkspace(root: ParentNode = document) {
     toolButtons.forEach((button) => {
       button.setAttribute('aria-pressed', String(button === selected));
     });
+    scheduleToolIndicator(selected);
     panels.forEach((panel) => {
       panel.hidden = panel.id !== toolId;
     });
   }
 
   function selectCategory(category: PdfToolCategory) {
+    if (categoryTabs) categoryTabs.dataset.activeCategory = category;
     categoryButtons.forEach((button) => {
       button.setAttribute('aria-selected', String(button.dataset.pdfCategory === category));
     });
@@ -76,6 +93,13 @@ export function setupPdfToolWorkspace(root: ParentNode = document) {
     button.addEventListener('click', onClick);
     cleanups.push(() => button.removeEventListener('click', onClick));
   });
+
+  const onResize = () => {
+    const activeButton = toolButtons.find((button) => button.getAttribute('aria-pressed') === 'true');
+    if (activeButton) updateToolIndicator(activeButton);
+  };
+  workspace.ownerDocument.defaultView?.addEventListener('resize', onResize);
+  cleanups.push(() => workspace.ownerDocument.defaultView?.removeEventListener('resize', onResize));
 
   const initialCategory = categoryButtons.find(
     (button) => button.getAttribute('aria-selected') === 'true' && isCategory(button.dataset.pdfCategory),

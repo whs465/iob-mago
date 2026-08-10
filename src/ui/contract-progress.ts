@@ -46,7 +46,7 @@ function createTimelinePoint(point: ContractTimelinePointView, kind: 'report' | 
   const showMobileDetail = () => {
     const detail = document.getElementById('contract-timeline-detail');
     if (!detail) return;
-    detail.textContent = point.tooltipText;
+    detail.textContent = point.tooltipText.replace(/\s*\n\s*/g, ' · ');
     detail.classList.add('has-selection');
   };
   button.addEventListener('click', showMobileDetail);

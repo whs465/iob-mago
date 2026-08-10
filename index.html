@@ -140,6 +140,10 @@
             padding-left: 12px;
         }
 
+        .section-kicker {
+            display: none;
+        }
+
         .eyebrow-icon {
             width: 22px;
             height: 22px;
@@ -258,12 +262,12 @@
         }
 
         .section-heading {
-            max-width: 760px;
+            max-width: 800px;
             margin-bottom: 36px;
         }
 
         .section-title {
-            margin: 16px 0 16px;
+            margin: 0 0 16px;
             font-size: clamp(2.1rem, 5vw, 3.2rem);
             line-height: 1.1;
             letter-spacing: -0.022em;
@@ -279,28 +283,48 @@
         }
 
         .operations {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
+            display: block;
             margin-bottom: 0;
             min-width: 0;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.84);
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: var(--shadow-md);
         }
 
         .operations > .card {
             min-width: 0;
         }
 
+        .operations > #source-card {
+            padding: 0 0 28px;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+            transition: none;
+        }
+
+        .operations > #source-card:hover {
+            border-color: transparent;
+            box-shadow: none;
+            transform: none;
+        }
+
         .pdf-workspace {
-            grid-column: 1 / -1;
             min-width: 0;
-            padding: 18px;
-            border: 1px solid rgba(29, 29, 31, 0.09);
-            border-radius: 30px;
-            background: rgba(255, 255, 255, 0.88);
-            box-shadow: var(--shadow-md);
+            padding: 28px 0 0;
+            border: 0;
+            border-top: 1px solid rgba(29, 29, 31, 0.09);
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
         }
 
         .pdf-category-tabs {
+            position: relative;
+            isolation: isolate;
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 3px;
@@ -309,7 +333,31 @@
             padding: 4px;
             border: 1px solid rgba(29, 29, 31, 0.72);
             border-radius: 999px;
-            background: #ffffff;
+            background: var(--surface-muted);
+            overflow: hidden;
+        }
+
+        .pdf-category-tabs::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            bottom: 4px;
+            left: 5px;
+            z-index: 0;
+            width: calc((100% - 16px) / 3);
+            border-radius: 999px;
+            background: #1d1d1f;
+            box-shadow: 0 5px 12px rgba(29, 29, 31, 0.14);
+            transform: translateX(0);
+            transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .pdf-category-tabs[data-active-category="pages"]::before {
+            transform: translateX(calc(100% + 3px));
+        }
+
+        .pdf-category-tabs[data-active-category="document"]::before {
+            transform: translateX(calc(200% + 6px));
         }
 
         .pdf-category-tab,
@@ -321,6 +369,8 @@
         }
 
         .pdf-category-tab {
+            position: relative;
+            z-index: 1;
             min-height: 44px;
             padding: 10px 14px;
             border-radius: 999px;
@@ -330,9 +380,9 @@
         }
 
         .pdf-category-tab[aria-selected="true"] {
-            background: #1d1d1f;
+            background: transparent;
             color: #ffffff;
-            box-shadow: 0 5px 12px rgba(29, 29, 31, 0.14);
+            box-shadow: none;
         }
 
         .pdf-workspace-body {
@@ -341,6 +391,10 @@
         }
 
         .pdf-operation-nav {
+            --pdf-operation-indicator-left: 4px;
+            --pdf-operation-indicator-width: 0px;
+            position: relative;
+            isolation: isolate;
             display: flex;
             align-items: center;
             gap: 3px;
@@ -351,8 +405,30 @@
             overflow-x: auto;
             border: 1px solid rgba(29, 29, 31, 0.16);
             border-radius: 999px;
-            background: #ffffff;
+            background: var(--surface-muted);
             scrollbar-width: none;
+        }
+
+        .pdf-operation-nav::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            bottom: 4px;
+            left: var(--pdf-operation-indicator-left);
+            z-index: 0;
+            width: var(--pdf-operation-indicator-width);
+            border-radius: 999px;
+            background: #1d1d1f;
+            box-shadow: 0 4px 10px rgba(29, 29, 31, 0.13);
+            opacity: 0;
+            transition:
+                left 0.26s cubic-bezier(0.22, 1, 0.36, 1),
+                width 0.26s cubic-bezier(0.22, 1, 0.36, 1),
+                opacity 0.12s ease;
+        }
+
+        .pdf-operation-nav[data-indicator-ready="true"]::before {
+            opacity: 1;
         }
 
         .pdf-operation-nav::-webkit-scrollbar {
@@ -360,6 +436,8 @@
         }
 
         .pdf-operation-button {
+            position: relative;
+            z-index: 1;
             flex: 0 0 auto;
             min-height: 39px;
             padding: 8px 17px;
@@ -376,15 +454,32 @@
         }
 
         .pdf-operation-button[aria-pressed="true"] {
-            background: #1d1d1f;
+            background: transparent;
             color: #ffffff;
-            box-shadow: 0 4px 10px rgba(29, 29, 31, 0.13);
+            box-shadow: none;
+        }
+
+        .pdf-operation-button[aria-pressed="true"]:hover {
+            background: transparent;
         }
 
         .pdf-category-tab:focus-visible,
         .pdf-operation-button:focus-visible {
-            outline: 2px solid var(--accent);
+            outline: 2px solid rgba(29, 29, 31, 0.34);
             outline-offset: 2px;
+        }
+
+        .pdf-category-tab[aria-selected="true"]:focus-visible,
+        .pdf-operation-button[aria-pressed="true"]:focus-visible {
+            outline: none;
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.34);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .pdf-category-tabs::before,
+            .pdf-operation-nav::before {
+                transition: none;
+            }
         }
 
         .pdf-operation-button[hidden],
@@ -394,7 +489,7 @@
 
         .pdf-tool-panels {
             min-width: 0;
-            max-width: 860px;
+            max-width: 760px;
             margin: 18px auto 0;
         }
 
@@ -404,18 +499,32 @@
 
         .pdf-tool-panels > .card {
             min-width: 0;
-            padding: 18px 12px 14px;
-            border: 0;
+            padding: 26px 28px 24px;
+            border: 1px solid rgba(29, 29, 31, 0.075);
             border-radius: 20px;
-            background: transparent;
-            box-shadow: none;
+            background: linear-gradient(145deg, #ffffff 0%, rgba(29, 29, 31, 0.018) 100%);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.92),
+                0 16px 38px rgba(15, 23, 42, 0.045);
             transform: none;
+        }
+
+        .pdf-tool-panels > .card > h3 {
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+
+        .pdf-tool-panels > .card > h3 + p {
+            margin-bottom: 18px;
+            color: var(--muted-strong);
         }
 
         .pdf-tool-panels > .card:hover,
         .pdf-tool-panels > .card.tool-card-disabled:hover {
-            border-color: transparent;
-            box-shadow: none;
+            border-color: rgba(29, 29, 31, 0.075);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.92),
+                0 16px 38px rgba(15, 23, 42, 0.045);
             transform: none;
         }
 
@@ -459,6 +568,51 @@
             box-shadow: none;
         }
 
+        .operations .pdf-tool-panels > .card.tool-card-disabled,
+        .operations .pdf-tool-panels > .card.tool-card-disabled:hover {
+            opacity: 1;
+            border-color: rgba(29, 29, 31, 0.075);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.92),
+                0 16px 38px rgba(15, 23, 42, 0.045);
+        }
+
+        .pdf-tool-panels [id$="-status"],
+        .pdf-tool-panels #order-file-name {
+            position: relative;
+            min-height: 44px;
+            margin: 0 0 18px !important;
+            padding: 11px 13px 11px 36px;
+            overflow: hidden;
+            border: 1px solid rgba(29, 29, 31, 0.075);
+            border-radius: 14px;
+            background: rgba(29, 29, 31, 0.028);
+            color: var(--muted-strong);
+            font-size: 0.86rem;
+            line-height: 1.45;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .pdf-tool-panels [id$="-status"]::before,
+        .pdf-tool-panels #order-file-name::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 15px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(29, 29, 31, 0.28);
+            box-shadow: 0 0 0 4px rgba(29, 29, 31, 0.045);
+            transform: translateY(-50%);
+        }
+
+        .pdf-tool-panels > .card.tool-card-ready [id$="-status"]::before,
+        .pdf-tool-panels > .card.tool-card-ready #order-file-name::before {
+            background: #1d1d1f;
+        }
+
         .card-full {
             grid-column: 1 / -1;
         }
@@ -474,19 +628,7 @@
         }
 
         .card-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 68px;
-            padding: 10px 15px;
-            margin-bottom: 18px;
-            border-radius: 999px;
-            background: rgba(29, 29, 31, 0.05);
-            color: var(--muted-strong);
-            font-size: 0.76rem;
-            font-weight: 700;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
+            display: none;
         }
 
         .signature-stage .card-icon {
@@ -1185,8 +1327,8 @@
 
         .support-box {
             display: grid;
-            grid-template-columns: minmax(0, 1fr);
-            gap: 24px;
+            grid-template-columns: minmax(0, 74ch) minmax(280px, 1fr);
+            gap: 18px 24px;
             align-items: start;
             padding: 24px;
             border-radius: 24px;
@@ -1197,13 +1339,12 @@
         }
 
         .support-top {
-            display: grid;
-            grid-template-columns: minmax(0, 74ch) minmax(0, 1fr);
-            gap: 24px;
-            align-items: center;
+            display: contents;
         }
 
         .support-copy-block {
+            grid-column: 1;
+            grid-row: 1;
             max-width: 74ch;
         }
 
@@ -1215,6 +1356,9 @@
             gap: 12px;
             width: 100%;
             max-width: 340px;
+            grid-column: 2;
+            grid-row: 1 / span 2;
+            align-self: center;
             justify-self: center;
             padding: 16px 20px;
             border-radius: 24px;
@@ -1263,6 +1407,8 @@
 
         .support-actions {
             display: flex;
+            grid-column: 1;
+            grid-row: 2;
             align-items: center;
             gap: 12px;
             flex-wrap: wrap;
@@ -1300,6 +1446,8 @@
 
         .support-details {
             display: grid;
+            grid-column: 1 / -1;
+            grid-row: 3;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 14px;
         }
@@ -1864,11 +2012,78 @@
         }
 
         .signature-generator-panel {
+            scroll-margin-top: 24px;
             margin-top: 24px;
             padding: 22px;
             border-radius: 24px;
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .signature-creator-entry {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 14px;
+            margin: 18px 0 22px;
+            padding: 15px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.075);
+        }
+
+        .signature-creator-entry-icon {
+            display: grid;
+            place-items: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: #ffffff;
+            color: #111827;
+        }
+
+        .signature-creator-entry-icon svg {
+            width: 23px;
+            height: 23px;
+            stroke-width: 1.8;
+        }
+
+        .signature-creator-entry-copy strong,
+        .signature-creator-entry-copy span {
+            display: block;
+        }
+
+        .signature-creator-entry-copy strong {
+            color: #ffffff;
+            font-size: 0.98rem;
+            line-height: 1.35;
+        }
+
+        .signature-creator-entry-copy span {
+            margin-top: 3px;
+            color: rgba(255, 255, 255, 0.64);
+            font-size: 0.82rem;
+            line-height: 1.45;
+        }
+
+        .signature-creator-entry-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            padding: 9px 16px;
+            font-size: 0.84rem;
+            font-weight: 750;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .signature-creator-entry-action:hover,
+        .signature-creator-entry-action:focus-visible {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+            outline: none;
         }
 
         .signature-generator-panel .file-input-label {
@@ -2851,6 +3066,7 @@
         }
 
         .contract-timeline {
+            position: relative;
             padding: 20px 18px 14px;
             border: 1px solid rgba(29, 29, 31, 0.08);
             border-radius: 22px;
@@ -2865,34 +3081,40 @@
         }
 
         .contract-timeline-heading > span:last-child {
-            display: none;
+            display: block;
+            color: var(--muted);
+            font-size: 0.76rem;
+            line-height: 1.4;
         }
 
         .contract-timeline-detail {
-            display: block;
-            width: min(100%, 330px);
-            min-height: 54px;
-            margin-top: 14px;
-            padding: 11px 13px;
-            border: 1px solid rgba(29, 29, 31, 0.08);
-            border-radius: 14px;
-            background: rgba(29, 29, 31, 0.025);
-            color: var(--muted);
-            font-size: 0.76rem;
-            line-height: 1.45;
-            white-space: pre-line;
+            display: none;
         }
 
         .contract-timeline-detail.has-selection {
+            display: block;
+            position: absolute;
+            top: 52px;
+            left: 18px;
+            z-index: 5;
+            width: auto;
+            max-width: calc(100% - 36px);
+            margin: 0;
+            padding: 8px 11px;
+            border: 1px solid #111827;
+            border-radius: 12px;
             background: #111827;
-            border-color: #111827;
             color: #ffffff;
+            font-size: 0.74rem;
+            line-height: 1.4;
+            white-space: normal;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
         }
 
         .contract-timeline-scroll {
             overflow-x: auto;
             overflow-y: hidden;
-            padding: 48px 30px 4px;
+            padding: 70px 30px 4px;
             scrollbar-width: thin;
             scroll-snap-type: x proximity;
         }
@@ -3046,16 +3268,19 @@
             }
 
             .contract-timeline-heading > span:last-child {
-                display: none;
+                display: block;
             }
 
-            .contract-timeline-detail {
-                width: 100%;
+            .contract-timeline-detail.has-selection {
+                top: 58px;
+                right: 18px;
+                width: auto;
+                max-width: none;
             }
 
             .contract-timeline-scroll {
                 margin-inline: -18px;
-                padding: 48px 38px 4px;
+                padding: 78px 38px 4px;
             }
         }
 
@@ -3161,11 +3386,21 @@
             }
 
             .support-top {
+                display: grid;
                 grid-template-columns: 1fr;
                 gap: 18px;
             }
 
+            .support-copy-block,
+            .support-brand,
+            .support-actions,
+            .support-details {
+                grid-column: auto;
+                grid-row: auto;
+            }
+
             .support-brand {
+                align-self: auto;
                 justify-content: center;
             }
 
@@ -3202,12 +3437,17 @@
             }
 
             .operations {
-                grid-template-columns: 1fr;
+                padding: 18px 16px;
+                border-radius: 24px;
             }
 
             .pdf-workspace {
-                padding: 12px;
-                border-radius: 24px;
+                padding: 22px 0 0;
+                border-radius: 0;
+            }
+
+            .operations > #source-card {
+                padding-bottom: 22px;
             }
 
             .pdf-category-tab {
@@ -3234,7 +3474,7 @@
             }
 
             .pdf-tool-panels > .card {
-                padding: 16px 8px 10px;
+                padding: 20px 18px 18px;
             }
 
             .source-workbench {
@@ -3296,6 +3536,16 @@
             #firma .signature-generator-panel {
                 padding: 16px;
                 border-radius: 20px;
+            }
+
+            #firma .signature-creator-entry {
+                grid-template-columns: auto minmax(0, 1fr);
+                padding: 14px;
+            }
+
+            #firma .signature-creator-entry-action {
+                grid-column: 1 / -1;
+                width: 100%;
             }
 
             #firma .pdf-preview-container {
@@ -3424,14 +3674,14 @@
                         <span class="hero-title-line hero-title-accent" id="hero-title-line-2">Tus contratos, al día.</span>
                         <span class="hero-title-line" id="hero-title-line-3">Todo desde el navegador.</span>
                     </h1>
-                    <p class="subtitle">Organiza documentos, ubica firmas y consulta el avance de tus contratos con herramientas privadas que funcionan también desde el teléfono.</p>
+                    <p class="subtitle">Organiza documentos, firma tus PDFs cada mes, crea una firma transparente si aún no la tienes y consulta el avance de tus contratos desde el teléfono o el computador.</p>
 
                     <div class="hero-actions">
                         <a class="btn btn-primary" href="#herramientas">Trabajar con PDF</a>
                         <a class="btn btn-secondary" href="#firma">Firmar un PDF</a>
                     </div>
 
-                    <p class="hero-trust" id="hero-trust">Tus archivos permanecen en este dispositivo.</p>
+                    <p class="hero-trust" id="hero-trust">No subimos tus archivos a ningún servidor. Se procesan localmente y nunca salen de este dispositivo.</p>
                 </div>
             </div>
         </header>
@@ -3545,7 +3795,7 @@
             </div>
 
             <div class="pdf-workspace" id="pdf-workspace">
-                <div class="pdf-category-tabs" role="tablist" aria-label="Categorías de herramientas PDF">
+                <div class="pdf-category-tabs" role="tablist" aria-label="Categorías de herramientas PDF" data-active-category="files">
                     <button class="pdf-category-tab" id="pdf-category-files" type="button" role="tab" data-pdf-category="files" aria-selected="true">Archivos</button>
                     <button class="pdf-category-tab" id="pdf-category-pages" type="button" role="tab" data-pdf-category="pages" aria-selected="false">Páginas</button>
                     <button class="pdf-category-tab" id="pdf-category-document" type="button" role="tab" data-pdf-category="document" aria-selected="false">Documento</button>
@@ -3765,18 +4015,26 @@
 
         <section class="section" id="firma">
             <div class="section-heading">
-                <p class="section-kicker">Firma visual</p>
-                <h2 class="section-title">Ubica la firma directamente sobre el PDF</h2>
-                <p class="section-text">Carga el PDF, marca el lugar donde va la firma y descárgalo
-                firmado en el mismo momento, tanto en desktop como desde el teléfono, incluso si vas en
-                TransMilenio y no puedes esperar a llegar a casa o a la oficina, eso sí, con mucho
-                cuidado con los amigos de lo ajeno y siempre en la juega.</p>
+                <p class="section-kicker">Firma de documentos</p>
+                <h2 class="section-title">Firma tus PDFs en segundos</h2>
+                <p class="section-text">Tu firma queda guardada en este navegador para reutilizarla cada mes. Carga el PDF, ubícala y descarga; si todavía no tienes una imagen limpia, créala desde una foto sin dibujar con el mouse.</p>
             </div>
 
             <div class="card card-full signature-stage" id="sign-card">
                 <div class="card-icon">Firma</div>
                 <h3>Firmar PDF con imagen</h3>
                 <p>Carga el PDF y la imagen de tu firma, marca la posición, muévela si hace falta y descárgalo firmado con el tamaño que prefieras.</p>
+
+                <div class="signature-creator-entry" aria-label="Crear firma transparente desde una foto">
+                    <span class="signature-creator-entry-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17.5c3.2-4.7 5.7-7 7.4-7 2.1 0 .5 4.8 2.5 4.8 1.3 0 2.4-1.4 3.1-2.5"></path><path d="M4 20h16"></path><path d="m16.5 5.5 2-2 2 2-2 2z"></path></svg>
+                    </span>
+                    <span class="signature-creator-entry-copy">
+                        <strong id="signature-creator-entry-title">¿Tu firma todavía es una foto?</strong>
+                        <span id="signature-creator-entry-text">Conviértela en un PNG transparente, limpio y listo para reutilizar.</span>
+                    </span>
+                    <a class="btn btn-primary signature-creator-entry-action" id="signature-creator-entry-action" href="#crear-firma">Crear firma transparente</a>
+                </div>
 
                 <div class="signature-steps" id="signature-steps" aria-label="Progreso de firma">
                     <div class="signature-step" data-signature-step="pdf">
@@ -4004,7 +4262,7 @@
                 </div>
                 </div>
 
-                <div class="signature-generator-panel" aria-labelledby="signature-generator-title">
+                <div class="signature-generator-panel" id="crear-firma" aria-labelledby="signature-generator-title">
                     <div class="signature-generator-head">
                         <div>
                             <p class="signature-generator-kicker">Preparar PNG</p>

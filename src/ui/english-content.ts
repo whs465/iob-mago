@@ -55,11 +55,11 @@ export function applyEnglishContent({
   setElementText('hero-title-line-3', 'All from your browser.');
   setText(
     '.hero-copy .subtitle',
-    'Organize documents, place signatures, and check contract progress with private tools that also work from your phone.',
+    'Organize documents, sign your PDFs every month, create a transparent signature if you do not have one yet, and check contract progress from phone or desktop.',
   );
   setText('.hero-actions .btn-primary', 'Work with PDFs');
   setText('.hero-actions .btn-secondary', 'Sign a PDF');
-  setElementText('hero-trust', 'Your files stay on this device.');
+  setElementText('hero-trust', 'We never upload your files to a server. They are processed locally and never leave this device.');
   const heroNavLinks = requiredQueryAll<HTMLAnchorElement>('.hero-section-nav a');
   heroNavLinks[0].textContent = 'Progress';
   heroNavLinks[1].textContent = 'PDF';
@@ -79,11 +79,11 @@ export function applyEnglishContent({
     'tools-text',
     'Merge, split, compress, organize, review metadata, or add a watermark without taking the document out of the browser.',
   );
-  setText('.section-kicker', 'Visual signing', sections[2]);
-  setText('.section-title', 'Place the signature directly on the PDF', sections[2]);
+  setText('.section-kicker', 'Document signing', sections[2]);
+  setText('.section-title', 'Sign your PDFs in seconds', sections[2]);
   setText(
     '.section-text',
-    'Upload the PDF, mark where the signature should go, and download it signed right away from desktop or phone, even while commuting.',
+    'Your signature stays saved in this browser so you can reuse it every month. Upload the PDF, place it, and download; if you do not have a clean signature image yet, create one from a photo without drawing with a mouse.',
     sections[2],
   );
 
@@ -215,6 +215,9 @@ export function applyEnglishContent({
     'Upload the PDF and your signature image, mark the position, move it if needed, and download it signed at the size you prefer.',
     signCard,
   );
+  setElementText('signature-creator-entry-title', 'Is your signature still just a photo?');
+  setElementText('signature-creator-entry-text', 'Turn it into a clean, transparent PNG ready to reuse.');
+  setElementText('signature-creator-entry-action', 'Create transparent signature');
 
   setText('label[for="fecha-inicial"]', 'Contract start');
   setText('label[for="fecha-final"]', 'Contract end');

@@ -7,14 +7,18 @@ describe('setupPdfToolWorkspace', () => {
   beforeEach(() => {
     document.body.innerHTML = `
       <div id="pdf-workspace">
+        <div class="pdf-category-tabs">
         <button role="tab" data-pdf-category="files" aria-selected="true">Files</button>
         <button role="tab" data-pdf-category="pages" aria-selected="false">Pages</button>
         <button role="tab" data-pdf-category="document" aria-selected="false">Document</button>
+        </div>
+        <nav class="pdf-operation-nav">
         <button data-pdf-tool="merge-card" data-pdf-category="files">Merge</button>
         <button data-pdf-tool="split-card" data-pdf-category="files">Split</button>
         <button data-pdf-tool="extract-card" data-pdf-category="pages">Extract</button>
         <button data-pdf-tool="delete-card" data-pdf-category="pages">Delete</button>
         <button data-pdf-tool="compress-card" data-pdf-category="document">Compress</button>
+        </nav>
         <section id="merge-card" role="tabpanel"></section>
         <section id="split-card" role="tabpanel"></section>
         <section id="extract-card" role="tabpanel"></section>
@@ -37,10 +41,12 @@ describe('setupPdfToolWorkspace', () => {
 
     document.querySelector<HTMLButtonElement>('[role="tab"][data-pdf-category="pages"]')?.click();
     expect(document.querySelector<HTMLElement>('#extract-card')?.hidden).toBe(false);
+    expect(document.querySelector<HTMLElement>('.pdf-category-tabs')?.dataset.activeCategory).toBe('pages');
 
     document.querySelector<HTMLButtonElement>('[data-pdf-tool="delete-card"]')?.click();
     expect(document.querySelector<HTMLElement>('#delete-card')?.hidden).toBe(false);
     expect(document.querySelector<HTMLElement>('#extract-card')?.hidden).toBe(true);
+    expect(document.querySelector<HTMLElement>('.pdf-operation-nav')?.dataset.activeTool).toBe('delete-card');
   });
 
   it('remembers the last operation selected in each category', () => {
