@@ -64,6 +64,7 @@ export function applyEnglishContent({
   heroNavLinks[0].textContent = 'Progress';
   heroNavLinks[1].textContent = 'PDF';
   heroNavLinks[2].textContent = 'Signing';
+  heroNavLinks[3].textContent = 'Screenshots';
 
   const sections = requiredQueryAll<HTMLElement>('.section');
   setText('.section-kicker', 'Featured tool', sections[0]);
@@ -86,6 +87,37 @@ export function applyEnglishContent({
     'Your signature stays saved in this browser so you can reuse it every month. Upload the PDF, place it, and download; if you do not have a clean signature image yet, create one from a photo without drawing with a mouse.',
     sections[2],
   );
+
+  setElementText('screenshot-title', 'Give your screenshots a clean finish');
+  setElementText('screenshot-copy', 'Paste a screenshot from the clipboard and download it with a fine border, smooth corners, and a carefully balanced shadow.');
+  setElementText('screenshot-paste-title', 'Paste your screenshot here');
+  setElementText('screenshot-paste-help', 'Use Ctrl + V, drag an image, or select one from your device.');
+  setElementText('screenshot-choose-action', 'Choose image');
+  setElementText('screenshot-finish-title', 'Finish');
+  setElementText('screenshot-finish-copy', 'The initial preset is already balanced. Adjust it only if needed.');
+  setText('label[for="screenshot-radius"]', 'Corners');
+  setText('label[for="screenshot-shadow"]', 'Shadow');
+  setText('label[for="screenshot-padding"]', 'Margin');
+  setText('label[for="screenshot-background"]', 'Background');
+  const screenshotRadiusOptions = requiredQueryAll<HTMLOptionElement>('#screenshot-radius option');
+  screenshotRadiusOptions[0].textContent = 'Subtle';
+  screenshotRadiusOptions[1].textContent = 'Smooth';
+  screenshotRadiusOptions[2].textContent = 'Rounded';
+  const screenshotShadowOptions = requiredQueryAll<HTMLOptionElement>('#screenshot-shadow option');
+  screenshotShadowOptions[0].textContent = 'No shadow';
+  screenshotShadowOptions[1].textContent = 'Soft';
+  screenshotShadowOptions[2].textContent = 'Medium';
+  const screenshotPaddingOptions = requiredQueryAll<HTMLOptionElement>('#screenshot-padding option');
+  screenshotPaddingOptions[0].textContent = 'Small';
+  screenshotPaddingOptions[1].textContent = 'Normal';
+  screenshotPaddingOptions[2].textContent = 'Wide';
+  const screenshotBackgroundOptions = requiredQueryAll<HTMLOptionElement>('#screenshot-background option');
+  screenshotBackgroundOptions[0].textContent = 'Transparent';
+  screenshotBackgroundOptions[1].textContent = 'Soft gray';
+  screenshotBackgroundOptions[2].textContent = 'White';
+  setElementText('screenshot-replace-action', 'Change image');
+  setElementText('screenshot-download-action', 'Download PNG');
+  setElementText('screenshot-status', 'Waiting for a screenshot · processed locally');
 
   const progressCard = getRequiredElement('progress-card');
   setText('.card-icon', 'Progress', progressCard);
@@ -119,6 +151,7 @@ export function applyEnglishContent({
   setElementText('pdf-tool-order', 'Reorder');
   setElementText('pdf-tool-rotate', 'Rotate');
   setElementText('pdf-tool-compress', 'Compress');
+  setElementText('pdf-tool-unlock', 'Remove password');
   setElementText('pdf-tool-watermark', 'Watermark');
   setElementText('pdf-tool-metadata', 'Metadata');
 
@@ -181,6 +214,14 @@ export function applyEnglishContent({
   compressionOptions[2].textContent = 'Compact · lighter file';
   setElementText('compress-note', 'Safe mode never replaces the original with a larger copy. Visual compression flattens pages and may remove selectable text, links, or forms.');
   setText('.btn-primary', 'Compress and download', compressCard);
+
+  const unlockCard = getRequiredElement('unlock-card');
+  setText('.card-icon', 'Unlock', unlockCard);
+  setText('h3', 'Remove PDF password', unlockCard);
+  setText('p', 'Open the document with its current password and download a copy that no longer asks for it.', unlockCard);
+  setText('label[for="unlock-password"]', 'Current PDF password', unlockCard);
+  setElementText('unlock-note', 'The password is only used while processing the file and is never stored. The copy keeps the visual appearance, but flattens text, links, and forms, just like printing to PDF.');
+  setText('.btn-primary', 'Remove password and download', unlockCard);
 
   const watermarkCard = getRequiredElement('watermark-card');
   setText('.card-icon', 'Watermark', watermarkCard);

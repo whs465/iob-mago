@@ -87,6 +87,7 @@ import { deletePdfFlow } from './ui/delete-pdf-flow';
 import { reorderPdfFlow } from './ui/reorder-pdf-flow';
 import { rotatePdfFlow } from './ui/rotate-pdf-flow';
 import { compressPdfFlow } from './ui/compress-pdf-flow';
+import { unlockPdfFlow } from './ui/unlock-pdf-flow';
 import { loadPdfMetadataFlow, savePdfMetadataFlow } from './ui/pdf-metadata-flow';
 import { watermarkPdfFlow } from './ui/watermark-pdf-flow';
 import type { CompressionMode } from './pdf/compress';
@@ -125,6 +126,7 @@ import { updateSignatureProgress } from './ui/signature-progress';
 import { setupSourceFileFlow } from './ui/source-file-flow';
 import { setupContractProgressFlow } from './ui/contract-progress-flow';
 import { setupPdfToolWorkspace } from './ui/pdf-tool-workspace';
+import { setupScreenshotPolish } from './ui/screenshot-polish';
 
         const {
             loadPdfDocument,
@@ -132,7 +134,8 @@ import { setupPdfToolWorkspace } from './ui/pdf-tool-workspace';
             getPdfPageMetricsFromArrayBuffer,
             appendRenderedPdfPages,
             buildRotatedPortraitPdfFromRenderedPages,
-            buildCompressedPdfFromRenderedPages
+            buildCompressedPdfFromRenderedPages,
+            buildUnlockedPdfFromRenderedPages
         } = createPdfRenderRuntime({ PDFDocument, pdfjsLib });
         const pdfBookmarkDeps = { PDFHexString, PDFName };
         const pdfPageCopyDeps = {
@@ -533,6 +536,7 @@ import { setupPdfToolWorkspace } from './ui/pdf-tool-workspace';
         function initializeApp() {
             setupPdfToolWorkspace();
             translatePageToEnglish();
+            setupScreenshotPolish({ i18n, saveAs });
             updateSignatureCleanSensitivity();
             updateSignatureTone();
             updateSignatureGeneratorControlsState();
@@ -712,6 +716,20 @@ import { setupPdfToolWorkspace } from './ui/pdf-tool-workspace';
                 setActionBusy,
                 saveAs
             });
+        }
+
+        async function quitarClavePDF() {
+            const passwordInput = document.getElementById('unlock-password') as HTMLInputElement | null;
+            const result = await unlockPdfFlow({
+                file: sourceFileState.files[0],
+                password: passwordInput?.value || '',
+                buildUnlockedPdf: buildUnlockedPdfFromRenderedPages,
+                i18n,
+                showStatus,
+                setActionBusy,
+                saveAs
+            });
+            if (result.status === 'success' && passwordInput) passwordInput.value = '';
         }
 
         const metadataFlowOptions = () => ({
@@ -967,6 +985,7 @@ registerWindowPdfActions({
     ordenarPaginasPdf,
     rotarPaginasPortrait,
     comprimirPDF,
+    quitarClavePDF,
     verMetadatosPDF,
     guardarMetadatosPDF,
     borrarMetadatosPDF,

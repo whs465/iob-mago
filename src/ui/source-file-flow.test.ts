@@ -73,6 +73,7 @@ describe('setupSourceFileFlow', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     document.body.innerHTML = '';
   });
 
@@ -188,5 +189,31 @@ describe('setupSourceFileFlow', () => {
 
     const el = document.getElementById('rotate-status');
     expect(el?.textContent).toBe('Drop PDF files above first');
+  });
+
+  it('stops the analyzing state when the loaded PDF requires a password', async () => {
+    vi.useFakeTimers();
+    const sourceFileState = createMockSourceFileState([
+      new File(['protected'], 'locked.pdf', { type: 'application/pdf' }),
+    ]);
+    const logError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const api = setupSourceFileFlow({
+      runtime: { sourceFileState, pageOrderState },
+      deps: {
+        getPdfPageCountFromArrayBuffer: vi.fn(async () => {
+          throw Object.assign(new Error('Password required'), { name: 'PasswordException', code: 1 });
+        }),
+        getPdfPageMetricsFromArrayBuffer: vi.fn(),
+      },
+      i18n: (en: string) => en,
+      onOrderListUpdate,
+    });
+
+    api.actualizarSourceList();
+    await vi.advanceTimersByTimeAsync(210);
+
+    expect(document.getElementById('source-workbench-status')?.textContent).toBe('Password-protected PDF');
+    expect(document.getElementById('source-workbench-summary')?.textContent).toContain('Remove password');
+    logError.mockRestore();
   });
 });

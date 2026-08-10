@@ -8,6 +8,7 @@ interface Window {
   ordenarPaginasPdf: () => Promise<void>;
   rotarPaginasPortrait: () => Promise<void>;
   comprimirPDF: () => Promise<void>;
+  quitarClavePDF: () => Promise<void>;
   verMetadatosPDF: () => Promise<void>;
   guardarMetadatosPDF: () => Promise<void>;
   borrarMetadatosPDF: () => Promise<void>;

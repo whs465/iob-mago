@@ -971,6 +971,7 @@
         }
 
         .input-group input[type="text"],
+        .input-group input[type="password"],
         .input-group input[type="number"],
         .input-group select {
             width: 100%;
@@ -1323,6 +1324,182 @@
             height: 1px;
             background: linear-gradient(90deg, rgba(29, 29, 31, 0), rgba(29, 29, 31, 0.12), rgba(29, 29, 31, 0));
             margin: 34px 0;
+        }
+
+        .screenshot-polish-card {
+            padding: 28px;
+            overflow: hidden;
+        }
+
+        .screenshot-polish-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.55fr) minmax(270px, 0.65fr);
+            gap: 24px;
+            align-items: stretch;
+        }
+
+        .screenshot-preview-board {
+            display: grid;
+            place-items: center;
+            min-width: 0;
+            min-height: 390px;
+            padding: 28px;
+            overflow: auto;
+            border: 1px solid rgba(29, 29, 31, 0.08);
+            border-radius: 24px;
+            background: var(--surface-muted);
+        }
+
+        .screenshot-paste-zone {
+            display: grid;
+            place-items: center;
+            width: 100%;
+            min-height: 330px;
+            padding: 32px;
+            border: 1px dashed rgba(29, 29, 31, 0.2);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.58);
+            text-align: center;
+            transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+        }
+
+        .screenshot-paste-zone.is-dragging {
+            border-color: rgba(29, 29, 31, 0.56);
+            background: #ffffff;
+            transform: scale(0.995);
+        }
+
+        .screenshot-paste-zone.has-image {
+            display: none;
+        }
+
+        .screenshot-paste-icon {
+            display: grid;
+            place-items: center;
+            width: 54px;
+            height: 54px;
+            margin: 0 auto 18px;
+            border-radius: 17px;
+            background: #1d1d1f;
+            color: #ffffff;
+            box-shadow: 0 10px 24px rgba(29, 29, 31, 0.14);
+        }
+
+        .screenshot-paste-icon svg {
+            width: 25px;
+            height: 25px;
+        }
+
+        .screenshot-paste-copy strong,
+        .screenshot-paste-copy span {
+            display: block;
+        }
+
+        .screenshot-paste-copy strong {
+            font-size: 1.1rem;
+        }
+
+        .screenshot-paste-copy span {
+            max-width: 420px;
+            margin: 8px auto 18px;
+            color: var(--muted);
+            font-size: 0.9rem;
+            line-height: 1.55;
+        }
+
+        #screenshot-input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+        }
+
+        #screenshot-canvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        #screenshot-canvas[hidden] {
+            display: none;
+        }
+
+        .screenshot-controls {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            padding: 24px;
+            border: 1px solid rgba(29, 29, 31, 0.08);
+            border-radius: 24px;
+            background: #ffffff;
+        }
+
+        .screenshot-controls h3 {
+            margin: 0 0 6px;
+            font-size: 1.25rem;
+        }
+
+        .screenshot-controls > p {
+            margin: 0 0 22px;
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+
+        .screenshot-control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 12px;
+        }
+
+        .screenshot-controls .input-group {
+            margin-bottom: 14px;
+        }
+
+        .screenshot-controls .input-group label {
+            margin-bottom: 7px;
+            font-size: 0.82rem;
+        }
+
+        .screenshot-controls .input-group select {
+            padding: 11px 12px;
+            border-radius: 13px;
+            font-size: 0.9rem;
+        }
+
+        .screenshot-actions {
+            display: grid;
+            gap: 10px;
+            margin-top: auto;
+            padding-top: 12px;
+        }
+
+        .screenshot-actions .btn {
+            width: 100%;
+        }
+
+        #screenshot-status {
+            min-height: 20px;
+            margin: 14px 0 0;
+            color: var(--muted-strong);
+            font-size: 0.82rem;
+            line-height: 1.45;
+        }
+
+        @media (max-width: 860px) {
+            .screenshot-polish-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .screenshot-preview-board {
+                min-height: 320px;
+            }
+
+            .screenshot-controls {
+                min-height: 0;
+            }
         }
 
         .support-box {
@@ -3372,6 +3549,26 @@
                 border-radius: 28px;
             }
 
+            .screenshot-polish-card {
+                padding: 16px;
+            }
+
+            .screenshot-preview-board {
+                min-height: 280px;
+                padding: 12px;
+                border-radius: 20px;
+            }
+
+            .screenshot-paste-zone {
+                min-height: 254px;
+                padding: 24px 18px;
+            }
+
+            .screenshot-controls {
+                padding: 18px;
+                border-radius: 20px;
+            }
+
             .hero-nav {
                 flex-direction: column;
                 align-items: flex-start;
@@ -3659,6 +3856,7 @@
                         <a href="#avance">Avance</a>
                         <a href="#herramientas">PDF</a>
                         <a href="#firma">Firma</a>
+                        <a href="#capturas">Capturas</a>
                     </nav>
                 </div>
 
@@ -3810,6 +4008,7 @@
                         <button class="pdf-operation-button" id="pdf-tool-order" type="button" data-pdf-tool="order-card" data-pdf-category="pages" aria-controls="order-card" aria-pressed="false" hidden>Ordenar</button>
                         <button class="pdf-operation-button" id="pdf-tool-rotate" type="button" data-pdf-tool="rotate-card" data-pdf-category="pages" aria-controls="rotate-card" aria-pressed="false" hidden>Girar</button>
                         <button class="pdf-operation-button" id="pdf-tool-compress" type="button" data-pdf-tool="compress-card" data-pdf-category="document" aria-controls="compress-card" aria-pressed="false" hidden>Comprimir</button>
+                        <button class="pdf-operation-button" id="pdf-tool-unlock" type="button" data-pdf-tool="unlock-card" data-pdf-category="document" aria-controls="unlock-card" aria-pressed="false" hidden>Quitar clave</button>
                         <button class="pdf-operation-button" id="pdf-tool-watermark" type="button" data-pdf-tool="watermark-card" data-pdf-category="document" aria-controls="watermark-card" aria-pressed="false" hidden>Marca de agua</button>
                         <button class="pdf-operation-button" id="pdf-tool-metadata" type="button" data-pdf-tool="metadata-card" data-pdf-category="document" aria-controls="metadata-card" aria-pressed="false" hidden>Metadatos</button>
                     </nav>
@@ -3947,6 +4146,20 @@
                 </div>
                 <p class="tool-note" id="compress-note">El modo seguro nunca reemplaza el original por una copia más pesada. La reducción visual aplana las páginas y puede perder texto seleccionable, enlaces o formularios.</p>
                 <button class="btn btn-primary" id="compress-action" style="margin-top: 16px;" onclick="comprimirPDF()">Comprimir y descargar</button>
+            </div>
+
+            <!-- Quitar contraseña -->
+            <div class="card" id="unlock-card" role="tabpanel" aria-labelledby="pdf-tool-unlock" hidden>
+                <div class="card-icon">Desbloquear</div>
+                <h3>Quitar clave del PDF</h3>
+                <p>Abre el documento con su contraseña y descarga una copia que ya no la solicita.</p>
+                <p class="list-help" id="unlock-status" style="margin: 0 0 14px;"></p>
+                <div class="input-group">
+                    <label for="unlock-password">Contraseña actual del PDF</label>
+                    <input type="password" id="unlock-password" autocomplete="off" spellcheck="false">
+                </div>
+                <p class="tool-note" id="unlock-note">La contraseña solo se usa mientras procesamos el archivo y no se guarda. La copia conserva la apariencia, pero aplana texto, enlaces y formularios, igual que imprimir como PDF.</p>
+                <button class="btn btn-primary" id="unlock-action" style="margin-top: 16px;" onclick="quitarClavePDF()">Quitar clave y descargar</button>
             </div>
 
             <!-- Marca de agua -->
@@ -4336,6 +4549,81 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <section class="section" id="capturas">
+            <div class="section-heading">
+                <p class="section-kicker">Capturas</p>
+                <h2 class="section-title" id="screenshot-title">Dale un acabado limpio a tus capturas</h2>
+                <p class="section-text" id="screenshot-copy">Pega una captura desde el portapapeles y descárgala con borde fino, esquinas suaves y una sombra bien medida.</p>
+            </div>
+
+            <div class="card card-full screenshot-polish-card">
+                <div class="screenshot-polish-layout">
+                    <div>
+                        <div class="screenshot-preview-board">
+                            <div class="screenshot-paste-zone" id="screenshot-paste-zone">
+                                <div id="screenshot-preview-empty">
+                                    <span class="screenshot-paste-icon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"></rect><path d="m7.5 15 3-3 2.3 2.3 1.7-1.8 2.5 2.5"></path><circle cx="15.5" cy="8.5" r="1"></circle></svg>
+                                    </span>
+                                    <span class="screenshot-paste-copy">
+                                        <strong id="screenshot-paste-title">Pega tu captura aquí</strong>
+                                        <span id="screenshot-paste-help">Usa Ctrl + V, arrastra una imagen o selecciónala desde el dispositivo.</span>
+                                    </span>
+                                    <label class="btn btn-secondary" for="screenshot-input" id="screenshot-choose-action">Elegir imagen</label>
+                                </div>
+                            </div>
+                            <canvas id="screenshot-canvas" hidden></canvas>
+                        </div>
+                        <p id="screenshot-status" role="status" aria-live="polite">Esperando una captura · se procesa localmente</p>
+                    </div>
+
+                    <aside class="screenshot-controls" aria-labelledby="screenshot-finish-title">
+                        <h3 id="screenshot-finish-title">Acabado</h3>
+                        <p id="screenshot-finish-copy">El preset inicial ya viene equilibrado. Ajusta solo si lo necesitas.</p>
+                        <div class="screenshot-control-grid">
+                            <div class="input-group">
+                                <label for="screenshot-radius">Esquinas</label>
+                                <select id="screenshot-radius" disabled>
+                                    <option value="8">Sutiles</option>
+                                    <option value="14" selected>Suaves</option>
+                                    <option value="22">Redondas</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="screenshot-shadow">Sombra</label>
+                                <select id="screenshot-shadow" disabled>
+                                    <option value="none">Sin sombra</option>
+                                    <option value="soft" selected>Suave</option>
+                                    <option value="medium">Media</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="screenshot-padding">Margen</label>
+                                <select id="screenshot-padding" disabled>
+                                    <option value="24">Pequeño</option>
+                                    <option value="36" selected>Normal</option>
+                                    <option value="56">Amplio</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="screenshot-background">Fondo</label>
+                                <select id="screenshot-background" disabled>
+                                    <option value="transparent" selected>Transparente</option>
+                                    <option value="surface">Gris suave</option>
+                                    <option value="white">Blanco</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="screenshot-actions">
+                            <label class="btn btn-secondary" for="screenshot-input" id="screenshot-replace-action">Cambiar imagen</label>
+                            <button class="btn btn-primary" type="button" id="screenshot-download-action" disabled>Descargar PNG</button>
+                        </div>
+                    </aside>
+                </div>
+                <input type="file" id="screenshot-input" accept="image/png,image/jpeg,image/webp">
             </div>
         </section>
 

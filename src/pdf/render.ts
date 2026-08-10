@@ -95,7 +95,7 @@ type PdfJsDocument = {
 };
 
 type PdfJsLib = {
-  getDocument(options: { data: ArrayBuffer }): {
+  getDocument(options: { data: ArrayBuffer; password?: string }): {
     promise: Promise<PdfJsDocument>;
   };
 };
@@ -368,6 +368,48 @@ export function createPdfRenderRuntime({
     return targetPdf.save({ useObjectStreams: true });
   }
 
+  async function buildUnlockedPdfFromRenderedPages(
+    arrayBuffer: ArrayBuffer,
+    password: string,
+    onProgress?: (completed: number, total: number) => void,
+  ) {
+    const loadingTask = pdfjsLib.getDocument({
+      data: cloneArrayBuffer(arrayBuffer),
+      password,
+    });
+    const sourcePdf = await loadingTask.promise;
+    const targetPdf = await PDFDocument.create();
+
+    try {
+      for (let index = 0; index < sourcePdf.numPages; index++) {
+        const sourcePage = await sourcePdf.getPage(index + 1);
+        const pdfViewport = sourcePage.getViewport({ scale: 1 });
+        const renderViewport = sourcePage.getViewport({ scale: 2 });
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        if (!context) throw new Error('Canvas 2D context unavailable');
+
+        canvas.width = Math.ceil(renderViewport.width);
+        canvas.height = Math.ceil(renderViewport.height);
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        await sourcePage.render({ canvasContext: context, viewport: renderViewport }).promise;
+        const image = await targetPdf.embedPng(canvas.toDataURL('image/png'));
+        const page = targetPdf.addPage([pdfViewport.width, pdfViewport.height]);
+        page.drawImage(image, { x: 0, y: 0, width: pdfViewport.width, height: pdfViewport.height });
+
+        canvas.width = 0;
+        canvas.height = 0;
+        onProgress?.(index + 1, sourcePdf.numPages);
+      }
+    } finally {
+      await sourcePdf.destroy();
+    }
+
+    return targetPdf.save({ useObjectStreams: true });
+  }
+
   return {
     loadPdfDocument,
     getPdfPageCountFromArrayBuffer,
@@ -375,5 +417,6 @@ export function createPdfRenderRuntime({
     appendRenderedPdfPages,
     buildRotatedPortraitPdfFromRenderedPages,
     buildCompressedPdfFromRenderedPages,
+    buildUnlockedPdfFromRenderedPages,
   };
 }

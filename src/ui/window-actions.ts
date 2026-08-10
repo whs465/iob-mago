@@ -6,6 +6,7 @@ export type WindowPdfActions = Pick<Window,
   | 'ordenarPaginasPdf'
   | 'rotarPaginasPortrait'
   | 'comprimirPDF'
+  | 'quitarClavePDF'
   | 'verMetadatosPDF'
   | 'guardarMetadatosPDF'
   | 'borrarMetadatosPDF'

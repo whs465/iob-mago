@@ -42,7 +42,7 @@ export function setupSourceFileFlow({
   let rotateSourceVersion = -1;
   let sourceAnalysisTimer: ReturnType<typeof setTimeout> | null = null;
 
-  function updateSourceWorkbench(state: 'empty' | 'analyzing' | 'ready' = 'empty') {
+  function updateSourceWorkbench(state: 'empty' | 'analyzing' | 'ready' | 'protected' = 'empty') {
     const workbench = document.getElementById('source-workbench');
     const status = document.getElementById('source-workbench-status');
     const summary = document.getElementById('source-workbench-summary');
@@ -68,8 +68,18 @@ export function setupSourceFileFlow({
 
     if (state === 'analyzing') {
       status.textContent = i18n('Analyzing PDF', 'Analizando PDF');
+    } else if (state === 'protected') {
+      status.textContent = i18n('Password-protected PDF', 'PDF protegido con contraseña');
     } else {
       status.textContent = i18n('Ready to work', 'Listo para trabajar');
+    }
+
+    if (state === 'protected') {
+      summary.textContent = i18n(
+        'The file is loaded. Open Document → Remove password to create an unlocked copy.',
+        'El archivo está cargado. Abre Documento → Quitar clave para crear una copia desbloqueada.',
+      );
+      return;
     }
 
     const firstFile = sourceFileState.files[0];
@@ -185,6 +195,14 @@ export function setupSourceFileFlow({
       actualizarRotateInfo();
     } catch (error) {
       console.error(error);
+      const passwordError = error as { code?: number; name?: string } | null;
+      if (
+        passwordError?.name === 'PasswordException'
+        || passwordError?.code === 1
+        || passwordError?.code === 2
+      ) {
+        updateSourceWorkbench('protected');
+      }
     }
   }
 

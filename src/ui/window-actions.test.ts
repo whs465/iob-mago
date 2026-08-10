@@ -13,6 +13,7 @@ describe('registerWindowPdfActions', () => {
       ordenarPaginasPdf: vi.fn(async () => undefined),
       rotarPaginasPortrait: vi.fn(async () => undefined),
       comprimirPDF: vi.fn(async () => undefined),
+      quitarClavePDF: vi.fn(async () => undefined),
       verMetadatosPDF: vi.fn(async () => undefined),
       guardarMetadatosPDF: vi.fn(async () => undefined),
       borrarMetadatosPDF: vi.fn(async () => undefined),
@@ -41,6 +42,7 @@ describe('registerWindowPdfActions', () => {
     expect(window.ordenarPaginasPdf).toBe(actions.ordenarPaginasPdf);
     expect(window.rotarPaginasPortrait).toBe(actions.rotarPaginasPortrait);
     expect(window.comprimirPDF).toBe(actions.comprimirPDF);
+    expect(window.quitarClavePDF).toBe(actions.quitarClavePDF);
     expect(window.verMetadatosPDF).toBe(actions.verMetadatosPDF);
     expect(window.guardarMetadatosPDF).toBe(actions.guardarMetadatosPDF);
     expect(window.borrarMetadatosPDF).toBe(actions.borrarMetadatosPDF);

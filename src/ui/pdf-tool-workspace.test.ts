@@ -18,12 +18,14 @@ describe('setupPdfToolWorkspace', () => {
         <button data-pdf-tool="extract-card" data-pdf-category="pages">Extract</button>
         <button data-pdf-tool="delete-card" data-pdf-category="pages">Delete</button>
         <button data-pdf-tool="compress-card" data-pdf-category="document">Compress</button>
+        <button data-pdf-tool="unlock-card" data-pdf-category="document">Unlock</button>
         </nav>
         <section id="merge-card" role="tabpanel"></section>
         <section id="split-card" role="tabpanel"></section>
         <section id="extract-card" role="tabpanel"></section>
         <section id="delete-card" role="tabpanel"></section>
         <section id="compress-card" role="tabpanel"></section>
+        <section id="unlock-card" role="tabpanel"></section>
       </div>
     `;
   });

@@ -16,6 +16,7 @@ function appendStatusElements() {
     <div id="order-card"><button id="order-action"></button><div id="order-file-name"></div></div>
     <div id="rotate-card"><button id="rotate-action"></button><div id="rotate-status"></div></div>
     <div id="compress-card"><button id="compress-action"></button><div id="compress-status"></div></div>
+    <div id="unlock-card"><button id="unlock-action"></button><div id="unlock-status"></div></div>
     <div id="watermark-card"><button id="watermark-action"></button><div id="watermark-status"></div></div>
     <div id="metadata-card"><button id="metadata-load-action"></button><div id="metadata-status"></div></div>
   `;
@@ -50,9 +51,11 @@ describe('pdf tool DOM helpers', () => {
       document.getElementById('order-file-name')?.textContent,
       document.getElementById('rotate-status')?.textContent,
       document.getElementById('compress-status')?.textContent,
+      document.getElementById('unlock-status')?.textContent,
       document.getElementById('watermark-status')?.textContent,
       document.getElementById('metadata-status')?.textContent,
     ]).toEqual([
+      'Load PDFs first',
       'Load PDFs first',
       'Load PDFs first',
       'Load PDFs first',
@@ -78,6 +81,7 @@ describe('pdf tool DOM helpers', () => {
     expect(document.getElementById('merge-status')?.textContent).toBe('2 loaded');
     expect(document.getElementById('split-status')?.textContent).toBe('first.pdf');
     expect(document.getElementById('order-file-name')?.textContent).toBe('first.pdf');
+    expect(document.getElementById('unlock-status')?.textContent).toBe('first.pdf');
     expect(document.getElementById('merge-card')?.classList.contains('tool-card-ready')).toBe(true);
     expect((document.getElementById('merge-action') as HTMLButtonElement).disabled).toBe(false);
   });
