@@ -1,13 +1,18 @@
 import type { SignatureMetaTranslator } from './signature-preview';
-import { renderContractProgressResult, resetContractProgressFields } from './contract-progress';
+import { renderContractProgressResult, resetContractProgressFields, type ContractTimelinePointView } from './contract-progress';
 import { getInputValue, setInputValue, getRequiredElement } from './dom';
-import { calculateContractProgress, getContractReportInfo } from '../utils/contract-progress';
+import {
+  calculateContractProgress,
+  getContractReportPoints,
+  getLastClosedReportDate,
+} from '../utils/contract-progress';
 import { parseInputDate, toDateInputValue } from '../utils/locale';
 
 export type ContractProgressFlowOptions = {
   i18n: SignatureMetaTranslator;
   formatDateValue: (date: Date) => string;
   formatDateTimeValue: (date: Date) => string;
+  now?: () => Date;
 };
 
 export type ContractProgressFlowApi = {
@@ -16,184 +21,237 @@ export type ContractProgressFlowApi = {
   initFromLocalStorage(): boolean;
 };
 
+function clampDate(value: Date, start: Date, end: Date) {
+  if (value < start) return start;
+  if (value > end) return end;
+  return value;
+}
+
+function getPosition(date: Date, start: Date, end: Date) {
+  const duration = end.getTime() - start.getTime();
+  if (duration <= 0) return 100;
+  return Math.min(Math.max(((date.getTime() - start.getTime()) / duration) * 100, 0), 100);
+}
+
+function getTodayTimelinePosition(today: Date, start: Date, reportDates: Date[]) {
+  if (reportDates.length === 0) return 0;
+  const reportIndex = reportDates.findIndex(date => today <= date);
+  if (reportIndex < 0) return 100;
+
+  const segmentStart = reportIndex === 0
+    ? start
+    : new Date(
+      reportDates[reportIndex - 1].getFullYear(),
+      reportDates[reportIndex - 1].getMonth(),
+      reportDates[reportIndex - 1].getDate() + 1,
+    );
+  const segmentEnd = reportDates[reportIndex];
+  const segmentDuration = Math.max(segmentEnd.getTime() - segmentStart.getTime(), 1);
+  const segmentProgress = Math.min(Math.max((today.getTime() - segmentStart.getTime()) / segmentDuration, 0), 1);
+  return ((reportIndex + segmentProgress) / reportDates.length) * 100;
+}
+
 export function setupContractProgressFlow({
   i18n,
   formatDateValue,
-  formatDateTimeValue,
+  formatDateTimeValue: _formatDateTimeValue,
+  now = () => new Date(),
 }: ContractProgressFlowOptions): ContractProgressFlowApi {
-  let contractCompletionCelebrated = false;
-  let contractCompletionTimer: ReturnType<typeof setTimeout> | null = null;
+  const locale = i18n('en-US', 'es-CO');
+  const shortDateFormatter = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' });
 
-  function resetContractProgressDisplay() {
-    resetContractProgressFields();
-    resetContractCompletionCelebration(true);
+  function setDateEditorExpanded(expanded: boolean) {
+    const editor = getRequiredElement('contract-date-editor');
+    const action = getRequiredElement<HTMLButtonElement>('contract-date-edit-action');
+    editor.toggleAttribute('hidden', !expanded);
+    action.setAttribute('aria-expanded', String(expanded));
+    action.textContent = expanded ? i18n('Close', 'Cerrar') : i18n('Edit', 'Editar');
   }
 
-  function resetContractCompletionCelebration(resetMilestone = false) {
-    const card = getRequiredElement('avance-result-card');
-    card.classList.remove('celebrating');
-    if (contractCompletionTimer) {
-      clearTimeout(contractCompletionTimer);
-      contractCompletionTimer = null;
-    }
-    if (resetMilestone) {
-      contractCompletionCelebrated = false;
-    }
+  function setMessage(message: string, type: 'error' | 'neutral' = 'neutral') {
+    const element = getRequiredElement('mensaje-guardado');
+    element.textContent = message;
+    element.dataset.type = type;
   }
 
-  function triggerContractCompletionCelebration() {
-    const card = getRequiredElement('avance-result-card');
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    resetContractCompletionCelebration();
-    void card.offsetWidth;
-    card.classList.add('celebrating');
-
-    contractCompletionTimer = window.setTimeout(() => {
-      card.classList.remove('celebrating');
-      contractCompletionTimer = null;
-    }, reducedMotion ? 2200 : 2800);
-  }
-
-  function formatDate(dateStr: string) {
-    return formatDateValue(parseInputDate(dateStr));
+  function createTimelinePoint(
+    date: Date,
+    percentage: number,
+    tooltipText: string,
+    start: Date,
+    end: Date,
+    today: Date,
+    isToday = false,
+    position?: number,
+  ): ContractTimelinePointView {
+    return {
+      shortDateText: isToday ? i18n('Today', 'Hoy') : shortDateFormatter.format(date),
+      tooltipText,
+      percentage,
+      position: position ?? getPosition(date, start, end),
+      isPast: date <= today,
+      isToday,
+    };
   }
 
   function calcularAvance() {
-    const fechaInicialVal = getInputValue('fecha-inicial');
-    const fechaFinalVal = getInputValue('fecha-final');
-    const fechaCalculoVal = getInputValue('fecha-calculo');
-    const msg = getRequiredElement('mensaje-guardado');
+    const startValue = getInputValue('fecha-inicial');
+    const endValue = getInputValue('fecha-final');
 
-    if (!fechaInicialVal || !fechaFinalVal) {
-      resetContractProgressDisplay();
-      msg.textContent = i18n(
-        '✗ Enter the contract start and end dates to calculate',
-        '✗ Ingresa la fecha inicial y final para calcular',
-      );
-      msg.style.color = '#ff6b6b';
+    if (!startValue || !endValue) {
+      resetContractProgressFields();
+      setMessage(i18n('Set the contract start and end dates.', 'Configura el inicio y el fin del contrato.'));
       return;
     }
 
-    if (!fechaCalculoVal) {
-      resetContractProgressDisplay();
-      msg.textContent = i18n(
-        '✗ Enter the calculation date',
-        '✗ Ingresa la fecha de cálculo',
+    const start = parseInputDate(startValue);
+    const end = parseInputDate(endValue);
+    if (end < start) {
+      resetContractProgressFields();
+      setMessage(
+        i18n('The end date must be on or after the start date.', 'La fecha final debe ser igual o posterior a la inicial.'),
+        'error',
       );
-      msg.style.color = '#ff6b6b';
       return;
     }
 
-    const fechaInicial = parseInputDate(fechaInicialVal);
-    const fechaFinal = parseInputDate(fechaFinalVal);
-    const fechaCalculo = parseInputDate(fechaCalculoVal);
+    const today = now();
+    const currentPercentage = calculateContractProgress(startValue, endValue, toDateInputValue(today));
+    const reportPoints = getContractReportPoints(startValue, endValue);
+    const lastClosedDate = getLastClosedReportDate(start, end, today);
+    const lastClosedPoint = lastClosedDate
+      ? reportPoints.find(point => point.date.getTime() === lastClosedDate.getTime()) || null
+      : null;
 
-    if (fechaFinal <= fechaInicial) {
-      resetContractProgressDisplay();
-      msg.textContent = i18n(
-        '✗ The end date must be after the start date',
-        '✗ La fecha final debe ser posterior a la inicial',
+    const timelinePoints = reportPoints.map((point, index) => {
+      const isToday = point.date.toDateString() === today.toDateString();
+      return createTimelinePoint(
+        point.date,
+        point.percentage,
+        i18n(
+          'Report {{current}} of {{total}}\nCutoff: {{date}}\nProgress: {{percentage}}%',
+          'Informe {{current}} de {{total}}\nCorte: {{date}}\nAvance: {{percentage}}%',
+          {
+            current: String(point.reportNumber),
+            total: String(point.totalReports),
+            date: formatDateValue(point.date),
+            percentage: point.percentage.toFixed(1),
+          },
+        ),
+        start,
+        end,
+        today,
+        isToday,
+        ((index + 1) / reportPoints.length) * 100,
       );
-      msg.style.color = '#ff6b6b';
-      return;
-    }
-
-    if (fechaCalculo < fechaInicial) {
-      resetContractProgressDisplay();
-      msg.textContent = i18n(
-        '✗ The calculation date cannot be before the start date',
-        '✗ La fecha de cálculo no puede ser anterior al inicio',
-      );
-      msg.style.color = '#ff6b6b';
-      return;
-    }
-
-    const porcentaje = calculateContractProgress(fechaInicialVal, fechaFinalVal, fechaCalculoVal);
-
-    const reportInfo = getContractReportInfo(fechaInicial, fechaFinal, fechaCalculo);
-    renderContractProgressResult({
-      startText: formatDate(fechaInicialVal),
-      endText: formatDate(fechaFinalVal),
-      reportText: i18n(
-        'Month {{current}} / {{total}}',
-        'Mes {{current}} / {{total}}',
-        {
-          current: String(reportInfo.currentReport),
-          total: String(reportInfo.totalReports),
-        },
-      ),
-      percentage: porcentaje,
     });
 
-    if (porcentaje >= 100) {
-      if (!contractCompletionCelebrated) {
-        triggerContractCompletionCelebration();
-        contractCompletionCelebrated = true;
-      }
-    } else {
-      resetContractCompletionCelebration(true);
+    const boundedToday = clampDate(today, start, end);
+    const todayPoint = today >= start && today <= end
+      ? createTimelinePoint(
+        boundedToday,
+        currentPercentage,
+        i18n(
+          'Current progress\n{{date}}\n{{percentage}}%',
+          'Avance actual\n{{date}}\n{{percentage}}%',
+          { date: formatDateValue(today), percentage: currentPercentage.toFixed(1) },
+        ),
+        start,
+        end,
+        today,
+        true,
+        getTodayTimelinePosition(today, start, reportPoints.map(point => point.date)),
+      )
+      : null;
+
+    const currentDateText = today < start
+      ? i18n('Starts on {{date}}', 'Inicia el {{date}}', { date: formatDateValue(start) })
+      : today > end
+        ? i18n('Completed on {{date}}', 'Finalizó el {{date}}', { date: formatDateValue(end) })
+        : i18n('As of {{date}}', 'Al {{date}}', { date: formatDateValue(today) });
+
+    renderContractProgressResult({
+      currentPercentage,
+      currentDateText,
+      lastReportPercentage: lastClosedPoint?.percentage ?? null,
+      lastReportText: lastClosedPoint
+        ? i18n(
+          '{{date}} · Report {{current}} of {{total}}',
+          '{{date}} · Informe {{current}} de {{total}}',
+          {
+            date: formatDateValue(lastClosedPoint.date),
+            current: String(lastClosedPoint.reportNumber),
+            total: String(lastClosedPoint.totalReports),
+          },
+        )
+        : i18n('No monthly cutoff yet', 'Aún no hay cierre mensual'),
+      periodText: `${formatDateValue(start)} → ${formatDateValue(end)}`,
+      timelinePoints,
+      todayPoint,
+    });
+
+    setMessage(i18n(
+      '{{count}} monthly report(s) across the contract.',
+      '{{count}} informe(s) mensual(es) durante el contrato.',
+      { count: String(reportPoints.length) },
+    ));
+
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => {
+        const todayElement = document.querySelector<HTMLElement>('.contract-timeline-point.is-today');
+        const timelineScroller = document.querySelector<HTMLElement>('.contract-timeline-scroll');
+        if (todayElement && timelineScroller && typeof timelineScroller.scrollTo === 'function') {
+          timelineScroller.scrollTo({
+            left: todayElement.offsetLeft - (timelineScroller.clientWidth / 2),
+            behavior: 'smooth',
+          });
+        }
+      });
     }
   }
 
   function autoCalcularAvance() {
-    const fi = getInputValue('fecha-inicial');
-    const ff = getInputValue('fecha-final');
-    const card = getRequiredElement('avance-result-card');
-    if (fi && ff) {
-      card.classList.add('visible');
-      calcularAvance();
-      // Guardar automáticamente si el período es válido
-      if (parseInputDate(fi) < parseInputDate(ff)) {
-        localStorage.setItem('fechasAvance', JSON.stringify({
-          fechaInicial: fi,
-          fechaFinal: ff,
-          guardado: new Date().toISOString(),
-        }));
-      }
-    } else {
-      card.classList.remove('visible');
-      resetContractProgressDisplay();
+    const startValue = getInputValue('fecha-inicial');
+    const endValue = getInputValue('fecha-final');
+    calcularAvance();
+
+    if (startValue && endValue && parseInputDate(startValue) <= parseInputDate(endValue)) {
+      localStorage.setItem('fechasAvance', JSON.stringify({ fechaInicial: startValue, fechaFinal: endValue }));
+    } else if (!startValue || !endValue) {
+      localStorage.removeItem('fechasAvance');
     }
   }
 
   function initFromLocalStorage() {
-    const hoy = toDateInputValue();
-    setInputValue('fecha-calculo', hoy);
-
-    const guardado = localStorage.getItem('fechasAvance');
-    if (guardado) {
-      try {
-        const fechas = JSON.parse(guardado);
-        setInputValue('fecha-inicial', fechas.fechaInicial || '');
-        setInputValue('fecha-final', fechas.fechaFinal || '');
-        setInputValue('fecha-calculo', hoy);
-
-        const msg = getRequiredElement('mensaje-guardado');
-        msg.textContent = i18n(
-          '✓ Dates loaded (saved on {{date}})',
-          '✓ Fechas cargadas (guardadas el {{date}})',
-          { date: formatDateTimeValue(new Date(fechas.guardado)) },
-        );
-        msg.style.color = '#00d9ff';
-
-        getRequiredElement('avance-result-card').classList.add('visible');
-        setTimeout(calcularAvance, 100);
-        return true;
-      } catch (e) {
-        localStorage.removeItem('fechasAvance');
-      }
+    const saved = localStorage.getItem('fechasAvance');
+    if (!saved) {
+      setDateEditorExpanded(true);
+      calcularAvance();
+      return false;
     }
-    return false;
+
+    try {
+      const dates = JSON.parse(saved);
+      setInputValue('fecha-inicial', dates.fechaInicial || '');
+      setInputValue('fecha-final', dates.fechaFinal || '');
+      setDateEditorExpanded(false);
+      calcularAvance();
+      return Boolean(dates.fechaInicial && dates.fechaFinal);
+    } catch {
+      localStorage.removeItem('fechasAvance');
+      setDateEditorExpanded(true);
+      calcularAvance();
+      return false;
+    }
   }
 
-  // Exponer al window para los onclick/oninput del HTML
+  getRequiredElement('contract-date-edit-action').addEventListener('click', () => {
+    const expanded = getRequiredElement('contract-date-edit-action').getAttribute('aria-expanded') === 'true';
+    setDateEditorExpanded(!expanded);
+  });
+
   (window as unknown as Record<string, unknown>).calcularAvance = calcularAvance;
   (window as unknown as Record<string, unknown>).autoCalcularAvance = autoCalcularAvance;
 
-  return {
-    calcularAvance,
-    autoCalcularAvance,
-    initFromLocalStorage,
-  };
+  return { calcularAvance, autoCalcularAvance, initFromLocalStorage };
 }

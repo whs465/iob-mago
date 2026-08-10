@@ -49,38 +49,32 @@ export function applyEnglishContent({
   document.documentElement.lang = 'en';
   document.title = 'IOB Mago';
 
-  setText('.brand-note', 'Local, fast, private PDF tools');
-  setText('.hero-copy .eyebrow .eyebrow-label', 'PDF tools for everyday work');
-  setText('.hero-copy h1', 'Do more with your PDFs. Without leaving the browser.');
+  setText('.hero-copy .eyebrow .eyebrow-label', 'Local, fast, private PDF tools');
+  setElementText('hero-title-line-1', 'Your PDFs, in order.');
+  setElementText('hero-title-line-2', 'Your contracts, up to date.');
+  setElementText('hero-title-line-3', 'All from your browser.');
   setText(
     '.hero-copy .subtitle',
-    'Merge, split, compress, watermark, edit metadata, sign, and track contract progress from desktop or phone with a cleaner, calmer, fully local interface.',
+    'Organize documents, place signatures, and check contract progress with private tools that also work from your phone.',
   );
-  setText('.hero-actions .btn-primary', 'View tools');
-  setText('.hero-actions .btn-secondary', 'Go to signing');
-
-  const heroHighlights = requiredQueryAll<HTMLElement>('.hero-highlight');
-  setText('strong', 'Everything happens in your browser', heroHighlights[0]);
-  setText('span', 'No server uploads, no extra steps.', heroHighlights[0]);
-  setText('strong', 'Breathe easy', heroHighlights[1]);
-  setText('span', 'Your file is processed right here, calmly, without leaving the browser.', heroHighlights[1]);
-  setText('strong', 'Desktop and mobile', heroHighlights[2]);
-  setText(
-    'span',
-    'Run tasks and sign from your phone too, even while commuting, without waiting to get home.',
-    heroHighlights[2],
-  );
+  setText('.hero-actions .btn-primary', 'Work with PDFs');
+  setText('.hero-actions .btn-secondary', 'Sign a PDF');
+  setElementText('hero-trust', 'Your files stay on this device.');
+  const heroNavLinks = requiredQueryAll<HTMLAnchorElement>('.hero-section-nav a');
+  heroNavLinks[0].textContent = 'Progress';
+  heroNavLinks[1].textContent = 'PDF';
+  heroNavLinks[2].textContent = 'Signing';
 
   const sections = requiredQueryAll<HTMLElement>('.section');
   setText('.section-kicker', 'Featured tool', sections[0]);
   setText('.section-title', 'Progress tracking', sections[0]);
   setText(
     '.section-text',
-    'Calculate your contract progress percentage with a clearer readout and a more editorial presentation.',
+    'Keep today’s progress and the latest monthly report percentage in view.',
     sections[0],
   );
   setElementText('tools-kicker', 'Quick tools');
-  setElementText('tools-title', 'Nine flows to work with a PDF without the mess');
+  setElementText('tools-title', 'One workspace for all your PDF tasks');
   setElementText(
     'tools-text',
     'Merge, split, compress, organize, review metadata, or add a watermark without taking the document out of the browser.',
@@ -95,8 +89,17 @@ export function applyEnglishContent({
 
   const progressCard = getRequiredElement('progress-card');
   setText('.card-icon', 'Progress', progressCard);
-  setText('h3', 'Contract period', progressCard);
-  setText('p', 'Set the start, end, and calculation date to get a quick read on the current contract status.', progressCard);
+  setText('h3', 'Contract status', progressCard);
+  setText('p', 'Check today’s progress and the percentage from the latest monthly report.', progressCard);
+  setText('.contract-current-summary .contract-summary-label', 'Current progress', progressCard);
+  setText('.contract-last-report .contract-summary-label', 'Latest report', progressCard);
+  setText('.contract-period-bar .contract-summary-label', 'Contract', progressCard);
+  setText('.contract-timeline-heading .contract-summary-label', 'Monthly reports', progressCard);
+  setText('.contract-timeline-heading > span:last-child', 'Tap a point to view its cutoff', progressCard);
+  const timelineDetail = getRequiredElement('contract-timeline-detail');
+  timelineDetail.dataset.defaultText = 'Tap a point to view its details';
+  timelineDetail.textContent = timelineDetail.dataset.defaultText;
+  getRequiredElement('contract-date-edit-action').textContent = 'Close';
 
   const sourceCard = getRequiredElement('source-card');
   setText('.card-icon', 'Source PDF', sourceCard);
@@ -105,6 +108,19 @@ export function applyEnglishContent({
   setElementText('source-workbench-status', 'No PDF loaded');
   setElementText('source-workbench-summary', 'Load one or more PDFs to activate the tools.');
   setElementText('source-clear-action', 'Clear');
+
+  setElementText('pdf-category-files', 'Files');
+  setElementText('pdf-category-pages', 'Pages');
+  setElementText('pdf-category-document', 'Document');
+  setElementText('pdf-tool-merge', 'Merge');
+  setElementText('pdf-tool-split', 'Split');
+  setElementText('pdf-tool-extract', 'Extract');
+  setElementText('pdf-tool-delete', 'Remove');
+  setElementText('pdf-tool-order', 'Reorder');
+  setElementText('pdf-tool-rotate', 'Rotate');
+  setElementText('pdf-tool-compress', 'Compress');
+  setElementText('pdf-tool-watermark', 'Watermark');
+  setElementText('pdf-tool-metadata', 'Metadata');
 
   const mergeCard = getRequiredElement('merge-card');
   setText('.card-icon', 'Merge', mergeCard);
@@ -202,12 +218,8 @@ export function applyEnglishContent({
 
   setText('label[for="fecha-inicial"]', 'Contract start');
   setText('label[for="fecha-final"]', 'Contract end');
-  setText('label[for="fecha-calculo"]', 'Calculated on');
-  setText('.avance-result-label', 'Contract progress');
-  setElementText('avance-completion-badge', 'Contract completed');
   getRequiredElement('fecha-inicial').setAttribute('aria-label', 'Contract start date');
   getRequiredElement('fecha-final').setAttribute('aria-label', 'Contract end date');
-  getRequiredElement('fecha-calculo').setAttribute('aria-label', 'Calculation date, today by default');
   setInputPlaceholder('extract-pages', '1, 2, 3 or 1-5, 8, 10-12');
   setInputPlaceholder('delete-pages', '2, 4, 7 or 2-6, 9, 12-14');
   setInputPlaceholder('rotate-pages', 'Leave blank or type 1-3, 8, 10-12');

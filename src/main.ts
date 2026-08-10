@@ -124,6 +124,7 @@ import {
 import { updateSignatureProgress } from './ui/signature-progress';
 import { setupSourceFileFlow } from './ui/source-file-flow';
 import { setupContractProgressFlow } from './ui/contract-progress-flow';
+import { setupPdfToolWorkspace } from './ui/pdf-tool-workspace';
 
         const {
             loadPdfDocument,
@@ -530,6 +531,7 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
 
         // Inicializar fechas al cargar
         function initializeApp() {
+            setupPdfToolWorkspace();
             translatePageToEnglish();
             updateSignatureCleanSensitivity();
             updateSignatureTone();

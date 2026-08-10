@@ -5,49 +5,46 @@ import { renderContractProgressResult, resetContractProgressFields } from './con
 
 function mountContractProgressDom() {
   document.body.innerHTML = `
-    <span id="porcentaje-numero"></span>
-    <span id="fecha-inicio-txt"></span>
-    <span id="fecha-fin-txt"></span>
-    <span id="informe-periodo"></span>
-    <div id="barra-progreso"></div>
+    <span id="current-progress-number"></span><span id="current-progress-date"></span>
+    <span id="last-report-number"></span><span id="last-report-meta"></span>
+    <span id="contract-period-text"></span>
+    <div id="contract-progress-fill"></div><div id="contract-timeline-track"></div>
+    <div id="contract-timeline-detail" data-default-text="Tap a point"></div>
   `;
 }
 
 describe('contract progress UI helpers', () => {
   it('resets the visible contract progress fields', () => {
     mountContractProgressDom();
-
-    renderContractProgressResult({
-      startText: 'Jan 1, 2026',
-      endText: 'Dec 31, 2026',
-      reportText: 'Month 6 / 12',
-      percentage: 50,
-    });
     resetContractProgressFields();
 
-    expect(document.getElementById('porcentaje-numero')?.textContent).toBe('—');
-    expect(document.getElementById('fecha-inicio-txt')?.textContent).toBe('—');
-    expect(document.getElementById('fecha-fin-txt')?.textContent).toBe('—');
-    expect(document.getElementById('informe-periodo')?.textContent).toBe('—');
-    expect(document.getElementById('barra-progreso')?.style.width).toBe('0%');
-    expect(document.getElementById('barra-progreso')?.getAttribute('aria-valuenow')).toBe('0');
+    expect(document.getElementById('current-progress-number')?.textContent).toBe('—');
+    expect(document.getElementById('last-report-number')?.textContent).toBe('—');
+    expect(document.getElementById('contract-period-text')?.textContent).toBe('Sin fechas configuradas');
+    expect(document.getElementById('contract-progress-fill')?.style.width).toBe('0%');
   });
 
-  it('renders the calculated contract progress result', () => {
+  it('renders summaries and interactive timeline points', () => {
     mountContractProgressDom();
-
     renderContractProgressResult({
-      startText: 'Jan 1, 2026',
-      endText: 'Dec 31, 2026',
-      reportText: 'Month 6 / 12',
-      percentage: 48.4,
+      currentPercentage: 48.4,
+      currentDateText: 'Al 03/03/2027',
+      lastReportPercentage: 40.2,
+      lastReportText: '28/02/2027 · Informe 3 de 5',
+      periodText: '01/12/2026 → 03/04/2027',
+      timelinePoints: [{
+        shortDateText: '28 feb', tooltipText: 'Informe 3 de 5 · 40,2 %', percentage: 40.2, position: 50, isPast: true, isToday: false,
+      }],
+      todayPoint: {
+        shortDateText: 'Hoy', tooltipText: 'Avance actual · 48,4 %', percentage: 48.4, position: 58, isPast: true, isToday: true,
+      },
     });
 
-    expect(document.getElementById('fecha-inicio-txt')?.textContent).toBe('Jan 1, 2026');
-    expect(document.getElementById('fecha-fin-txt')?.textContent).toBe('Dec 31, 2026');
-    expect(document.getElementById('informe-periodo')?.textContent).toBe('Month 6 / 12');
-    expect(document.getElementById('porcentaje-numero')?.textContent).toBe('48.4');
-    expect(document.getElementById('barra-progreso')?.style.width).toBe('48.4%');
-    expect(document.getElementById('barra-progreso')?.getAttribute('aria-valuenow')).toBe('48');
+    expect(document.getElementById('current-progress-number')?.textContent).toBe('48.4');
+    expect(document.getElementById('last-report-number')?.textContent).toBe('40.2');
+    expect(document.querySelectorAll('.contract-timeline-point')).toHaveLength(2);
+    expect(document.querySelector('.contract-timeline-today')?.getAttribute('aria-label')).toContain('48,4 %');
+    (document.querySelector('.contract-timeline-today') as HTMLButtonElement).click();
+    expect(document.getElementById('contract-timeline-detail')?.textContent).toContain('48,4 %');
   });
 });
