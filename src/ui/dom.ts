@@ -73,8 +73,10 @@ export function setActionBusy(buttonId: string, busyText: string) {
   return () => {
     button.textContent = button.dataset.originalText || '';
     delete button.dataset.originalText;
-    button.disabled = false;
     button.classList.remove('is-processing');
     button.removeAttribute('aria-busy');
+    // Another state change (for example clearing the source file) may have
+    // disabled this action while its async work was still finishing.
+    button.disabled = button.getAttribute('aria-disabled') === 'true';
   };
 }

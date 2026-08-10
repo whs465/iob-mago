@@ -34,8 +34,11 @@ export type PdfOperationDeps = {
   buildRotatedPortraitPdfFromRenderedPages(
     arrayBuffer: ArrayBuffer,
     selectedPageIndices?: number[] | null,
+    mode?: PdfRotationMode,
   ): Promise<{ pdfBytes: Uint8Array; rotatedCount: number }>;
 };
+
+export type PdfRotationMode = 'auto' | 'left' | 'right' | 'half-turn';
 
 export type PdfOperationResult = {
   pdfBytes: Uint8Array;
@@ -217,6 +220,7 @@ export async function rotatePdfPagesToPortrait(
   file: File,
   pageIndices: number[] | null,
   deps: PdfOperationDeps,
+  mode: PdfRotationMode = 'auto',
 ): Promise<RotatePagesResult> {
   const arrayBuffer = await file.arrayBuffer();
 
@@ -231,9 +235,10 @@ export async function rotatePdfPagesToPortrait(
       const { width, height } = page.getSize();
       const currentRotation = normalizeRotationAngle(page.getRotation().angle);
 
-      if (!isLandscapePage(width, height, currentRotation)) return;
+      if (mode === 'auto' && !isLandscapePage(width, height, currentRotation)) return;
 
-      page.setRotation(deps.degrees(normalizeRotationAngle(currentRotation + 90)));
+      const rotationDelta = mode === 'left' ? -90 : mode === 'half-turn' ? 180 : 90;
+      page.setRotation(deps.degrees(normalizeRotationAngle(currentRotation + rotationDelta)));
       rotatedCount++;
     });
 
@@ -245,7 +250,7 @@ export async function rotatePdfPagesToPortrait(
   } catch (error) {
     if (!deps.pageCopyDeps.isEncryptedPdfError(error)) throw error;
 
-    const result = await deps.buildRotatedPortraitPdfFromRenderedPages(arrayBuffer, pageIndices);
+    const result = await deps.buildRotatedPortraitPdfFromRenderedPages(arrayBuffer, pageIndices, mode);
     return {
       pdfBytes: result.pdfBytes,
       rasterizedFiles: [file.name],

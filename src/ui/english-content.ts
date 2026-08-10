@@ -143,10 +143,16 @@ export function applyEnglishContent({
 
   const rotateCard = getRequiredElement('rotate-card');
   setText('.card-icon', 'Rotate', rotateCard);
-  setText('h3', 'Rotate to portrait', rotateCard);
-  setText('p', 'Review the PDF and rotate only the landscape pages so they end up vertical', rotateCard);
-  setElementText('rotate-pages-label', 'Pages to review (leave blank = whole PDF)');
-  setText('.btn-primary', 'Rotate to portrait', rotateCard);
+  setText('h3', 'Rotate pages', rotateCard);
+  setText('p', 'Fix the orientation of the whole PDF or only the pages you choose.', rotateCard);
+  setText('label[for="rotate-mode"]', 'Rotation', rotateCard);
+  const rotationOptions = requiredQueryAll<HTMLOptionElement>('#rotate-mode option');
+  rotationOptions[0].textContent = 'Automatic · landscape to portrait';
+  rotationOptions[1].textContent = '90° clockwise';
+  rotationOptions[2].textContent = '90° counterclockwise';
+  rotationOptions[3].textContent = '180° · turn upright';
+  setElementText('rotate-pages-label', 'Pages (leave blank = whole PDF)');
+  setText('.btn-primary', 'Rotate pages', rotateCard);
 
   const compressCard = getRequiredElement('compress-card');
   setText('.card-icon', 'Compress', compressCard);

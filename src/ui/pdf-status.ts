@@ -45,13 +45,13 @@ export function getReorderSuccessMessage(
 export function getRotatePagesSuccessMessage(result: RotatePagesResult, i18n: Translator) {
   return result.rasterizedFiles.length > 0
     ? i18n(
-      '{{count}} page(s) rotated to portrait. Protected pages were flattened as images.',
-      '{{count}} página(s) rotada(s) a vertical. Las páginas protegidas se aplanaron como imágenes.',
+      '{{count}} page(s) rotated. Protected pages were flattened as images.',
+      '{{count}} página(s) girada(s). Las páginas protegidas se aplanaron como imágenes.',
       { count: String(result.rotatedCount) },
     )
     : i18n(
-      '{{count}} page(s) rotated to portrait!',
-      '¡{{count}} página(s) rotada(s) a vertical!',
+      '{{count}} page(s) rotated!',
+      '¡{{count}} página(s) girada(s)!',
       { count: String(result.rotatedCount) },
     );
 }

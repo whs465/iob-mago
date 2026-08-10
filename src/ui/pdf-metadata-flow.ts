@@ -23,6 +23,7 @@ export function renderMetadataForm(metadata: EditablePdfMetadata & { creationDat
 
 type MetadataFlowOptions = {
   file: File | null | undefined;
+  isCurrentFile?(file: File): boolean;
   deps: PdfMetadataDeps;
   i18n: SignatureMetaTranslator;
   showStatus(message: string, type: StatusType): void;
@@ -39,6 +40,9 @@ export async function loadPdfMetadataFlow(options: Omit<MetadataFlowOptions, 'sa
   if (!finish) return { status: 'busy' as const };
   try {
     const metadata = await getPdfMetadata(options.file, options.deps);
+    if (options.isCurrentFile && !options.isCurrentFile(options.file)) {
+      return { status: 'stale' as const };
+    }
     renderMetadataForm(metadata, options.i18n('en', 'es'));
     options.showStatus(options.i18n('Metadata loaded', 'Metadatos cargados'), 'success');
     return { status: 'success' as const, metadata };
@@ -60,6 +64,9 @@ export async function savePdfMetadataFlow(options: MetadataFlowOptions, clear = 
   try {
     const metadata = clear ? emptyPdfMetadata() : readMetadataForm();
     const bytes = await writePdfMetadata(options.file, metadata, options.deps);
+    if (options.isCurrentFile && !options.isCurrentFile(options.file)) {
+      return { status: 'stale' as const };
+    }
     const suffix = clear ? options.i18n('-metadata-cleared.pdf', '-sin-metadatos.pdf') : options.i18n('-metadata.pdf', '-metadatos.pdf');
     const filename = `${getPdfBaseName(options.file.name)}${suffix}`;
     options.saveAs(pdfBytesToBlob(bytes), filename);

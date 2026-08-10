@@ -94,12 +94,12 @@ describe('rotatePdfFlow', () => {
 
     expect(result).toEqual({
       status: 'success',
-      filename: 'contract-portrait.pdf',
+      filename: 'contract-rotated.pdf',
       rotatedCount: 2,
       rasterizedFiles: [],
     });
-    expect(options.saveAs).toHaveBeenCalledWith(expect.any(Blob), 'contract-portrait.pdf');
-    expect(options.showStatus).toHaveBeenLastCalledWith('2 page(s) rotated to portrait!', 'success');
+    expect(options.saveAs).toHaveBeenCalledWith(expect.any(Blob), 'contract-rotated.pdf');
+    expect(options.showStatus).toHaveBeenLastCalledWith('2 page(s) rotated!', 'success');
     expect(finishProcessing).toHaveBeenCalledTimes(1);
   });
 
@@ -122,12 +122,12 @@ describe('rotatePdfFlow', () => {
 
     expect(result).toEqual({
       status: 'success',
-      filename: 'contract-portrait.pdf',
+      filename: 'contract-rotated.pdf',
       rotatedCount: 1,
       rasterizedFiles: ['protected.pdf'],
     });
     expect(options.showStatus).toHaveBeenLastCalledWith(
-      '1 page(s) rotated to portrait. Protected pages were flattened as images.',
+      '1 page(s) rotated. Protected pages were flattened as images.',
       'success',
     );
     expect(finishProcessing).toHaveBeenCalledTimes(1);

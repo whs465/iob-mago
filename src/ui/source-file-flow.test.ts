@@ -63,6 +63,7 @@ describe('setupSourceFileFlow', () => {
       </div>
       <button id="source-clear-action"></button>
       <div id="rotate-status"></div>
+      <div id="metadata-editor"></div>
       <input id="source-input" type="file" />
       <label id="source-label"></label>
     `;
@@ -145,6 +146,7 @@ describe('setupSourceFileFlow', () => {
     expect(document.getElementById('source-list')?.children.length).toBe(0);
     expect(document.getElementById('source-workbench-status')?.textContent).toBe('No PDF loaded');
     expect((document.getElementById('source-clear-action') as HTMLButtonElement).disabled).toBe(true);
+    expect(document.getElementById('metadata-editor')?.hasAttribute('hidden')).toBe(true);
   });
 
   it('actualizarSourceList renders file items', () => {

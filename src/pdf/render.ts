@@ -261,6 +261,7 @@ export function createPdfRenderRuntime({
   async function buildRotatedPortraitPdfFromRenderedPages(
     arrayBuffer: ArrayBuffer,
     selectedPageIndices: number[] | null = null,
+    mode: 'auto' | 'left' | 'right' | 'half-turn' = 'auto',
   ) {
     const loadingTask = pdfjsLib.getDocument({ data: cloneArrayBuffer(arrayBuffer) });
     const sourcePdf = await loadingTask.promise;
@@ -273,8 +274,12 @@ export function createPdfRenderRuntime({
       for (let index = 0; index < sourcePdf.numPages; index++) {
         const sourcePage = await sourcePdf.getPage(index + 1);
         const baseViewport = sourcePage.getViewport({ scale: 1 });
-        const shouldRotate = selectedPages.has(index) && baseViewport.width > baseViewport.height;
-        const targetRotation = normalizeRotationAngle((sourcePage.rotate || 0) + (shouldRotate ? 90 : 0));
+        const shouldRotate = selectedPages.has(index)
+          && (mode !== 'auto' || baseViewport.width > baseViewport.height);
+        const rotationDelta = mode === 'left' ? -90 : mode === 'half-turn' ? 180 : 90;
+        const targetRotation = normalizeRotationAngle(
+          (sourcePage.rotate || 0) + (shouldRotate ? rotationDelta : 0),
+        );
         const finalViewport = sourcePage.getViewport({ scale: 1, rotation: targetRotation });
         const renderViewport = sourcePage.getViewport({ scale: 2, rotation: targetRotation });
         const canvas = document.createElement('canvas');

@@ -6,6 +6,7 @@ import {
   type ExtractPagesResult,
   type PdfOperationResult,
   type PdfOperationDeps,
+  type PdfRotationMode,
   type RemovePagesResult,
   type RotatePagesResult,
 } from './operations';
@@ -109,6 +110,7 @@ export async function rotatePdfPagesFromText(
   file: File,
   pagesText: string,
   deps: PageActionDeps,
+  mode: PdfRotationMode = 'auto',
 ): Promise<RotatePagesActionResult> {
   const pageCount = await getPageCount(file, deps.getPageCountFromArrayBuffer);
   const pageSelection = getOptionalPageSelection(pagesText, pageCount);
@@ -116,7 +118,7 @@ export async function rotatePdfPagesFromText(
   if (pageSelection.kind === 'invalid') return { status: 'invalid-pages' };
 
   const runRotate = deps.rotatePdfPagesToPortrait ?? rotatePdfPagesToPortrait;
-  const result = await runRotate(file, pageSelection.pages, deps.operationDeps);
+  const result = await runRotate(file, pageSelection.pages, deps.operationDeps, mode);
 
   return result.rotatedCount > 0
     ? { status: 'ok', result }

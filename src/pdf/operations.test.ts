@@ -216,6 +216,31 @@ describe('pdf operations', () => {
     });
   });
 
+  it.each([
+    ['right', 90],
+    ['left', 270],
+    ['half-turn', 180],
+  ] as const)('applies the %s rotation to every selected page', async (mode, expectedAngle) => {
+    const targetPdf = createTargetPdf();
+    const page = {
+      ref: 'source-page-0',
+      getSize: () => ({ width: 600, height: 800 }),
+      getRotation: () => ({ angle: 0 }),
+      setRotation: vi.fn(),
+    };
+    const sourcePdf = {
+      ...createSourcePdf(1),
+      getPage: () => page,
+      save: vi.fn(async () => new Uint8Array([4, 5, 6])),
+    };
+    const deps = makeDeps(targetPdf, sourcePdf);
+
+    const result = await rotatePdfPagesToPortrait(makeFile('source.pdf'), [0], deps, mode);
+
+    expect(page.setRotation).toHaveBeenCalledWith({ angle: expectedAngle });
+    expect(result.rotatedCount).toBe(1);
+  });
+
   it('uses rendered rotation for encrypted PDFs', async () => {
     const targetPdf = createTargetPdf();
     const encryptedError = new Error('encrypted');
@@ -227,7 +252,7 @@ describe('pdf operations', () => {
 
     const result = await rotatePdfPagesToPortrait(makeFile('locked.pdf'), [0], deps);
 
-    expect(deps.buildRotatedPortraitPdfFromRenderedPages).toHaveBeenCalledWith(expect.any(ArrayBuffer), [0]);
+    expect(deps.buildRotatedPortraitPdfFromRenderedPages).toHaveBeenCalledWith(expect.any(ArrayBuffer), [0], 'auto');
     expect(result).toEqual({
       pdfBytes: new Uint8Array([9, 9, 9]),
       rasterizedFiles: ['locked.pdf'],

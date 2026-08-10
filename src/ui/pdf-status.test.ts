@@ -42,6 +42,6 @@ describe('PDF status messages', () => {
       pdfBytes: new Uint8Array(),
       rasterizedFiles: [],
       rotatedCount: 3,
-    }, translate)).toBe('3 page(s) rotated to portrait!');
+    }, translate)).toBe('3 page(s) rotated!');
   });
 });

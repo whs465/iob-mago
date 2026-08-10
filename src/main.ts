@@ -673,12 +673,18 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
             });
         }
 
-        // ==================== ROTAR A PORTRAIT ====================
+        // ==================== GIRAR PÁGINAS ====================
 
         async function rotarPaginasPortrait() {
+            const modeElement = document.getElementById('rotate-mode') as HTMLSelectElement | null;
+            const selectedMode = modeElement?.value;
+            const mode = selectedMode === 'left' || selectedMode === 'right' || selectedMode === 'half-turn'
+                ? selectedMode
+                : 'auto';
             await rotatePdfFlow({
                 file: sourceFileState.files[0],
                 pagesText: getTrimmedInputValue('rotate-pages'),
+                mode,
                 deps: { getPageCountFromArrayBuffer: getPdfPageCountFromArrayBuffer, operationDeps: pdfOperationDeps },
                 i18n,
                 showStatus,
@@ -708,6 +714,7 @@ import { setupContractProgressFlow } from './ui/contract-progress-flow';
 
         const metadataFlowOptions = () => ({
             file: sourceFileState.files[0],
+            isCurrentFile: (file: File) => sourceFileState.files[0] === file,
             deps: {
                 loadPdfDocument: (buffer: ArrayBuffer, options?: { updateMetadata?: boolean }) => PDFDocument.load(buffer, options)
             },

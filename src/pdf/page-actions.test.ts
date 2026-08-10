@@ -103,7 +103,21 @@ describe('page action helpers', () => {
     const result = await rotatePdfPagesFromText(makeFile(), '', deps);
 
     expect(result.status).toBe('ok');
-    expect(rotatePdfPagesToPortrait).toHaveBeenCalledWith(makeFile(), null, deps.operationDeps);
+    expect(rotatePdfPagesToPortrait).toHaveBeenCalledWith(makeFile(), null, deps.operationDeps, 'auto');
+  });
+
+  it('passes the selected manual rotation mode to the PDF operation', async () => {
+    const rotatePdfPagesToPortrait = vi.fn(async () => ({
+      pdfBytes: new Uint8Array([7, 8, 9]),
+      rasterizedFiles: [],
+      rotatedCount: 2,
+    }));
+    const deps = makeDeps({ rotatePdfPagesToPortrait });
+
+    const result = await rotatePdfPagesFromText(makeFile(), '1-2', deps, 'left');
+
+    expect(result.status).toBe('ok');
+    expect(rotatePdfPagesToPortrait).toHaveBeenCalledWith(makeFile(), [0, 1], deps.operationDeps, 'left');
   });
 
   it('reports when rotation finds no landscape pages', async () => {

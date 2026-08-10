@@ -99,4 +99,16 @@ describe('dom helpers', () => {
     expect(button.disabled).toBe(false);
     expect(button.hasAttribute('aria-busy')).toBe(false);
   });
+
+  it('does not re-enable an action disabled by newer UI state while it was busy', () => {
+    document.body.innerHTML = '<button id="action">Run</button>';
+    const finish = setActionBusy('action', 'Running...');
+    const button = getRequiredElement<HTMLButtonElement>('action');
+
+    button.setAttribute('aria-disabled', 'true');
+    finish?.();
+
+    expect(button.disabled).toBe(true);
+    expect(button.classList.contains('is-processing')).toBe(false);
+  });
 });
