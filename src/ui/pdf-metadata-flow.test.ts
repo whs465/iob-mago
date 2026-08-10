@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { loadPdfMetadataFlow, readMetadataForm, renderMetadataForm } from './pdf-metadata-flow';
+import { formatMetadataDates, loadPdfMetadataFlow, readMetadataForm, renderMetadataForm } from './pdf-metadata-flow';
 
 describe('metadata form helpers', () => {
   beforeEach(() => {
@@ -14,6 +14,23 @@ describe('metadata form helpers', () => {
     renderMetadataForm({ title: 'Report', author: 'Ana', subject: 'S', keywords: 'one', creator: 'App', producer: 'PDF' }, 'en');
     expect(readMetadataForm()).toEqual({ title: 'Report', author: 'Ana', subject: 'S', keywords: 'one', creator: 'App', producer: 'PDF' });
     expect(document.getElementById('metadata-editor')?.hasAttribute('hidden')).toBe(false);
+  });
+
+  it('collapses identical creation and modification dates into one labeled value', () => {
+    const date = new Date('2026-08-10T04:58:00Z');
+
+    expect(formatMetadataDates(date, date, 'es')).toMatch(/^Creado y modificado: /);
+    expect(formatMetadataDates(date, date, 'en')).toMatch(/^Created and modified: /);
+  });
+
+  it('labels different or missing metadata dates clearly', () => {
+    const created = new Date('2026-08-09T04:58:00Z');
+    const modified = new Date('2026-08-10T04:58:00Z');
+
+    expect(formatMetadataDates(created, modified, 'es')).toMatch(/^Creado: .+ · Modificado: /);
+    expect(formatMetadataDates(created, null, 'es')).toMatch(/^Creado: /);
+    expect(formatMetadataDates(null, modified, 'en')).toMatch(/^Modified: /);
+    expect(formatMetadataDates(null, null, 'es')).toBe('Sin fechas registradas');
   });
 
   it('does not render metadata when the source file changed while reading', async () => {

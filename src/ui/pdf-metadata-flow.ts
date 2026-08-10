@@ -13,11 +13,35 @@ export function readMetadataForm(): EditablePdfMetadata {
   return Object.fromEntries(Object.entries(fieldIds).map(([field, id]) => [field, getInputValue(id)])) as EditablePdfMetadata;
 }
 
+export function formatMetadataDates(
+  creationDate?: Date | null,
+  modificationDate?: Date | null,
+  locale = 'es',
+) {
+  const isEnglish = locale.toLowerCase().startsWith('en');
+  const formatDate = (value: Date) => new Intl.DateTimeFormat(locale, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(value);
+
+  if (!creationDate && !modificationDate) {
+    return isEnglish ? 'No dates recorded' : 'Sin fechas registradas';
+  }
+
+  if (creationDate && modificationDate && creationDate.getTime() === modificationDate.getTime()) {
+    return `${isEnglish ? 'Created and modified' : 'Creado y modificado'}: ${formatDate(creationDate)}`;
+  }
+
+  const parts: string[] = [];
+  if (creationDate) parts.push(`${isEnglish ? 'Created' : 'Creado'}: ${formatDate(creationDate)}`);
+  if (modificationDate) parts.push(`${isEnglish ? 'Modified' : 'Modificado'}: ${formatDate(modificationDate)}`);
+  return parts.join(' · ');
+}
+
 export function renderMetadataForm(metadata: EditablePdfMetadata & { creationDate?: Date | null; modificationDate?: Date | null }, locale = 'es') {
   Object.entries(fieldIds).forEach(([field, id]) => setInputValue(id, metadata[field as keyof EditablePdfMetadata]));
-  const formatDate = (value?: Date | null) => value ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(value) : '—';
   const dates = getElement('metadata-dates');
-  if (dates) dates.textContent = `${formatDate(metadata.creationDate)} · ${formatDate(metadata.modificationDate)}`;
+  if (dates) dates.textContent = formatMetadataDates(metadata.creationDate, metadata.modificationDate, locale);
   getElement('metadata-editor')?.removeAttribute('hidden');
 }
 
