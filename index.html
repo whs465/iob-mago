@@ -1469,6 +1469,10 @@
             font-size: 0.9rem;
         }
 
+        .screenshot-format-group {
+            grid-column: 1 / -1;
+        }
+
         .screenshot-actions {
             display: grid;
             gap: 10px;
@@ -4616,9 +4620,17 @@
                                     <option value="white">Blanco</option>
                                 </select>
                             </div>
+                            <div class="input-group screenshot-format-group">
+                                <label for="screenshot-format">Formato de descarga</label>
+                                <select id="screenshot-format" disabled>
+                                    <option value="png" selected>PNG · imagen</option>
+                                    <option value="pdf">PDF · una página</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="screenshot-actions">
                             <label class="btn btn-secondary" for="screenshot-input" id="screenshot-replace-action">Cambiar imagen</label>
+                            <button class="btn btn-secondary" type="button" id="screenshot-copy-action" disabled>Copiar imagen</button>
                             <button class="btn btn-primary" type="button" id="screenshot-download-action" disabled>Descargar PNG</button>
                         </div>
                     </aside>

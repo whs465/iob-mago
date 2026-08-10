@@ -99,6 +99,7 @@ export function applyEnglishContent({
   setText('label[for="screenshot-shadow"]', 'Shadow');
   setText('label[for="screenshot-padding"]', 'Margin');
   setText('label[for="screenshot-background"]', 'Background');
+  setText('label[for="screenshot-format"]', 'Download format');
   const screenshotRadiusOptions = requiredQueryAll<HTMLOptionElement>('#screenshot-radius option');
   screenshotRadiusOptions[0].textContent = 'Subtle';
   screenshotRadiusOptions[1].textContent = 'Smooth';
@@ -115,7 +116,11 @@ export function applyEnglishContent({
   screenshotBackgroundOptions[0].textContent = 'Transparent';
   screenshotBackgroundOptions[1].textContent = 'Soft gray';
   screenshotBackgroundOptions[2].textContent = 'White';
+  const screenshotFormatOptions = requiredQueryAll<HTMLOptionElement>('#screenshot-format option');
+  screenshotFormatOptions[0].textContent = 'PNG · image';
+  screenshotFormatOptions[1].textContent = 'PDF · one page';
   setElementText('screenshot-replace-action', 'Change image');
+  setElementText('screenshot-copy-action', 'Copy image');
   setElementText('screenshot-download-action', 'Download PNG');
   setElementText('screenshot-status', 'Waiting for a screenshot · processed locally');
 

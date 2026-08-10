@@ -1,4 +1,6 @@
 import type { SignatureMetaTranslator } from './signature-preview';
+import { screenshotPngToPdf } from '../pdf/screenshot-to-pdf';
+import { pdfBytesToBlob } from '../utils/pdf-bytes';
 
 export type ScreenshotPolishStyle = {
   radius: number;
@@ -14,6 +16,8 @@ export type ScreenshotPolishOptions = {
   i18n: SignatureMetaTranslator;
   saveAs(blob: Blob, filename: string): void;
   decodeImage?: (file: Blob) => Promise<DrawableImage>;
+  copyBlob?: (blob: Blob) => Promise<void>;
+  createPdf?: (pngBlob: Blob) => Promise<Uint8Array>;
 };
 
 const MAX_IMAGE_EDGE = 4096;
@@ -128,9 +132,9 @@ function canvasToBlob(canvas: HTMLCanvasElement) {
   });
 }
 
-function outputFilename(sourceName?: string) {
+function outputFilename(sourceName?: string, extension = 'png') {
   const base = (sourceName || 'captura').replace(/\.[^.]+$/, '') || 'captura';
-  return `${base}-pro.png`;
+  return `${base}-pro.${extension}`;
 }
 
 export function setupScreenshotPolish({
@@ -138,18 +142,22 @@ export function setupScreenshotPolish({
   i18n,
   saveAs,
   decodeImage = decodeImageFile,
+  copyBlob,
+  createPdf = screenshotPngToPdf,
 }: ScreenshotPolishOptions) {
   const zone = root.querySelector<HTMLElement>('#screenshot-paste-zone');
   const input = root.querySelector<HTMLInputElement>('#screenshot-input');
   const canvas = root.querySelector<HTMLCanvasElement>('#screenshot-canvas');
   const placeholder = root.querySelector<HTMLElement>('#screenshot-preview-empty');
   const status = root.querySelector<HTMLElement>('#screenshot-status');
+  const copy = root.querySelector<HTMLButtonElement>('#screenshot-copy-action');
   const download = root.querySelector<HTMLButtonElement>('#screenshot-download-action');
   const radius = root.querySelector<HTMLSelectElement>('#screenshot-radius');
   const shadow = root.querySelector<HTMLSelectElement>('#screenshot-shadow');
   const padding = root.querySelector<HTMLSelectElement>('#screenshot-padding');
   const background = root.querySelector<HTMLSelectElement>('#screenshot-background');
-  if (!zone || !input || !canvas || !placeholder || !status || !download || !radius || !shadow || !padding || !background) {
+  const format = root.querySelector<HTMLSelectElement>('#screenshot-format');
+  if (!zone || !input || !canvas || !placeholder || !status || !copy || !download || !radius || !shadow || !padding || !background || !format) {
     return () => undefined;
   }
 
@@ -157,6 +165,13 @@ export function setupScreenshotPolish({
   let sourceName = 'captura';
   const cleanups: Array<() => void> = [];
   const ownerDocument = zone.ownerDocument;
+  const copyPng = copyBlob ?? (async (blob: Blob) => {
+    const view = ownerDocument.defaultView as (Window & typeof globalThis) | null;
+    if (!view?.navigator.clipboard?.write || !view.ClipboardItem) {
+      throw new Error('Image clipboard is unavailable');
+    }
+    await view.navigator.clipboard.write([new view.ClipboardItem({ 'image/png': blob })]);
+  });
 
   const getStyle = (): ScreenshotPolishStyle => ({
     radius: Number(radius.value) || 14,
@@ -167,11 +182,18 @@ export function setupScreenshotPolish({
       : 'transparent',
   });
 
+  const updateDownloadLabel = () => {
+    download.textContent = format.value === 'pdf'
+      ? i18n('Download PDF', 'Descargar PDF')
+      : i18n('Download PNG', 'Descargar PNG');
+  };
+
   const render = () => {
     if (!image) return;
     const size = drawPolishedScreenshot(canvas, image, getStyle());
     canvas.hidden = false;
     placeholder.hidden = true;
+    copy.disabled = false;
     download.disabled = false;
     status.textContent = i18n(
       'Ready to download · {{width}} × {{height}} px',
@@ -190,7 +212,7 @@ export function setupScreenshotPolish({
       image = await decodeImage(file);
       sourceName = file.name || 'captura';
       zone.classList.add('has-image');
-      [radius, shadow, padding, background].forEach(control => { control.disabled = false; });
+      [radius, shadow, padding, background, format].forEach(control => { control.disabled = false; });
       render();
     } catch {
       status.textContent = i18n('The image could not be read', 'No se pudo leer la imagen');
@@ -244,13 +266,43 @@ export function setupScreenshotPolish({
     control.addEventListener('change', render);
     cleanups.push(() => control.removeEventListener('change', render));
   });
+  format.addEventListener('change', updateDownloadLabel);
+  cleanups.push(() => format.removeEventListener('change', updateDownloadLabel));
+
+  const onCopy = async () => {
+    if (!image) return;
+    copy.disabled = true;
+    status.textContent = i18n('Copying image...', 'Copiando imagen...');
+    try {
+      await copyPng(await canvasToBlob(canvas));
+      status.textContent = i18n(
+        'Image copied · paste it wherever you need it',
+        'Imagen copiada · pégala donde la necesites',
+      );
+    } catch {
+      status.textContent = i18n(
+        'Your browser did not allow copying the image. You can still download the PNG.',
+        'El navegador no permitió copiar la imagen. Todavía puedes descargar el PNG.',
+      );
+    } finally {
+      copy.disabled = false;
+    }
+  };
+  copy.addEventListener('click', onCopy);
+  cleanups.push(() => copy.removeEventListener('click', onCopy));
 
   const onDownload = async () => {
     if (!image) return;
     download.disabled = true;
     try {
-      saveAs(await canvasToBlob(canvas), outputFilename(sourceName));
-      status.textContent = i18n('PNG downloaded', 'PNG descargado');
+      const png = await canvasToBlob(canvas);
+      if (format.value === 'pdf') {
+        saveAs(pdfBytesToBlob(await createPdf(png)), outputFilename(sourceName, 'pdf'));
+        status.textContent = i18n('PDF downloaded', 'PDF descargado');
+      } else {
+        saveAs(png, outputFilename(sourceName));
+        status.textContent = i18n('PNG downloaded', 'PNG descargado');
+      }
     } catch {
       status.textContent = i18n('The PNG could not be created', 'No se pudo crear el PNG');
     } finally {
