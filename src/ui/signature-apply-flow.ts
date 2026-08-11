@@ -1,5 +1,6 @@
 import { applySignedPdfDownloadAction, type ApplySignedPdfDownloadResult } from '../pdf/sign-download-action';
-import { validatePdfSignatureInputs } from '../pdf/sign-action';
+import { validatePdfEditInputs } from '../pdf/sign-action';
+import type { PdfTextPlacement } from '../pdf/place-text';
 import type { SignatureMarker } from '../state/signature-markers';
 import type { SignPdfDeps } from '../pdf/sign';
 import type { StatusType } from './dom';
@@ -12,6 +13,7 @@ export type ApplySignatureFlowOptions = {
   imageBytes: ArrayBuffer | null;
   imageType?: string | null;
   markers: SignatureMarker[];
+  textPlacements?: PdfTextPlacement[];
   applyAllPages: boolean;
   deps: SignPdfDeps;
   i18n: SignatureMetaTranslator;
@@ -50,6 +52,7 @@ export async function applySignatureFlow({
   imageBytes,
   imageType,
   markers,
+  textPlacements = [],
   applyAllPages,
   deps,
   i18n,
@@ -59,9 +62,13 @@ export async function applySignatureFlow({
   applySignedPdfDownload = applySignedPdfDownloadAction,
   logError = console.error,
 }: ApplySignatureFlowOptions): Promise<ApplySignatureFlowResult> {
-  const validationStatus = validatePdfSignatureInputs({ file, imageBytes, markers });
+  const validationStatus = validatePdfEditInputs({ file, imageBytes, markers, textPlacements });
   if (validationStatus) {
-    showStatus(getValidationMessage(validationStatus, i18n), 'error');
+    if (validationStatus === 'missing-markers' && textPlacements.length === 0) {
+      showStatus(i18n('Mark a signature or text position', 'Marca una posición de firma o texto'), 'error');
+    } else {
+      showStatus(getValidationMessage(validationStatus, i18n), 'error');
+    }
     return { status: validationStatus };
   }
 
@@ -79,16 +86,21 @@ export async function applySignatureFlow({
       imageBytes,
       imageType,
       markers,
+      textPlacements,
       applyAllPages,
       deps,
-      filenameSuffix: i18n('-signed.pdf', '-firmado.pdf'),
+      filenameSuffix: textPlacements.length > 0
+        ? i18n('-edited.pdf', '-editado.pdf')
+        : i18n('-signed.pdf', '-firmado.pdf'),
     });
 
     if (result.status !== 'success') return { status: result.status };
 
     saveAs(result.blob, result.filename);
     showStatus(
-      i18n('Signature applied successfully!', 'Firma aplicada exitosamente!'),
+      textPlacements.length > 0
+        ? i18n('PDF edited successfully!', 'PDF editado exitosamente!')
+        : i18n('Signature applied successfully!', 'Firma aplicada exitosamente!'),
       'success',
     );
 

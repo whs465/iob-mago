@@ -45,6 +45,7 @@ import {
     saveSignatureSlot
 } from './state/signature-storage';
 import { createSignatureViewerState } from './state/signature-viewer';
+import { createPdfTextMarkerState } from './state/pdf-text-marker';
 import {
     getInputElement,
     getInputValue,
@@ -127,6 +128,7 @@ import { setupSourceFileFlow } from './ui/source-file-flow';
 import { setupContractProgressFlow } from './ui/contract-progress-flow';
 import { setupPdfToolWorkspace } from './ui/pdf-tool-workspace';
 import { setupScreenshotPolish } from './ui/screenshot-polish';
+import { getPdfTextPointFromCanvas, renderPdfTextMarker } from './ui/pdf-text-marker';
 
         const {
             loadPdfDocument,
@@ -167,6 +169,8 @@ import { setupScreenshotPolish } from './ui/screenshot-polish';
         const signatureDragState = createSignatureDragState();
         const signatureGeneratorState = createSignatureGeneratorState();
         const preparedSignatureState = createPreparedSignatureState();
+        const pdfTextMarkerState = createPdfTextMarkerState();
+        let documentPlacementMode: 'signature' | 'text' = 'signature';
 
         const supportPaymentDetails = {
             // Pega aquí tus datos reales antes de publicar.
@@ -331,6 +335,7 @@ import { setupScreenshotPolish } from './ui/screenshot-polish';
         }
 
         function resetPdfViewerState() {
+            pdfTextMarkerState.clear();
             resetSignaturePdfViewer({
                 viewerState: signatureViewerState,
                 markerState: signatureMarkerState,
@@ -422,8 +427,8 @@ import { setupScreenshotPolish } from './ui/screenshot-polish';
         function updateSignatureProgressState() {
             updateSignatureProgress({
                 hasPdf: !!signatureViewerState.file,
-                hasSignature: activeSignatureState.hasImage,
-                hasMarker: signatureMarkerState.markers.length > 0,
+                hasSignature: activeSignatureState.hasImage || !!getTrimmedInputValue('pdf-text-content'),
+                hasMarker: signatureMarkerState.markers.length > 0 || !!pdfTextMarkerState.marker,
             });
         }
 
@@ -537,6 +542,7 @@ import { setupScreenshotPolish } from './ui/screenshot-polish';
             setupPdfToolWorkspace();
             translatePageToEnglish();
             setupScreenshotPolish({ i18n, saveAs });
+            setupDocumentPlacementControls();
             updateSignatureCleanSensitivity();
             updateSignatureTone();
             updateSignatureGeneratorControlsState();
@@ -808,6 +814,7 @@ import { setupScreenshotPolish } from './ui/screenshot-polish';
         });
 
         async function loadPDF(file) {
+            pdfTextMarkerState.clear();
             await loadSignaturePdfFlow({
                 file,
                 viewerState: signatureViewerState,
@@ -885,6 +892,38 @@ import { setupScreenshotPolish } from './ui/screenshot-polish';
         }
 
         async function handleCanvasClick(event) {
+            if (documentPlacementMode === 'text') {
+                const text = getTrimmedInputValue('pdf-text-content');
+                if (!signatureViewerState.file) {
+                    showStatus(i18n('Select a PDF first', 'Primero selecciona un PDF'), 'error');
+                    return;
+                }
+                if (!text) {
+                    showStatus(i18n('Enter the text first', 'Primero escribe el texto'), 'error');
+                    return;
+                }
+                const canvas = getPdfCanvas();
+                const point = getPdfTextPointFromCanvas(event, canvas.getBoundingClientRect(), {
+                    canvasWidth: canvas.width,
+                    canvasHeight: canvas.height,
+                    pageWidth: signatureViewerState.pageWidth,
+                    pageHeight: signatureViewerState.pageHeight,
+                });
+                if (!point) return;
+                pdfTextMarkerState.set({
+                    page: signatureViewerState.currentPage,
+                    ...point,
+                    text,
+                    fontSize: Number(getInputValue('pdf-text-size')) || 12,
+                });
+                updateMarkersDisplay();
+                updateSignatureProgressState();
+                showStatus(
+                    i18n('Text positioned · click again to move it', 'Texto ubicado · haz clic de nuevo para moverlo'),
+                    'success'
+                );
+                return;
+            }
             await handleSignatureCanvasClickFlow({
                 event,
                 canvas: getPdfCanvas(),
@@ -902,11 +941,12 @@ import { setupScreenshotPolish } from './ui/screenshot-polish';
         }
 
         function updateMarkersDisplay() {
+            const markerContainer = document.getElementById('signature-markers');
             renderSignatureMarkerOverlayFlow({
                 markerState: signatureMarkerState,
                 dragState: signatureDragState,
                 viewerState: signatureViewerState,
-                container: document.getElementById('signature-markers'),
+                container: markerContainer,
                 getPosition: getMarkerCanvasPosition,
                 getDimensions: getSignatureCanvasDimensions,
                 imageUrl: signaturePreviewState.objectUrl ?? undefined,
@@ -918,6 +958,25 @@ import { setupScreenshotPolish } from './ui/screenshot-polish';
                     removeSignature(index);
                 }
             });
+            if (markerContainer) {
+                const canvas = getPdfCanvas();
+                renderPdfTextMarker(
+                    markerContainer,
+                    pdfTextMarkerState.marker,
+                    signatureViewerState.currentPage,
+                    {
+                        canvasWidth: canvas.width,
+                        canvasHeight: canvas.height,
+                        pageWidth: signatureViewerState.pageWidth || 1,
+                        pageHeight: signatureViewerState.pageHeight || 1,
+                    },
+                    () => {
+                        pdfTextMarkerState.clear();
+                        updateMarkersDisplay();
+                        updateSignatureProgressState();
+                    }
+                );
+            }
         }
 
         function updateSignatureList() {
@@ -942,6 +1001,7 @@ import { setupScreenshotPolish } from './ui/screenshot-polish';
         }
 
         function clearMarkers() {
+            pdfTextMarkerState.clear();
             clearSignatureMarkersFlow(
                 signatureMarkerState,
                 updateMarkersDisplay,
@@ -963,11 +1023,21 @@ import { setupScreenshotPolish } from './ui/screenshot-polish';
         }
 
         async function applySignatures() {
+            const textMarker = pdfTextMarkerState.marker?.text.trim()
+                ? pdfTextMarkerState.marker
+                : null;
             await applySignatureFlow({
                 file: signatureViewerState.file,
                 imageBytes: activeSignatureState.imageBytes,
                 imageType: activeSignatureState.imageType,
                 markers: signatureMarkerState.markers,
+                textPlacements: textMarker ? [{
+                    text: textMarker.text,
+                    pageIndex: textMarker.page - 1,
+                    x: textMarker.x,
+                    y: textMarker.y,
+                    fontSize: textMarker.fontSize,
+                }] : [],
                 applyAllPages: getCheckboxValue('apply-all-pages'),
                 deps: { loadPdfDocument },
                 i18n,
@@ -975,6 +1045,46 @@ import { setupScreenshotPolish } from './ui/screenshot-polish';
                 setActionBusy,
                 saveAs
             });
+        }
+
+        function setDocumentPlacementMode(mode: 'signature' | 'text') {
+            documentPlacementMode = mode;
+            document.querySelectorAll<HTMLButtonElement>('[data-document-placement-mode]').forEach(button => {
+                const active = button.dataset.documentPlacementMode === mode;
+                button.classList.toggle('signature-slot-tab-active', active);
+                button.setAttribute('aria-selected', String(active));
+            });
+            const signaturePanel = document.getElementById('signature-mode-panel');
+            const textPanel = document.getElementById('text-mode-panel');
+            if (signaturePanel) signaturePanel.hidden = mode !== 'signature';
+            if (textPanel) textPanel.hidden = mode !== 'text';
+            const help = document.getElementById('help-text');
+            if (help) help.innerHTML = mode === 'text'
+                ? i18n('<strong>Click the PDF</strong> to position the text', '<strong>Click en el PDF</strong> para ubicar el texto')
+                : i18n('<strong>Click the PDF</strong> to mark the signature position', '<strong>Click en el PDF</strong> para marcar la posición de la firma');
+            getPdfCanvas().dataset.placementMode = mode;
+        }
+
+        function setupDocumentPlacementControls() {
+            document.querySelectorAll<HTMLButtonElement>('[data-document-placement-mode]').forEach(button => {
+                button.addEventListener('click', () => {
+                    setDocumentPlacementMode(button.dataset.documentPlacementMode === 'text' ? 'text' : 'signature');
+                });
+            });
+            const textInput = getInputElement('pdf-text-content');
+            const sizeInput = getInputElement('pdf-text-size');
+            textInput?.addEventListener('input', () => {
+                pdfTextMarkerState.updateText(textInput.value);
+                updateMarkersDisplay();
+                updateSignatureProgressState();
+            });
+            sizeInput?.addEventListener('input', () => {
+                pdfTextMarkerState.updateFontSize(Number(sizeInput.value) || 12);
+                const value = document.getElementById('pdf-text-size-value');
+                if (value) value.textContent = `${sizeInput.value} pt`;
+                updateMarkersDisplay();
+            });
+            setDocumentPlacementMode('signature');
         }
     
 registerWindowPdfActions({

@@ -255,10 +255,10 @@ export function applyEnglishContent({
 
   const signCard = getRequiredElement('sign-card');
   setText('.card-icon', 'Sign', signCard);
-  setText('.signature-stage h3', 'Sign PDF with an image', signCard);
+  setText('.signature-stage h3', 'Sign and add text to a PDF', signCard);
   setText(
     '.signature-stage > p',
-    'Upload the PDF and your signature image, mark the position, move it if needed, and download it signed at the size you prefer.',
+    'Upload the PDF and use the same viewer to place your signature, add text, or do both before downloading.',
     signCard,
   );
   setElementText('signature-creator-entry-title', 'Is your signature still just a photo?');
@@ -316,14 +316,20 @@ export function applyEnglishContent({
   setText('[data-signature-step="marker"] strong', 'Position');
   setText('[data-signature-step="download"] strong', 'Download');
   setHtml('#help-text', '<strong>Click on the PDF</strong> to mark the signature position');
-  setText('.signature-controls h4', 'Signature settings');
+  setText('.signature-controls h4', 'Place in the document');
+  setText('[data-document-placement-mode="signature"]', 'Signature');
+  setText('[data-document-placement-mode="text"]', 'Text');
   setHtml(
     '.signature-storage-note',
     '<strong>Your signature image is stored in this browser</strong> so you do not need to upload it every time. If you replace it, it updates right here.',
   );
   setText('.slider-group label', 'Signature size');
   setText('label[for="apply-all-pages"]', 'Apply to all pages');
-  setText('.signature-controls .btn-primary', 'Apply signature and download');
+  setText('label[for="pdf-text-content"]', 'Text');
+  setInputPlaceholder('pdf-text-content', 'Reviewed and approved');
+  setText('#text-mode-panel .slider-group label', 'Font size');
+  setText('.text-placement-note', 'Enter the text and click the PDF to position it. Another click moves the same marker.');
+  setText('.signature-controls .btn-primary', 'Apply and download');
   setImageAlt('signature-preview', 'Signature preview');
   setText('.signature-generator-kicker', 'Prepare PNG');
   setElementText('signature-generator-title', 'Create a transparent PNG from a photo');

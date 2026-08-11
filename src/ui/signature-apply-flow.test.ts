@@ -85,4 +85,29 @@ describe('applySignatureFlow', () => {
     expect(options.showStatus).toHaveBeenLastCalledWith('Error applying signature: bad sign', 'error');
     expect(finishProcessing).toHaveBeenCalledTimes(1);
   });
+
+  it('downloads a text-only edit without requiring a signature image', async () => {
+    const options = makeValidOptions();
+    const applySignedPdfDownload = vi.fn(async () => ({
+      status: 'success' as const,
+      blob: new Blob(['pdf'], { type: 'application/pdf' }),
+      filename: 'contract-edited.pdf',
+    }));
+
+    const result = await applySignatureFlow({
+      ...options,
+      imageBytes: null,
+      markers: [],
+      textPlacements: [{ text: 'Aprobado', pageIndex: 0, x: 10, y: 20, fontSize: 12 }],
+      applySignedPdfDownload,
+    });
+
+    expect(result).toEqual({ status: 'success', filename: 'contract-edited.pdf' });
+    expect(applySignedPdfDownload).toHaveBeenCalledWith(expect.objectContaining({
+      imageBytes: null,
+      markers: [],
+      textPlacements: [expect.objectContaining({ text: 'Aprobado' })],
+      filenameSuffix: '-edited.pdf',
+    }));
+  });
 });

@@ -68,4 +68,31 @@ describe('applyPdfSignatures', () => {
     })).resolves.toEqual({ status: 'missing-pdf' });
     expect(loadPdfDocument).not.toHaveBeenCalled();
   });
+
+  it('allows a text-only edit without a signature image', async () => {
+    const pdfDoc = {
+      ...makePdfDoc(),
+      embedFont: vi.fn(async () => ({
+        widthOfTextAtSize: () => 50,
+        heightAtSize: () => 12,
+      })),
+      getPage: vi.fn(() => ({
+        drawImage: vi.fn(),
+        drawText: vi.fn(),
+        getSize: () => ({ width: 600, height: 800 }),
+      })),
+    };
+
+    const result = await applyPdfSignatures({
+      file: makeFile(),
+      imageBytes: null,
+      markers: [],
+      textPlacements: [{ text: 'Aprobado', pageIndex: 0, x: 20, y: 30, fontSize: 12 }],
+      applyAllPages: false,
+      deps: { loadPdfDocument: vi.fn(async () => pdfDoc) },
+    });
+
+    expect(result.status).toBe('success');
+    expect(pdfDoc.embedPng).not.toHaveBeenCalled();
+  });
 });

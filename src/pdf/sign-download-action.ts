@@ -1,4 +1,5 @@
 import type { SignatureMarker } from '../state/signature-markers';
+import type { PdfTextPlacement } from './place-text';
 import { getPdfBaseName } from '../utils/filenames';
 import { pdfBytesToBlob } from '../utils/pdf-bytes';
 import {
@@ -13,6 +14,7 @@ export type ApplySignedPdfDownloadInput = {
   imageBytes: ArrayBuffer | null;
   imageType?: string | null;
   markers: SignatureMarker[];
+  textPlacements?: PdfTextPlacement[];
   applyAllPages: boolean;
   deps: SignPdfDeps;
   filenameSuffix: string;
@@ -32,6 +34,7 @@ export async function applySignedPdfDownloadAction({
   imageBytes,
   imageType,
   markers,
+  textPlacements = [],
   applyAllPages,
   deps,
   filenameSuffix,
@@ -42,6 +45,7 @@ export async function applySignedPdfDownloadAction({
     imageBytes,
     imageType,
     markers,
+    textPlacements,
     applyAllPages,
     deps,
   });

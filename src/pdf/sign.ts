@@ -1,4 +1,6 @@
 import type { SignatureMarker } from '../state/signature-markers';
+import type { PdfTextPlacement } from './place-text';
+import { StandardFonts, rgb } from 'pdf-lib';
 import { getSignaturePdfDimensions } from '../utils/signature-geometry';
 
 type SignatureImage = {
@@ -16,11 +18,17 @@ type PdfPageWithDrawImage = {
       height: number;
     },
   ): void;
+  drawText?(text: string, options: Record<string, unknown>): void;
+  getSize?(): { width: number; height: number };
 };
 
 export type SignablePdfDocument = {
   embedPng(imageBytes: ArrayBuffer): Promise<SignatureImage>;
   embedJpg(imageBytes: ArrayBuffer): Promise<SignatureImage>;
+  embedFont?(font: typeof StandardFonts.Helvetica): Promise<{
+    widthOfTextAtSize(text: string, size: number): number;
+    heightAtSize(size: number): number;
+  }>;
   getPageCount(): number;
   getPage(index: number): PdfPageWithDrawImage;
   save(): Promise<Uint8Array>;
@@ -34,6 +42,7 @@ export type SignPdfOptions = {
   applyAllPages: boolean;
   imageType?: string | null;
   deps: SignPdfDeps;
+  textPlacements?: PdfTextPlacement[];
 };
 
 function detectImageTypeFromBytes(imageBytes: ArrayBuffer) {
@@ -61,56 +70,68 @@ function detectImageTypeFromBytes(imageBytes: ArrayBuffer) {
 
 export async function signPdfWithImage(
   file: File,
-  imageBytes: ArrayBuffer,
+  imageBytes: ArrayBuffer | null,
   markers: SignatureMarker[],
   options: SignPdfOptions,
 ) {
   const arrayBuffer = await file.arrayBuffer();
   const pdfDoc = await options.deps.loadPdfDocument(arrayBuffer);
-  const detectedImageType = detectImageTypeFromBytes(imageBytes);
-  const normalizedImageType = options.imageType?.toLowerCase() || detectedImageType;
+  if (markers.length > 0) {
+    if (!imageBytes) throw new Error('A signature image is required.');
+    const detectedImageType = detectImageTypeFromBytes(imageBytes);
+    const normalizedImageType = options.imageType?.toLowerCase() || detectedImageType;
 
-  let signatureImage;
-  if (normalizedImageType === 'image/jpeg' || normalizedImageType === 'image/jpg') {
-    signatureImage = await pdfDoc.embedJpg(imageBytes);
-  } else if (normalizedImageType === 'image/png') {
-    signatureImage = await pdfDoc.embedPng(imageBytes);
-  } else {
-    try {
+    let signatureImage;
+    if (normalizedImageType === 'image/jpeg' || normalizedImageType === 'image/jpg') {
+      signatureImage = await pdfDoc.embedJpg(imageBytes);
+    } else if (normalizedImageType === 'image/png') {
       signatureImage = await pdfDoc.embedPng(imageBytes);
-    } catch {
+    } else {
       try {
-        signatureImage = await pdfDoc.embedJpg(imageBytes);
+        signatureImage = await pdfDoc.embedPng(imageBytes);
       } catch {
-        throw new Error('Unsupported signature image format. Use PNG or JPG.');
+        try {
+          signatureImage = await pdfDoc.embedJpg(imageBytes);
+        } catch {
+          throw new Error('Unsupported signature image format. Use PNG or JPG.');
+        }
       }
+    }
+
+    const applySignature = (page: PdfPageWithDrawImage, marker: SignatureMarker) => {
+      const imageAspectRatio = signatureImage.width / signatureImage.height;
+      const { width, height } = getSignaturePdfDimensions(marker, imageAspectRatio);
+      const x = marker.x - width / 2;
+      const y = marker.y - height / 2;
+
+      page.drawImage(signatureImage, { x, y, width, height });
+    };
+
+    if (options.applyAllPages) {
+      const baseMarker = markers[0];
+      for (let i = 0; i < pdfDoc.getPageCount(); i++) {
+        applySignature(pdfDoc.getPage(i), { ...baseMarker, page: i + 1 });
+      }
+    } else {
+      for (const marker of markers) applySignature(pdfDoc.getPage(marker.page - 1), marker);
     }
   }
 
-  const applySignature = (page: PdfPageWithDrawImage, marker: SignatureMarker) => {
-    const imageAspectRatio = signatureImage.width / signatureImage.height;
-    const { width, height } = getSignaturePdfDimensions(marker, imageAspectRatio);
-    const x = marker.x - width / 2;
-    const y = marker.y - height / 2;
-
-    page.drawImage(signatureImage, {
-      x,
-      y,
-      width,
-      height,
-    });
-  };
-
-  if (options.applyAllPages && markers.length > 0) {
-    const baseMarker = markers[0];
-    for (let i = 0; i < pdfDoc.getPageCount(); i++) {
-      const page = pdfDoc.getPage(i);
-      applySignature(page, { ...baseMarker, page: i + 1 });
-    }
-  } else {
-    for (const marker of markers) {
-      const page = pdfDoc.getPage(marker.page - 1);
-      applySignature(page, marker);
+  const textPlacements = options.textPlacements ?? [];
+  if (textPlacements.length > 0) {
+    if (!pdfDoc.embedFont) throw new Error('This PDF runtime cannot embed text.');
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    for (const placement of textPlacements) {
+      const text = placement.text.trim();
+      const page = pdfDoc.getPage(placement.pageIndex);
+      if (!text || !page?.drawText || !page.getSize) continue;
+      const size = Math.min(96, Math.max(6, Number(placement.fontSize) || 12));
+      const { width, height } = page.getSize();
+      const textWidth = font.widthOfTextAtSize(text, size);
+      const textHeight = font.heightAtSize(size);
+      const x = Math.min(Math.max(0, placement.x), Math.max(0, width - textWidth));
+      const y = Math.min(Math.max(0, placement.y - textHeight), Math.max(0, height - textHeight));
+      page.drawText(text, { x, y, size, font, color: rgb(0.11, 0.11, 0.12) });
     }
   }
 

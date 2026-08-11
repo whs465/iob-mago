@@ -6,10 +6,18 @@ function makeFile(name = 'source.pdf') {
 }
 
 function makePdfDoc(pageCount = 2) {
-  const pages = Array.from({ length: pageCount }, () => ({ drawImage: vi.fn() }));
+  const pages = Array.from({ length: pageCount }, () => ({
+    drawImage: vi.fn(),
+    drawText: vi.fn(),
+    getSize: vi.fn(() => ({ width: 600, height: 800 })),
+  }));
   return {
     embedPng: vi.fn(async () => ({ width: 200, height: 100, kind: 'png' })),
     embedJpg: vi.fn(async () => ({ width: 300, height: 100, kind: 'jpg' })),
+    embedFont: vi.fn(async () => ({
+      widthOfTextAtSize: (text: string, size: number) => text.length * size * 0.5,
+      heightAtSize: (size: number) => size,
+    })),
     getPageCount: vi.fn(() => pageCount),
     getPage: vi.fn((index: number) => pages[index]),
     save: vi.fn(async () => new Uint8Array([1, 2, 3])),
@@ -98,5 +106,26 @@ describe('signPdfWithImage', () => {
       [{ page: 1, x: 100, y: 100, size: 60 }],
       { applyAllPages: false, deps },
     )).rejects.toThrow('Unsupported signature image format. Use PNG or JPG.');
+  });
+
+  it('adds vector text without requiring a signature image', async () => {
+    const pdfDoc = makePdfDoc(2);
+
+    await signPdfWithImage(
+      makeFile(),
+      null,
+      [],
+      {
+        applyAllPages: false,
+        deps: { loadPdfDocument: vi.fn(async () => pdfDoc) },
+        textPlacements: [{ text: 'Aprobado', pageIndex: 1, x: 120, y: 200, fontSize: 12 }],
+      },
+    );
+
+    expect(pdfDoc.embedPng).not.toHaveBeenCalled();
+    expect(pdfDoc.pages[1].drawText).toHaveBeenCalledWith(
+      'Aprobado',
+      expect.objectContaining({ x: 120, y: 188, size: 12 }),
+    );
   });
 });

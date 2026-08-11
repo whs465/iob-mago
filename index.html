@@ -2098,6 +2098,28 @@
             pointer-events: none;
         }
 
+        .pdf-text-marker {
+            position: absolute;
+            z-index: 3;
+            max-width: calc(100% - 8px);
+            padding: 2px 4px;
+            border: 1px dashed rgba(15, 23, 42, 0.64);
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.74);
+            color: #1d1d1f;
+            font-family: Helvetica, Arial, sans-serif;
+            line-height: 1;
+            white-space: nowrap;
+            pointer-events: auto;
+            transform: translateY(0);
+            box-shadow: 0 5px 16px rgba(15, 23, 42, 0.1);
+        }
+
+        .pdf-text-marker-delete {
+            top: -12px;
+            right: -12px;
+        }
+
         .signature-marker {
             position: absolute;
             border: 2px solid rgba(10, 132, 255, 0.82);
@@ -2174,6 +2196,45 @@
             margin-bottom: 18px;
             font-size: 1.15rem;
             letter-spacing: -0.02em;
+        }
+
+        .document-placement-tabs {
+            margin-bottom: 20px;
+        }
+
+        .text-placement-field {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .text-placement-field label {
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .text-placement-field input[type="text"] {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 13px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            font: inherit;
+            outline: none;
+        }
+
+        .text-placement-field input[type="text"]:focus {
+            border-color: rgba(10, 132, 255, 0.8);
+            box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.16);
+        }
+
+        .text-placement-note {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.62);
+            font-size: 0.82rem;
+            line-height: 1.5;
         }
 
         .signature-preview {
@@ -4239,8 +4300,8 @@
 
             <div class="card card-full signature-stage" id="sign-card">
                 <div class="card-icon">Firma</div>
-                <h3>Firmar PDF con imagen</h3>
-                <p>Carga el PDF y la imagen de tu firma, marca la posición, muévela si hace falta y descárgalo firmado con el tamaño que prefieras.</p>
+                <h3>Firmar y agregar texto al PDF</h3>
+                <p>Carga el PDF y usa el mismo visor para ubicar tu firma, agregar un texto o hacer ambas cosas antes de descargar.</p>
 
                 <div class="signature-creator-entry" aria-label="Crear firma transparente desde una foto">
                     <span class="signature-creator-entry-icon" aria-hidden="true">
@@ -4421,7 +4482,14 @@
 
                 <!-- Columna derecha: Controles de firma -->
                 <div class="signature-controls">
-                    <h4>Configuración de firma</h4>
+                    <h4>Ubicar en el documento</h4>
+
+                    <div class="signature-slot-tabs document-placement-tabs" role="tablist" aria-label="Contenido para ubicar">
+                        <button class="signature-slot-tab signature-slot-tab-active" type="button" role="tab" aria-selected="true" data-document-placement-mode="signature">Firma</button>
+                        <button class="signature-slot-tab" type="button" role="tab" aria-selected="false" data-document-placement-mode="text">Texto</button>
+                    </div>
+
+                    <div id="signature-mode-panel" role="tabpanel">
 
                     <div class="signature-slot-tabs">
                         <button class="signature-slot-tab signature-slot-tab-active" id="signature-slot-tab-1" data-slot="1" onclick="switchSignatureSlot(1)">
@@ -4469,13 +4537,30 @@
                         <label for="apply-all-pages">Aplicar a todas las páginas</label>
                     </div>
 
-                    <button class="btn btn-primary" id="sign-action" style="margin-top: 16px; width: 100%;" onclick="applySignatures()">
-                        Aplicar firma y descargar
-                    </button>
-
                     <div class="signature-list" id="signature-list">
                         <!-- Lista de firmas marcadas -->
                     </div>
+                    </div>
+
+                    <div id="text-mode-panel" role="tabpanel" hidden>
+                        <div class="text-placement-field">
+                            <label for="pdf-text-content">Texto</label>
+                            <input type="text" id="pdf-text-content" maxlength="220" placeholder="Revisado y aprobado">
+                        </div>
+                        <div class="slider-group">
+                            <div class="slider-head">
+                                <label style="color: rgba(255, 255, 255, 0.82); font-size: 0.9rem;">Tamaño de letra</label>
+                                <span id="pdf-text-size-value" class="slider-value-badge">12 pt</span>
+                            </div>
+                            <input type="range" id="pdf-text-size" min="6" max="48" value="12">
+                            <div class="slider-label"><span>6 pt</span><span>48 pt</span></div>
+                        </div>
+                        <p class="text-placement-note">Escribe el texto y haz clic sobre el PDF para ubicarlo. Otro clic mueve la misma marca.</p>
+                    </div>
+
+                    <button class="btn btn-primary" id="sign-action" style="margin-top: 16px; width: 100%;" onclick="applySignatures()">
+                        Aplicar y descargar
+                    </button>
                 </div>
                 </div>
 
