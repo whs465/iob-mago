@@ -1506,6 +1506,255 @@
             }
         }
 
+        .image-tool-tabs {
+            position: relative;
+            isolation: isolate;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 3px;
+            width: min(100%, 430px);
+            margin: 0 auto 18px;
+            padding: 4px;
+            border: 1px solid rgba(29, 29, 31, 0.18);
+            border-radius: 999px;
+            background: var(--surface-muted);
+            overflow: hidden;
+        }
+
+        .image-tool-tabs::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            bottom: 4px;
+            left: 5px;
+            z-index: 0;
+            width: calc((100% - 13px) / 2);
+            border-radius: 999px;
+            background: var(--text);
+            box-shadow: 0 5px 12px rgba(29, 29, 31, 0.14);
+            transform: translateX(0);
+            transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .image-tool-tabs[data-active-image-tool="scan"]::before {
+            transform: translateX(calc(100% + 3px));
+        }
+
+        .image-tool-tab {
+            position: relative;
+            z-index: 1;
+            min-height: 42px;
+            padding: 9px 16px;
+            border: 0;
+            border-radius: 999px;
+            background: transparent;
+            color: var(--text);
+            font: inherit;
+            font-size: 0.9rem;
+            font-weight: 750;
+            cursor: pointer;
+            transition: background 180ms ease, color 180ms ease, box-shadow 180ms ease;
+        }
+
+        .image-tool-tab-active {
+            background: transparent;
+            color: #ffffff;
+            box-shadow: none;
+        }
+
+        .image-tool-tab:not(.image-tool-tab-active):hover {
+            background: rgba(29, 29, 31, 0.055);
+        }
+
+        .image-tool-tab:focus-visible {
+            outline: 2px solid rgba(29, 29, 31, 0.34);
+            outline-offset: 2px;
+        }
+
+        .image-tool-tab-active:focus-visible {
+            outline: none;
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.34);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .image-tool-tabs::before { transition: none; }
+        }
+
+        [data-image-tool-panel][hidden] { display: none; }
+
+        .scan-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.55fr);
+            gap: 22px;
+            align-items: start;
+        }
+
+        .scan-workbench { min-width: 0; }
+
+        .scan-drop-zone {
+            display: grid;
+            place-items: center;
+            min-height: 180px;
+            padding: 26px;
+            border: 1px dashed rgba(29, 29, 31, 0.2);
+            border-radius: 20px;
+            background: var(--surface-muted);
+            text-align: center;
+            transition: border-color 180ms ease, background 180ms ease;
+        }
+
+        .scan-drop-zone.is-dragging {
+            border-color: var(--accent);
+            background: rgba(10, 132, 255, 0.06);
+        }
+
+        .scan-drop-icon {
+            display: grid;
+            place-items: center;
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 12px;
+            border-radius: 15px;
+            background: rgba(10, 132, 255, 0.1);
+            color: var(--accent);
+        }
+
+        .scan-drop-icon svg { width: 24px; height: 24px; }
+        .scan-drop-copy strong, .scan-drop-copy span { display: block; }
+        .scan-drop-copy strong { margin-bottom: 5px; font-size: 1rem; }
+        .scan-drop-copy span { color: var(--muted); font-size: 0.82rem; line-height: 1.45; }
+
+        .scan-source-actions {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .scan-source-actions .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 10px 18px;
+            font-size: 0.9rem;
+            line-height: 1;
+        }
+
+        .scan-source-actions .btn-secondary {
+            background: #ffffff;
+            border-color: rgba(29, 29, 31, 0.12);
+            color: var(--text);
+            box-shadow: 0 4px 12px rgba(29, 29, 31, 0.06);
+        }
+
+        .scan-source-actions .btn-secondary:hover {
+            background: #ffffff;
+            border-color: rgba(29, 29, 31, 0.22);
+            color: var(--text);
+        }
+
+        #scan-image-input, #scan-camera-input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+        }
+
+        #scan-status {
+            min-height: 20px;
+            margin: 10px 2px 0;
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+
+        .scan-empty {
+            padding: 34px 20px;
+            color: var(--muted);
+            font-size: 0.86rem;
+            text-align: center;
+        }
+
+        .scan-page-list { display: grid; gap: 10px; margin-top: 14px; }
+
+        .scan-page-item {
+            display: grid;
+            grid-template-columns: 68px minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 13px;
+            min-width: 0;
+            padding: 10px;
+            border: 1px solid rgba(29, 29, 31, 0.09);
+            border-radius: 16px;
+            background: #ffffff;
+            box-shadow: 0 7px 20px rgba(15, 23, 42, 0.05);
+        }
+
+        .scan-page-preview {
+            display: grid;
+            place-items: center;
+            width: 68px;
+            height: 62px;
+            overflow: hidden;
+            border-radius: 10px;
+            background: var(--surface-muted);
+        }
+
+        .scan-page-preview img {
+            max-width: 54px;
+            max-height: 50px;
+            object-fit: contain;
+            transition: transform 180ms ease;
+        }
+
+        .scan-page-copy { min-width: 0; }
+        .scan-page-copy strong, .scan-page-copy span { display: block; }
+        .scan-page-copy strong { margin-bottom: 4px; font-size: 0.88rem; }
+        .scan-page-copy span {
+            overflow: hidden;
+            color: var(--muted);
+            font-size: 0.78rem;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .scan-page-actions { display: flex; gap: 5px; }
+        .scan-page-actions button {
+            display: grid;
+            place-items: center;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border: 1px solid rgba(29, 29, 31, 0.1);
+            border-radius: 50%;
+            background: var(--surface-muted);
+            color: var(--text);
+            font: inherit;
+            cursor: pointer;
+        }
+        .scan-page-actions button:disabled { cursor: default; opacity: 0.28; }
+
+        .scan-controls {
+            padding: 20px;
+            border: 1px solid rgba(29, 29, 31, 0.08);
+            border-radius: 20px;
+            background: var(--surface-muted);
+        }
+        .scan-controls h3 { margin: 0 0 6px; font-size: 1.25rem; }
+        .scan-controls > p { margin: 0 0 18px; color: var(--muted); font-size: 0.84rem; line-height: 1.5; }
+        .scan-actions { display: grid; gap: 9px; margin-top: 18px; }
+
+        @media (max-width: 780px) {
+            .scan-layout { grid-template-columns: 1fr; }
+            .scan-drop-zone { min-height: 210px; }
+            .scan-page-item { grid-template-columns: 58px minmax(0, 1fr); }
+            .scan-page-preview { width: 58px; height: 58px; }
+            .scan-page-actions { grid-column: 1 / -1; justify-content: flex-end; padding-top: 2px; }
+        }
+
         .support-box {
             display: grid;
             grid-template-columns: minmax(0, 74ch) minmax(280px, 1fr);
@@ -3921,7 +4170,7 @@
                         <a href="#avance">Avance</a>
                         <a href="#herramientas">PDF</a>
                         <a href="#firma">Firma</a>
-                        <a href="#capturas">Capturas</a>
+                        <a href="#capturas">Imágenes</a>
                     </nav>
                 </div>
 
@@ -4643,12 +4892,17 @@
 
         <section class="section" id="capturas">
             <div class="section-heading">
-                <p class="section-kicker">Capturas</p>
-                <h2 class="section-title" id="screenshot-title">Dale un acabado limpio a tus capturas</h2>
-                <p class="section-text" id="screenshot-copy">Pega una captura desde el portapapeles y descárgala con borde fino, esquinas suaves y una sombra bien medida.</p>
+                <p class="section-kicker">Imágenes</p>
+                <h2 class="section-title" id="screenshot-title">Imágenes listas para compartir o archivar</h2>
+                <p class="section-text" id="screenshot-copy">Prolija una captura o convierte fotos del celular en un PDF multipágina, sin subir nada.</p>
             </div>
 
-            <div class="card card-full screenshot-polish-card">
+            <div class="image-tool-tabs" role="tablist" aria-label="Herramientas de imagen">
+                <button class="image-tool-tab image-tool-tab-active" type="button" role="tab" aria-selected="true" data-image-tool="screenshot">Captura</button>
+                <button class="image-tool-tab" type="button" role="tab" aria-selected="false" data-image-tool="scan">Escanear a PDF</button>
+            </div>
+
+            <div class="card card-full screenshot-polish-card" data-image-tool-panel="screenshot">
                 <div class="screenshot-polish-layout">
                     <div>
                         <div class="screenshot-preview-board">
@@ -4721,6 +4975,66 @@
                     </aside>
                 </div>
                 <input type="file" id="screenshot-input" accept="image/png,image/jpeg,image/webp">
+            </div>
+
+            <div class="card card-full" id="scan-tool-panel" data-image-tool-panel="scan" hidden>
+                <div class="scan-layout">
+                    <div class="scan-workbench">
+                        <div class="scan-drop-zone" id="scan-drop-zone">
+                            <div>
+                                <span class="scan-drop-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v12H4z"></path><path d="m8 7 1.5-2h5L16 7"></path><circle cx="12" cy="13" r="3.2"></circle></svg>
+                                </span>
+                                <span class="scan-drop-copy">
+                                    <strong id="scan-drop-title">Agrega las páginas del documento</strong>
+                                    <span id="scan-drop-help">Fotos o imágenes · puedes sumar varias y ordenarlas después</span>
+                                </span>
+                                <div class="scan-source-actions">
+                                    <label class="btn btn-secondary" for="scan-image-input" id="scan-choose-action">Elegir imágenes</label>
+                                    <label class="btn btn-primary" for="scan-camera-input" id="scan-camera-action">Usar cámara</label>
+                                </div>
+                            </div>
+                        </div>
+                        <p id="scan-status" role="status" aria-live="polite">Esperando imágenes · se procesan localmente</p>
+                        <div class="scan-empty" id="scan-empty">Las páginas aparecerán aquí para que puedas girarlas, ordenarlas o quitarlas.</div>
+                        <div class="scan-page-list" id="scan-page-list" hidden></div>
+                    </div>
+
+                    <aside class="scan-controls" aria-labelledby="scan-controls-title">
+                        <h3 id="scan-controls-title">Documento final</h3>
+                        <p id="scan-controls-copy">El preset Documento limpia suavemente las fotos sin borrar detalles.</p>
+                        <div class="input-group">
+                            <label for="scan-finish">Acabado</label>
+                            <select id="scan-finish" disabled>
+                                <option value="document" selected>Documento · recomendado</option>
+                                <option value="original">Color original</option>
+                                <option value="grayscale">Escala de grises</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="scan-page-format">Tamaño de página</label>
+                            <select id="scan-page-format" disabled>
+                                <option value="a4">A4 · orientación automática</option>
+                                <option value="letter" selected>Carta · orientación automática</option>
+                                <option value="original">Ajustar a cada imagen</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="scan-margin">Margen</label>
+                            <select id="scan-margin" disabled>
+                                <option value="0">Sin margen</option>
+                                <option value="18" selected>Pequeño</option>
+                                <option value="36">Normal</option>
+                            </select>
+                        </div>
+                        <div class="scan-actions">
+                            <button class="btn btn-primary" type="button" id="scan-download-action" disabled>Crear PDF</button>
+                            <button class="btn btn-secondary" type="button" id="scan-clear-action" disabled>Limpiar páginas</button>
+                        </div>
+                    </aside>
+                </div>
+                <input type="file" id="scan-image-input" accept="image/png,image/jpeg,image/webp" multiple>
+                <input type="file" id="scan-camera-input" accept="image/*" capture="environment">
             </div>
         </section>
 

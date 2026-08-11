@@ -64,7 +64,7 @@ export function applyEnglishContent({
   heroNavLinks[0].textContent = 'Progress';
   heroNavLinks[1].textContent = 'PDF';
   heroNavLinks[2].textContent = 'Signing';
-  heroNavLinks[3].textContent = 'Screenshots';
+  heroNavLinks[3].textContent = 'Images';
 
   const sections = requiredQueryAll<HTMLElement>('.section');
   setText('.section-kicker', 'Featured tool', sections[0]);
@@ -88,8 +88,12 @@ export function applyEnglishContent({
     sections[2],
   );
 
-  setElementText('screenshot-title', 'Give your screenshots a clean finish');
-  setElementText('screenshot-copy', 'Paste a screenshot from the clipboard and download it with a fine border, smooth corners, and a carefully balanced shadow.');
+  const imageSection = getRequiredElement('capturas');
+  setText('.section-kicker', 'Images', imageSection);
+  setElementText('screenshot-title', 'Images ready to share or archive');
+  setElementText('screenshot-copy', 'Polish a screenshot or turn phone photos into a multipage PDF without uploading anything.');
+  setText('[data-image-tool="screenshot"]', 'Screenshot');
+  setText('[data-image-tool="scan"]', 'Scan to PDF');
   setElementText('screenshot-paste-title', 'Paste your screenshot here');
   setElementText('screenshot-paste-help', 'Use Ctrl + V, drag an image, or select one from your device.');
   setElementText('screenshot-choose-action', 'Choose image');
@@ -123,6 +127,31 @@ export function applyEnglishContent({
   setElementText('screenshot-copy-action', 'Copy image');
   setElementText('screenshot-download-action', 'Download PNG');
   setElementText('screenshot-status', 'Waiting for a screenshot · processed locally');
+  setElementText('scan-drop-title', 'Add the document pages');
+  setElementText('scan-drop-help', 'Photos or images · add several and arrange them afterwards');
+  setElementText('scan-choose-action', 'Choose images');
+  setElementText('scan-camera-action', 'Use camera');
+  setElementText('scan-status', 'Waiting for images · processed locally');
+  setElementText('scan-empty', 'Pages will appear here so you can rotate, arrange, or remove them.');
+  setElementText('scan-controls-title', 'Final document');
+  setElementText('scan-controls-copy', 'The Document preset gently cleans up photos without erasing details.');
+  setText('label[for="scan-finish"]', 'Finish');
+  setText('label[for="scan-page-format"]', 'Page size');
+  setText('label[for="scan-margin"]', 'Margin');
+  const scanFinishOptions = requiredQueryAll<HTMLOptionElement>('#scan-finish option');
+  scanFinishOptions[0].textContent = 'Document · recommended';
+  scanFinishOptions[1].textContent = 'Original color';
+  scanFinishOptions[2].textContent = 'Grayscale';
+  const scanFormatOptions = requiredQueryAll<HTMLOptionElement>('#scan-page-format option');
+  scanFormatOptions[0].textContent = 'A4 · automatic orientation';
+  scanFormatOptions[1].textContent = 'Letter · automatic orientation';
+  scanFormatOptions[2].textContent = 'Fit each image';
+  const scanMarginOptions = requiredQueryAll<HTMLOptionElement>('#scan-margin option');
+  scanMarginOptions[0].textContent = 'No margin';
+  scanMarginOptions[1].textContent = 'Small';
+  scanMarginOptions[2].textContent = 'Normal';
+  setElementText('scan-download-action', 'Create PDF');
+  setElementText('scan-clear-action', 'Clear pages');
 
   const progressCard = getRequiredElement('progress-card');
   setText('.card-icon', 'Progress', progressCard);

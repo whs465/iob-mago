@@ -128,6 +128,7 @@ import { setupSourceFileFlow } from './ui/source-file-flow';
 import { setupContractProgressFlow } from './ui/contract-progress-flow';
 import { setupPdfToolWorkspace } from './ui/pdf-tool-workspace';
 import { setupScreenshotPolish } from './ui/screenshot-polish';
+import { setupScanToPdf } from './ui/scan-to-pdf';
 import { getPdfTextPointFromCanvas, renderPdfTextMarker } from './ui/pdf-text-marker';
 
         const {
@@ -542,6 +543,11 @@ import { getPdfTextPointFromCanvas, renderPdfTextMarker } from './ui/pdf-text-ma
             setupPdfToolWorkspace();
             translatePageToEnglish();
             setupScreenshotPolish({ i18n, saveAs });
+            setupScanToPdf({
+                i18n,
+                saveAs,
+                deps: { createPdfDocument: () => PDFDocument.create() },
+            });
             setupDocumentPlacementControls();
             updateSignatureCleanSensitivity();
             updateSignatureTone();
