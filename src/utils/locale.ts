@@ -14,7 +14,7 @@ export function getLanguageFromPreferences(
 }
 
 export function getLocaleForLanguage(language: AppLanguage) {
-  return language === 'es' ? 'es-CO' : 'en-US';
+  return language === 'es' ? 'es-CO' : 'en-GB';
 }
 
 export function createI18n(language: AppLanguage) {

@@ -57,7 +57,7 @@ export function setupContractProgressFlow({
   formatDateTimeValue: _formatDateTimeValue,
   now = () => new Date(),
 }: ContractProgressFlowOptions): ContractProgressFlowApi {
-  const locale = i18n('en-US', 'es-CO');
+  const locale = i18n('en-GB', 'es-CO');
   const shortDateFormatter = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' });
 
   function setDateEditorExpanded(expanded: boolean) {
@@ -129,7 +129,7 @@ export function setupContractProgressFlow({
         point.date,
         point.percentage,
         i18n(
-          'Report {{current}} of {{total}}\nCutoff: {{date}}\nProgress: {{percentage}}%',
+          'Report {{current}} of {{total}}\nCut-off: {{date}}\nProgress: {{percentage}}%',
           'Informe {{current}} de {{total}}\nCorte: {{date}}\nAvance: {{percentage}}%',
           {
             current: String(point.reportNumber),
@@ -184,7 +184,7 @@ export function setupContractProgressFlow({
             total: String(lastClosedPoint.totalReports),
           },
         )
-        : i18n('No monthly cutoff yet', 'Aún no hay cierre mensual'),
+        : i18n('No monthly cut-off yet', 'Aún no hay cierre mensual'),
       periodText: `${formatDateValue(start)} → ${formatDateValue(end)}`,
       timelinePoints,
       todayPoint,

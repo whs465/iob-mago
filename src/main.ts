@@ -816,7 +816,11 @@ import { getPdfTextPointFromCanvas, renderPdfTextMarker } from './ui/pdf-text-ma
                 await generateSignaturePng();
             },
             handlePointerMove: handleSignatureDrag,
-            handlePointerEnd: stopSignatureDrag
+            handlePointerEnd: stopSignatureDrag,
+            onPdfRejected: () => showStatus(
+                i18n('Only .pdf files are accepted here', 'Aquí solo se aceptan archivos .pdf'),
+                'error'
+            )
         });
 
         async function loadPDF(file) {
@@ -1066,8 +1070,8 @@ import { getPdfTextPointFromCanvas, renderPdfTextMarker } from './ui/pdf-text-ma
             if (textPanel) textPanel.hidden = mode !== 'text';
             const help = document.getElementById('help-text');
             if (help) help.innerHTML = mode === 'text'
-                ? i18n('<strong>Click the PDF</strong> to position the text', '<strong>Click en el PDF</strong> para ubicar el texto')
-                : i18n('<strong>Click the PDF</strong> to mark the signature position', '<strong>Click en el PDF</strong> para marcar la posición de la firma');
+                ? i18n('<strong>Click the PDF</strong> to position the text', '<strong>Haz clic en el PDF</strong> para ubicar el texto')
+                : i18n('<strong>Click the PDF</strong> to mark the signature position', '<strong>Haz clic en el PDF</strong> para marcar la posición de la firma');
             getPdfCanvas().dataset.placementMode = mode;
         }
 

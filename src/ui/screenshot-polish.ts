@@ -152,6 +152,7 @@ export function setupScreenshotPolish({
   const status = root.querySelector<HTMLElement>('#screenshot-status');
   const copy = root.querySelector<HTMLButtonElement>('#screenshot-copy-action');
   const download = root.querySelector<HTMLButtonElement>('#screenshot-download-action');
+  const downloadLabel = root.querySelector<HTMLElement>('#screenshot-download-label');
   const radius = root.querySelector<HTMLSelectElement>('#screenshot-radius');
   const shadow = root.querySelector<HTMLSelectElement>('#screenshot-shadow');
   const padding = root.querySelector<HTMLSelectElement>('#screenshot-padding');
@@ -183,9 +184,11 @@ export function setupScreenshotPolish({
   });
 
   const updateDownloadLabel = () => {
-    download.textContent = format.value === 'pdf'
+    const text = format.value === 'pdf'
       ? i18n('Download PDF', 'Descargar PDF')
       : i18n('Download PNG', 'Descargar PNG');
+    if (downloadLabel) downloadLabel.textContent = text;
+    else download.textContent = text;
   };
 
   const render = () => {

@@ -4,6 +4,7 @@ import type { SignatureMetaTranslator } from './signature-preview';
 import { renderSourceFileList } from './source-list';
 import { updateFileInputLabel } from './dom';
 import { updateSourceToolStatuses } from './pdf-tools';
+import { fileMatchesAccept } from './file-drag-drop';
 
 export type SourceFileFlowRuntime = {
   sourceFileState: SourceFileState;
@@ -42,7 +43,7 @@ export function setupSourceFileFlow({
   let rotateSourceVersion = -1;
   let sourceAnalysisTimer: ReturnType<typeof setTimeout> | null = null;
 
-  function updateSourceWorkbench(state: 'empty' | 'analyzing' | 'ready' | 'protected' = 'empty') {
+  function updateSourceWorkbench(state: 'empty' | 'analyzing' | 'ready' | 'protected' | 'invalid' = 'empty') {
     const workbench = document.getElementById('source-workbench');
     const status = document.getElementById('source-workbench-status');
     const summary = document.getElementById('source-workbench-summary');
@@ -57,6 +58,15 @@ export function setupSourceFileFlow({
 
     if (!status || !summary) return;
 
+    if (state === 'invalid') {
+      status.textContent = i18n('PDF files only', 'Solo archivos PDF');
+      summary.textContent = i18n(
+        'Choose one or more files ending in .pdf.',
+        'Selecciona uno o varios archivos con extensión .pdf.',
+      );
+      return;
+    }
+
     if (fileCount === 0) {
       status.textContent = i18n('No PDF loaded', 'Sin PDF cargado');
       summary.textContent = i18n(
@@ -67,7 +77,7 @@ export function setupSourceFileFlow({
     }
 
     if (state === 'analyzing') {
-      status.textContent = i18n('Analyzing PDF', 'Analizando PDF');
+      status.textContent = i18n('Analysing PDF', 'Analizando PDF');
     } else if (state === 'protected') {
       status.textContent = i18n('Password-protected PDF', 'PDF protegido con contraseña');
     } else {
@@ -214,7 +224,7 @@ export function setupSourceFileFlow({
       return;
     }
     if (rotateTotalPages === 0) {
-      el.textContent = i18n('Analyzing...', 'Analizando...');
+      el.textContent = i18n('Analysing...', 'Analizando...');
       return;
     }
     el.textContent = i18n(
@@ -233,10 +243,17 @@ export function setupSourceFileFlow({
     this.value = '';
   });
   sourceInput?.addEventListener('change', event => {
-    const selectedFiles = Array.from((event.target as HTMLInputElement).files || []);
-    sourceFileState.setFiles(selectedFiles);
+    const input = event.target as HTMLInputElement;
+    const selectedFiles = Array.from(input.files || []);
+    const acceptedFiles = selectedFiles.filter(file => fileMatchesAccept(file, input.accept));
+    if (selectedFiles.length > 0 && acceptedFiles.length === 0) {
+      updateSourceWorkbench('invalid');
+      return;
+    }
+    sourceFileState.setFiles(acceptedFiles);
     actualizarSourceList();
   });
+  sourceInput?.addEventListener('filesrejected', () => updateSourceWorkbench('invalid'));
   document.getElementById('source-clear-action')?.addEventListener('click', limpiarSourceFiles);
 
   updateSourceWorkbench('empty');

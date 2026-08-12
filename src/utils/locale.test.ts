@@ -16,7 +16,7 @@ describe('locale utilities', () => {
 
   it('maps app language to locale', () => {
     expect(getLocaleForLanguage('es')).toBe('es-CO');
-    expect(getLocaleForLanguage('en')).toBe('en-US');
+    expect(getLocaleForLanguage('en')).toBe('en-GB');
   });
 
   it('translates text and replaces variables', () => {

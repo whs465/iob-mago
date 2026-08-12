@@ -5,7 +5,7 @@ import { setupSignatureEventHandlers } from './signature-events';
 
 function renderSignatureInputs() {
   document.body.innerHTML = `
-    <input id="sign-pdf-file" type="file" />
+    <input id="sign-pdf-file" type="file" accept=".pdf" />
     <input id="sign-image-file-1" type="file" />
     <input id="sign-image-file-2" type="file" />
     <input id="signature-source-file" type="file" />
@@ -100,6 +100,26 @@ describe('setupSignatureEventHandlers', () => {
     imageInput2.dispatchEvent(new Event('change'));
 
     expect(setSignatureImage).toHaveBeenCalledWith(image);
+  });
+
+  it('rejects a non-PDF selected for the signature document', () => {
+    const loadPdf = vi.fn(async () => undefined);
+    const onPdfRejected = vi.fn();
+    setupSignatureEventHandlers({
+      loadPdf,
+      setSignatureImage: vi.fn(),
+      setSignatureSource: vi.fn(),
+      handlePointerMove: vi.fn(),
+      handlePointerEnd: vi.fn(),
+      onPdfRejected,
+    });
+
+    const pdfInput = document.getElementById('sign-pdf-file') as HTMLInputElement;
+    setInputFiles(pdfInput, [new File(['image'], 'photo.png', { type: 'image/png' })]);
+    pdfInput.dispatchEvent(new Event('change'));
+
+    expect(loadPdf).not.toHaveBeenCalled();
+    expect(onPdfRejected).toHaveBeenCalledOnce();
   });
 
   it('delegates document pointer events', () => {

@@ -1,4 +1,5 @@
 import { getElement, getRequiredElement } from './dom';
+import { fileMatchesAccept } from './file-drag-drop';
 
 export type SetupSignatureEventHandlersOptions = {
   loadPdf(file: File): Promise<void>;
@@ -6,6 +7,7 @@ export type SetupSignatureEventHandlersOptions = {
   setSignatureSource(file: File): Promise<void>;
   handlePointerMove(event: PointerEvent): void;
   handlePointerEnd(): void;
+  onPdfRejected?(): void;
 };
 
 function clearFileInputOnClick(input: HTMLInputElement) {
@@ -20,7 +22,14 @@ function onFileChange(
 ) {
   input.addEventListener('change', event => {
     const selectedFile = (event.target as HTMLInputElement).files?.[0];
-    if (selectedFile) void handler(selectedFile);
+    if (!selectedFile) return;
+    if (!fileMatchesAccept(selectedFile, input.accept)) {
+      input.dispatchEvent(new CustomEvent('filesrejected', {
+        detail: { files: [selectedFile] },
+      }));
+      return;
+    }
+    void handler(selectedFile);
   });
 }
 
@@ -30,6 +39,7 @@ export function setupSignatureEventHandlers({
   setSignatureSource,
   handlePointerMove,
   handlePointerEnd,
+  onPdfRejected,
 }: SetupSignatureEventHandlersOptions) {
   const pdfInput = getRequiredElement<HTMLInputElement>('sign-pdf-file');
   const sourceInput = getRequiredElement<HTMLInputElement>('signature-source-file');
@@ -40,6 +50,7 @@ export function setupSignatureEventHandlers({
   if (cameraInput) clearFileInputOnClick(cameraInput);
 
   onFileChange(pdfInput, loadPdf);
+  pdfInput.addEventListener('filesrejected', () => onPdfRejected?.());
   onFileChange(sourceInput, setSignatureSource);
   if (cameraInput) onFileChange(cameraInput, setSignatureSource);
 

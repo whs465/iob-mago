@@ -52,7 +52,7 @@ export async function compressPdfFlow(options: CompressPdfFlowOptions) {
         { completed: String(completed), total: String(total) },
       ), 'processing', showStatus);
     });
-    const output = formatFileSize(result.outputSize, i18n('en', 'es'));
+    const output = formatFileSize(result.outputSize, i18n('en-GB', 'es-CO'));
     if (result.keptOriginal) {
       const message = i18n(
         'This PDF is already smaller than the safe candidates for this mode ({{size}}). Nothing was downloaded.',
@@ -72,7 +72,7 @@ export async function compressPdfFlow(options: CompressPdfFlowOptions) {
     saveAs(pdfBytesToBlob(result.pdfBytes), filename);
 
     const reduction = getSizeReduction(result.originalSize, result.outputSize);
-    const original = formatFileSize(result.originalSize, i18n('en', 'es'));
+    const original = formatFileSize(result.originalSize, i18n('en-GB', 'es-CO'));
     const message = i18n(
       'Done: {{original}} → {{output}} ({{reduction}}% smaller).',
       'Listo: {{original}} → {{output}} ({{reduction}}% menos).',

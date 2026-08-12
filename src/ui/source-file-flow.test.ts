@@ -64,7 +64,7 @@ describe('setupSourceFileFlow', () => {
       <button id="source-clear-action"></button>
       <div id="rotate-status"></div>
       <div id="metadata-editor"></div>
-      <input id="source-input" type="file" />
+      <input id="source-input" type="file" accept=".pdf" />
       <label id="source-label"></label>
     `;
 
@@ -121,8 +121,32 @@ describe('setupSourceFileFlow', () => {
     expect(sourceFileState.setFiles).toHaveBeenCalledWith(files);
     expect(sourceFileState.files).toEqual(files);
     expect(document.getElementById('source-list')?.children.length).toBe(2);
-    expect(document.getElementById('source-workbench-status')?.textContent).toBe('Analyzing PDF');
+    expect(document.getElementById('source-workbench-status')?.textContent).toBe('Analysing PDF');
     expect((document.getElementById('source-clear-action') as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it('rejects non-PDF files without adding them to the shared source state', () => {
+    const sourceFileState = createMockSourceFileState();
+    setupSourceFileFlow({
+      runtime: { sourceFileState, pageOrderState },
+      deps: {
+        getPdfPageCountFromArrayBuffer: vi.fn(),
+        getPdfPageMetricsFromArrayBuffer: vi.fn(),
+      },
+      i18n: (en: string) => en,
+      onOrderListUpdate,
+    });
+
+    const input = document.getElementById('source-input') as HTMLInputElement;
+    Object.defineProperty(input, 'files', {
+      configurable: true,
+      value: [new File(['image'], 'photo.png', { type: 'image/png' })],
+    });
+    input.dispatchEvent(new Event('change'));
+
+    expect(sourceFileState.setFiles).not.toHaveBeenCalled();
+    expect(document.getElementById('source-workbench-status')?.textContent).toBe('PDF files only');
+    expect(document.getElementById('source-workbench-summary')?.textContent).toContain('.pdf');
   });
 
   it('clears selected PDF files from the workbench action', () => {

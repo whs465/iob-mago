@@ -46,7 +46,7 @@ export function applyEnglishContent({
   hasSignatureImage,
   signatureSourceFileName,
 }: EnglishContentOptions) {
-  document.documentElement.lang = 'en';
+  document.documentElement.lang = 'en-GB';
   document.title = 'IOB Mago';
 
   setText('.hero-copy .eyebrow .eyebrow-label', 'Local, fast, private PDF tools');
@@ -55,7 +55,7 @@ export function applyEnglishContent({
   setElementText('hero-title-line-3', 'All from your browser.');
   setText(
     '.hero-copy .subtitle',
-    'Organize documents, sign your PDFs every month, create a transparent signature if you do not have one yet, and check contract progress from phone or desktop.',
+    'Organise documents, sign your PDFs every month, create a transparent signature if you do not have one yet, and check contract progress from your mobile or computer.',
   );
   setText('.hero-actions .btn-primary', 'Work with PDFs');
   setText('.hero-actions .btn-secondary', 'Sign a PDF');
@@ -78,7 +78,7 @@ export function applyEnglishContent({
   setElementText('tools-title', 'One workspace for all your PDF tasks');
   setElementText(
     'tools-text',
-    'Merge, split, compress, organize, review metadata, or add a watermark without taking the document out of the browser.',
+    'Merge, split, compress, organise, review metadata, or add a watermark without taking the document out of the browser.',
   );
   setText('.section-kicker', 'Document signing', sections[2]);
   setText('.section-title', 'Sign your PDFs in seconds', sections[2]);
@@ -91,14 +91,14 @@ export function applyEnglishContent({
   const imageSection = getRequiredElement('capturas');
   setText('.section-kicker', 'Images', imageSection);
   setElementText('screenshot-title', 'Images ready to share or archive');
-  setElementText('screenshot-copy', 'Polish a screenshot or turn phone photos into a multipage PDF without uploading anything.');
+  setElementText('screenshot-copy', 'Polish a screenshot or turn mobile photos into a multi-page PDF without uploading anything.');
   setText('[data-image-tool="screenshot"]', 'Screenshot');
   setText('[data-image-tool="scan"]', 'Scan to PDF');
   setElementText('screenshot-paste-title', 'Paste your screenshot here');
   setElementText('screenshot-paste-help', 'Use Ctrl + V, drag an image, or select one from your device.');
   setElementText('screenshot-choose-action', 'Choose image');
   setElementText('screenshot-finish-title', 'Finish');
-  setElementText('screenshot-finish-copy', 'The initial preset is already balanced. Adjust it only if needed.');
+  setElementText('screenshot-finish-copy', 'The default settings provide a balanced result. Adjust them only if needed.');
   setText('label[for="screenshot-radius"]', 'Corners');
   setText('label[for="screenshot-shadow"]', 'Shadow');
   setText('label[for="screenshot-padding"]', 'Margin');
@@ -118,14 +118,14 @@ export function applyEnglishContent({
   screenshotPaddingOptions[2].textContent = 'Wide';
   const screenshotBackgroundOptions = requiredQueryAll<HTMLOptionElement>('#screenshot-background option');
   screenshotBackgroundOptions[0].textContent = 'Transparent';
-  screenshotBackgroundOptions[1].textContent = 'Soft gray';
+  screenshotBackgroundOptions[1].textContent = 'Soft grey';
   screenshotBackgroundOptions[2].textContent = 'White';
   const screenshotFormatOptions = requiredQueryAll<HTMLOptionElement>('#screenshot-format option');
   screenshotFormatOptions[0].textContent = 'PNG · image';
   screenshotFormatOptions[1].textContent = 'PDF · one page';
-  setElementText('screenshot-replace-action', 'Change image');
-  setElementText('screenshot-copy-action', 'Copy image');
-  setElementText('screenshot-download-action', 'Download PNG');
+  setElementText('screenshot-replace-label', 'Replace');
+  setElementText('screenshot-copy-label', 'Copy image');
+  setElementText('screenshot-download-label', 'Download PNG');
   setElementText('screenshot-status', 'Waiting for a screenshot · processed locally');
   setElementText('scan-drop-title', 'Add the document pages');
   setElementText('scan-drop-help', 'Photos or images · add several and arrange them afterwards');
@@ -134,14 +134,14 @@ export function applyEnglishContent({
   setElementText('scan-status', 'Waiting for images · processed locally');
   setElementText('scan-empty', 'Pages will appear here so you can rotate, arrange, or remove them.');
   setElementText('scan-controls-title', 'Final document');
-  setElementText('scan-controls-copy', 'The Document preset gently cleans up photos without erasing details.');
+  setElementText('scan-controls-copy', 'The Document setting gently improves photos without erasing details.');
   setText('label[for="scan-finish"]', 'Finish');
   setText('label[for="scan-page-format"]', 'Page size');
   setText('label[for="scan-margin"]', 'Margin');
   const scanFinishOptions = requiredQueryAll<HTMLOptionElement>('#scan-finish option');
   scanFinishOptions[0].textContent = 'Document · recommended';
-  scanFinishOptions[1].textContent = 'Original color';
-  scanFinishOptions[2].textContent = 'Grayscale';
+  scanFinishOptions[1].textContent = 'Original colour';
+  scanFinishOptions[2].textContent = 'Greyscale';
   const scanFormatOptions = requiredQueryAll<HTMLOptionElement>('#scan-page-format option');
   scanFormatOptions[0].textContent = 'A4 · automatic orientation';
   scanFormatOptions[1].textContent = 'Letter · automatic orientation';
@@ -161,7 +161,7 @@ export function applyEnglishContent({
   setText('.contract-last-report .contract-summary-label', 'Latest report', progressCard);
   setText('.contract-period-bar .contract-summary-label', 'Contract', progressCard);
   setText('.contract-timeline-heading .contract-summary-label', 'Monthly reports', progressCard);
-  setText('.contract-timeline-heading > span:last-child', 'Tap a point to view its cutoff', progressCard);
+  setText('.contract-timeline-heading > span:last-child', 'Tap a point to view its cut-off', progressCard);
   const timelineDetail = getRequiredElement('contract-timeline-detail');
   timelineDetail.dataset.defaultText = 'Tap a point to view its details';
   timelineDetail.textContent = timelineDetail.dataset.defaultText;
@@ -232,7 +232,7 @@ export function applyEnglishContent({
   const rotationOptions = requiredQueryAll<HTMLOptionElement>('#rotate-mode option');
   rotationOptions[0].textContent = 'Automatic · landscape to portrait';
   rotationOptions[1].textContent = '90° clockwise';
-  rotationOptions[2].textContent = '90° counterclockwise';
+  rotationOptions[2].textContent = '90° anticlockwise';
   rotationOptions[3].textContent = '180° · turn upright';
   setElementText('rotate-pages-label', 'Pages (leave blank = whole PDF)');
   setText('.btn-primary', 'Rotate pages', rotateCard);
@@ -260,7 +260,7 @@ export function applyEnglishContent({
   const watermarkCard = getRequiredElement('watermark-card');
   setText('.card-icon', 'Watermark', watermarkCard);
   setText('h3', 'Text watermark', watermarkCard);
-  setText('p', 'Add subtle text to the center of every page or a selected range.', watermarkCard);
+  setText('p', 'Add subtle text to the centre of every page or a selected range.', watermarkCard);
   setText('label[for="watermark-text"]', 'Text', watermarkCard);
   setText('label[for="watermark-pages"]', 'Pages (blank = whole PDF)', watermarkCard);
   setText('label[for="watermark-opacity"]', 'Opacity', watermarkCard);

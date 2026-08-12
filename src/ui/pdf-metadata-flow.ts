@@ -67,7 +67,7 @@ export async function loadPdfMetadataFlow(options: Omit<MetadataFlowOptions, 'sa
     if (options.isCurrentFile && !options.isCurrentFile(options.file)) {
       return { status: 'stale' as const };
     }
-    renderMetadataForm(metadata, options.i18n('en', 'es'));
+    renderMetadataForm(metadata, options.i18n('en-GB', 'es-CO'));
     options.showStatus(options.i18n('Metadata loaded', 'Metadatos cargados'), 'success');
     return { status: 'success' as const, metadata };
   } catch (error) {
@@ -94,7 +94,7 @@ export async function savePdfMetadataFlow(options: MetadataFlowOptions, clear = 
     const suffix = clear ? options.i18n('-metadata-cleared.pdf', '-sin-metadatos.pdf') : options.i18n('-metadata.pdf', '-metadatos.pdf');
     const filename = `${getPdfBaseName(options.file.name)}${suffix}`;
     options.saveAs(pdfBytesToBlob(bytes), filename);
-    if (clear) renderMetadataForm(metadata, options.i18n('en', 'es'));
+    if (clear) renderMetadataForm(metadata, options.i18n('en-GB', 'es-CO'));
     options.showStatus(clear
       ? options.i18n('Descriptive metadata removed', 'Metadatos descriptivos eliminados')
       : options.i18n('Metadata updated', 'Metadatos actualizados'), 'success');

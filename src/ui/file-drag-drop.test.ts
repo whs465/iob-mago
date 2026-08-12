@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { initFileInputDragDrop } from './file-drag-drop';
+import { fileMatchesAccept, initFileInputDragDrop } from './file-drag-drop';
 
 describe('initFileInputDragDrop', () => {
   beforeEach(() => {
@@ -45,5 +45,37 @@ describe('initFileInputDragDrop', () => {
 
     expect(label.classList.contains('drag-over')).toBe(false);
     expect(changeListener).not.toHaveBeenCalled();
+  });
+
+  it('rejects non-PDF files dropped on a PDF input', () => {
+    const input = document.getElementById('file-input') as HTMLInputElement;
+    input.accept = '.pdf';
+    const rejectionListener = vi.fn();
+    const changeListener = vi.fn();
+    input.addEventListener('filesrejected', rejectionListener);
+    input.addEventListener('change', changeListener);
+
+    initFileInputDragDrop();
+    const wrapper = document.querySelector<HTMLElement>('.file-input-wrapper') as HTMLElement;
+    const drop = new Event('drop', { bubbles: true });
+    const image = new File(['image'], 'signature.png', { type: 'image/png' });
+    Object.defineProperty(drop, 'dataTransfer', { value: { files: [image] } });
+    wrapper.dispatchEvent(drop);
+
+    expect(rejectionListener).toHaveBeenCalledTimes(1);
+    expect(changeListener).not.toHaveBeenCalled();
+  });
+});
+
+describe('fileMatchesAccept', () => {
+  it('matches extensions case-insensitively', () => {
+    expect(fileMatchesAccept(new File(['pdf'], 'CONTRACT.PDF'), '.pdf')).toBe(true);
+    expect(fileMatchesAccept(new File(['image'], 'contract.png'), '.pdf')).toBe(false);
+  });
+
+  it('supports exact and wildcard MIME rules for image inputs', () => {
+    const jpeg = new File(['image'], 'photo.jpg', { type: 'image/jpeg' });
+    expect(fileMatchesAccept(jpeg, 'image/png,image/jpeg')).toBe(true);
+    expect(fileMatchesAccept(jpeg, 'image/*')).toBe(true);
   });
 });

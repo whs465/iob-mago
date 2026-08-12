@@ -52,7 +52,7 @@ describe('contract progress flow', () => {
     }));
     const api = setupContractProgressFlow({
       i18n,
-      formatDateValue: date => date.toLocaleDateString('en-US'),
+      formatDateValue: date => date.toLocaleDateString('en-GB'),
       formatDateTimeValue: date => date.toISOString(),
       now: () => new Date(2027, 2, 2),
     });
