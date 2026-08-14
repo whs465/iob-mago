@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { rotatePdfFlow } from './rotate-pdf-flow';
+import { rotatePdfBatchFlow, rotatePdfFlow } from './rotate-pdf-flow';
 
 function translate(english: string, _spanish: string, values: Record<string, string> = {}) {
   return Object.entries(values).reduce((text, [key, value]) => text.replace(`{{${key}}}`, value), english);
@@ -152,5 +152,24 @@ describe('rotatePdfFlow', () => {
     expect(logError).toHaveBeenCalledWith(error);
     expect(options.showStatus).toHaveBeenLastCalledWith('Error rotating PDF: rotate failed', 'error');
     expect(finishProcessing).toHaveBeenCalledTimes(1);
+  });
+
+  it('rotates multiple PDFs and downloads a ZIP', async () => {
+    const options = makeOptions();
+    class FakeZip {
+      file = vi.fn();
+      generateAsync = vi.fn(async () => new Blob(['zip']));
+    }
+    const result = await rotatePdfBatchFlow({
+      ...options,
+      files: [makeFile(), new File(['pdf'], 'annex.pdf')],
+      JSZipCtor: FakeZip,
+      rotateAction: vi.fn(async () => ({
+        status: 'ok' as const,
+        result: { pdfBytes: new Uint8Array([1]), rasterizedFiles: [], rotatedCount: 1 },
+      })),
+    });
+    expect(result.status).toBe('batch-success');
+    expect(options.saveAs).toHaveBeenCalledWith(expect.any(Blob), 'rotated-pdfs.zip');
   });
 });

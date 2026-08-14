@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { compressPdfFlow } from './compress-pdf-flow';
+import { compressPdfBatchFlow, compressPdfFlow } from './compress-pdf-flow';
 
 const i18n = (_en: string, es: string, vars: Record<string, string> = {}) =>
   Object.entries(vars).reduce((text, [key, value]) => text.split(`{{${key}}}`).join(value), es);
@@ -59,5 +59,26 @@ describe('compressPdfFlow', () => {
     expect(logError).toHaveBeenCalledOnce();
     expect(document.getElementById('compress-status')?.textContent).toContain('PDF dañado');
     expect(document.getElementById('compress-status')?.getAttribute('role')).toBe('alert');
+  });
+
+  it('compresses multiple files into one ZIP', async () => {
+    const zipFile = vi.fn();
+    class FakeZip {
+      file = zipFile;
+      generateAsync = vi.fn(async () => new Blob(['zip']));
+    }
+    const saveAs = vi.fn();
+    const result = await compressPdfBatchFlow({
+      files: [new File(['a'], 'a.pdf'), new File(['b'], 'b.pdf')],
+      mode: 'safe', deps: {} as never, i18n, showStatus: vi.fn(),
+      setActionBusy: () => vi.fn(), saveAs, JSZipCtor: FakeZip,
+      compressAction: vi.fn(async file => ({
+        pdfBytes: new Uint8Array([1]), originalSize: file.size, outputSize: 1,
+        mode: 'safe' as const, rasterized: false, keptOriginal: false, attempts: 1,
+      })),
+    });
+    expect(result.status).toBe('batch-success');
+    expect(zipFile).toHaveBeenCalledTimes(2);
+    expect(saveAs).toHaveBeenCalledWith(expect.any(Blob), 'pdfs-comprimidos.zip');
   });
 });

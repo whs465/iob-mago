@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { unlockPdfFlow } from './unlock-pdf-flow';
+import { unlockPdfBatchFlow, unlockPdfFlow } from './unlock-pdf-flow';
 
 const i18n = (_en: string, es: string, vars: Record<string, string> = {}) =>
   Object.entries(vars).reduce((text, [key, value]) => text.split(`{{${key}}}`).join(value), es);
@@ -68,5 +68,21 @@ describe('unlockPdfFlow', () => {
       'error',
     );
     expect(finish).toHaveBeenCalledOnce();
+  });
+
+  it('unlocks multiple PDFs with one password and downloads a ZIP', async () => {
+    class FakeZip {
+      file = vi.fn();
+      generateAsync = vi.fn(async () => new Blob(['zip']));
+    }
+    const base = createOptions();
+    const result = await unlockPdfBatchFlow({
+      ...base,
+      files: [base.file as File, new File(['protected'], 'anexo.pdf')],
+      JSZipCtor: FakeZip,
+    });
+    expect(result.status).toBe('batch-success');
+    expect(base.buildUnlockedPdf).toHaveBeenCalledTimes(2);
+    expect(base.saveAs).toHaveBeenCalledWith(expect.any(Blob), 'pdfs-sin-clave.zip');
   });
 });

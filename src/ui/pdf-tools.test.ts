@@ -76,12 +76,16 @@ describe('pdf tool DOM helpers', () => {
     updateSourceToolStatuses([makeFile('first.pdf'), makeFile('second.pdf')], {
       noFile: 'Load PDFs first',
       mergeLoaded: count => `${count} loaded`,
+      batchLoaded: count => `${count} in batch`,
     });
 
     expect(document.getElementById('merge-status')?.textContent).toBe('2 loaded');
     expect(document.getElementById('split-status')?.textContent).toBe('first.pdf');
     expect(document.getElementById('order-file-name')?.textContent).toBe('first.pdf');
-    expect(document.getElementById('unlock-status')?.textContent).toBe('first.pdf');
+    expect(document.getElementById('unlock-status')?.textContent).toBe('2 in batch');
+    expect(document.getElementById('rotate-status')?.textContent).toBe('2 in batch');
+    expect(document.getElementById('compress-status')?.textContent).toBe('2 in batch');
+    expect(document.getElementById('watermark-status')?.textContent).toBe('2 in batch');
     expect(document.getElementById('merge-card')?.classList.contains('tool-card-ready')).toBe(true);
     expect((document.getElementById('merge-action') as HTMLButtonElement).disabled).toBe(false);
   });

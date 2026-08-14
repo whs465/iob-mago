@@ -2,6 +2,7 @@ import { compressPdf, type CompressionMode, type CompressPdfDeps } from '../pdf/
 import { getPdfBaseName } from '../utils/filenames';
 import { formatFileSize, getSizeReduction } from '../utils/file-size';
 import { pdfBytesToBlob } from '../utils/pdf-bytes';
+import { downloadPdfOutputs, type PdfBatchZipConstructor } from '../utils/pdf-batch-download';
 import { getElement, type StatusType } from './dom';
 import type { SignatureMetaTranslator } from './signature-preview';
 
@@ -15,6 +16,11 @@ export type CompressPdfFlowOptions = {
   saveAs(blob: Blob, filename: string): void;
   compressAction?: typeof compressPdf;
   logError?: (error: unknown) => void;
+};
+
+export type CompressPdfBatchFlowOptions = Omit<CompressPdfFlowOptions, 'file'> & {
+  files: File[];
+  JSZipCtor?: PdfBatchZipConstructor;
 };
 
 function reportCompressionStatus(
@@ -89,6 +95,59 @@ export async function compressPdfFlow(options: CompressPdfFlowOptions) {
       showStatus,
     );
     return { status: 'error' as const, message };
+  } finally {
+    finish();
+  }
+}
+
+export async function compressPdfBatchFlow(options: CompressPdfBatchFlowOptions) {
+  const { files, mode, deps, i18n, showStatus, setActionBusy, saveAs } = options;
+  if (files.length <= 1) return compressPdfFlow({ ...options, file: files[0] });
+
+  const finish = setActionBusy('compress-action', i18n('Compressing...', 'Comprimiendo...'));
+  if (!finish) return { status: 'busy' as const };
+
+  const outputs = [];
+  const failures: string[] = [];
+  const skipped: string[] = [];
+  try {
+    for (const [index, file] of files.entries()) {
+      reportCompressionStatus(i18n(
+        'Compressing file {{completed}} of {{total}}: {{name}}',
+        'Comprimiendo archivo {{completed}} de {{total}}: {{name}}',
+        { completed: String(index + 1), total: String(files.length), name: file.name },
+      ), 'processing', showStatus);
+      try {
+        const result = await (options.compressAction ?? compressPdf)(file, mode, deps);
+        if (result.keptOriginal) {
+          skipped.push(file.name);
+          continue;
+        }
+        const suffix = {
+          safe: i18n('-compressed-safe.pdf', '-comprimido-seguro.pdf'),
+          balanced: i18n('-compressed-balanced.pdf', '-comprimido-equilibrado.pdf'),
+          compact: i18n('-compressed-compact.pdf', '-comprimido-compacto.pdf'),
+        }[mode];
+        outputs.push({ filename: `${getPdfBaseName(file.name)}${suffix}`, pdfBytes: result.pdfBytes });
+      } catch (error) {
+        (options.logError ?? console.error)(error);
+        failures.push(file.name);
+      }
+    }
+
+    await downloadPdfOutputs(outputs, {
+      JSZipCtor: options.JSZipCtor,
+      zipFilename: i18n('compressed-pdfs.zip', 'pdfs-comprimidos.zip'),
+      saveAs,
+    });
+    const type = outputs.length > 0 ? 'success' : 'error';
+    const message = i18n(
+      'Batch complete: {{success}} compressed, {{skipped}} unchanged, {{failed}} failed.',
+      'Lote terminado: {{success}} comprimido(s), {{skipped}} sin reducción y {{failed}} con error.',
+      { success: String(outputs.length), skipped: String(skipped.length), failed: String(failures.length) },
+    );
+    reportCompressionStatus(message, type, showStatus);
+    return { status: outputs.length > 0 ? 'batch-success' as const : 'batch-empty' as const, outputs, skipped, failures };
   } finally {
     finish();
   }

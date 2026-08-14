@@ -227,7 +227,7 @@ export function applyEnglishContent({
   const rotateCard = getRequiredElement('rotate-card');
   setText('.card-icon', 'Rotate', rotateCard);
   setText('h3', 'Rotate pages', rotateCard);
-  setText('p', 'Fix the orientation of the whole PDF or only the pages you choose.', rotateCard);
+  setText('p', 'Fix the orientation across every loaded PDF or only the pages you choose.', rotateCard);
   setText('label[for="rotate-mode"]', 'Rotation', rotateCard);
   const rotationOptions = requiredQueryAll<HTMLOptionElement>('#rotate-mode option');
   rotationOptions[0].textContent = 'Automatic · landscape to portrait';
@@ -240,7 +240,7 @@ export function applyEnglishContent({
   const compressCard = getRequiredElement('compress-card');
   setText('.card-icon', 'Compress', compressCard);
   setText('h3', 'Reduce file size', compressCard);
-  setText('p', 'Reduce PDF size with a safe mode or stronger visual compression.', compressCard);
+  setText('p', 'Reduce every loaded PDF with a safe mode or stronger visual compression.', compressCard);
   setText('label[for="compress-mode"]', 'Compression level', compressCard);
   const compressionOptions = requiredQueryAll<HTMLOptionElement>('#compress-mode option');
   compressionOptions[0].textContent = 'Safe · keeps text and links';
@@ -252,7 +252,7 @@ export function applyEnglishContent({
   const unlockCard = getRequiredElement('unlock-card');
   setText('.card-icon', 'Unlock', unlockCard);
   setText('h3', 'Remove PDF password', unlockCard);
-  setText('p', 'Open the document with its current password and download a copy that no longer asks for it.', unlockCard);
+  setText('p', 'Open every loaded PDF with one shared password and download copies that no longer ask for it.', unlockCard);
   setText('label[for="unlock-password"]', 'Current PDF password', unlockCard);
   setElementText('unlock-note', 'The password is only used while processing the file and is never stored. The copy keeps the visual appearance, but flattens text, links, and forms, just like printing to PDF.');
   setText('.btn-primary', 'Remove password and download', unlockCard);
@@ -260,7 +260,7 @@ export function applyEnglishContent({
   const watermarkCard = getRequiredElement('watermark-card');
   setText('.card-icon', 'Watermark', watermarkCard);
   setText('h3', 'Text watermark', watermarkCard);
-  setText('p', 'Add subtle text to the centre of every page or a selected range.', watermarkCard);
+  setText('p', 'Add the same subtle text to every loaded PDF, on every page or a selected range.', watermarkCard);
   setText('label[for="watermark-text"]', 'Text', watermarkCard);
   setText('label[for="watermark-pages"]', 'Pages (blank = whole PDF)', watermarkCard);
   setText('label[for="watermark-opacity"]', 'Opacity', watermarkCard);

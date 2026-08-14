@@ -170,6 +170,11 @@ export function setupSourceFileFlow({
         '{{count}} archivo(s) cargado(s) — todos se unirán',
         { count: String(count) },
       ),
+      batchLoaded: count => i18n(
+        '{{count}} PDF(s) loaded — all will be processed',
+        '{{count}} PDF(s) cargado(s) — se procesarán todos',
+        { count: String(count) },
+      ),
     });
   }
 

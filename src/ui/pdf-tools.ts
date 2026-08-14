@@ -3,6 +3,7 @@ import { getElement } from './dom';
 export type SourceToolStatusLabels = {
   noFile: string;
   mergeLoaded(count: number): string;
+  batchLoaded?(count: number): string;
 };
 
 export function getCheckboxValue(id: string) {
@@ -63,13 +64,14 @@ export function updateSourceToolStatuses(files: File[], labels: SourceToolStatus
   if (mergeStatus) mergeStatus.textContent = labels.mergeLoaded(files.length);
 
   const firstName = files[0].name;
+  const batchName = files.length > 1 && labels.batchLoaded ? labels.batchLoaded(files.length) : firstName;
   if (splitStatus) splitStatus.textContent = firstName;
   if (extractStatus) extractStatus.textContent = firstName;
   if (deleteStatus) deleteStatus.textContent = firstName;
   if (orderFileName) orderFileName.textContent = firstName;
-  if (rotateStatus) rotateStatus.textContent = firstName;
-  if (compressStatus) compressStatus.textContent = firstName;
-  if (unlockStatus) unlockStatus.textContent = firstName;
-  if (watermarkStatus) watermarkStatus.textContent = firstName;
+  if (rotateStatus) rotateStatus.textContent = batchName;
+  if (compressStatus) compressStatus.textContent = batchName;
+  if (unlockStatus) unlockStatus.textContent = batchName;
+  if (watermarkStatus) watermarkStatus.textContent = batchName;
   if (metadataStatus) metadataStatus.textContent = firstName;
 }

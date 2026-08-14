@@ -86,11 +86,11 @@ import { splitPdfFlow } from './ui/split-pdf-flow';
 import { extractPdfFlow } from './ui/extract-pdf-flow';
 import { deletePdfFlow } from './ui/delete-pdf-flow';
 import { reorderPdfFlow } from './ui/reorder-pdf-flow';
-import { rotatePdfFlow } from './ui/rotate-pdf-flow';
-import { compressPdfFlow } from './ui/compress-pdf-flow';
-import { unlockPdfFlow } from './ui/unlock-pdf-flow';
+import { rotatePdfBatchFlow } from './ui/rotate-pdf-flow';
+import { compressPdfBatchFlow } from './ui/compress-pdf-flow';
+import { unlockPdfBatchFlow } from './ui/unlock-pdf-flow';
 import { loadPdfMetadataFlow, savePdfMetadataFlow } from './ui/pdf-metadata-flow';
-import { watermarkPdfFlow } from './ui/watermark-pdf-flow';
+import { watermarkPdfBatchFlow } from './ui/watermark-pdf-flow';
 import type { CompressionMode } from './pdf/compress';
 import { registerWindowPdfActions } from './ui/window-actions';
 import { loadSignaturePdfFlow } from './ui/signature-pdf-load-flow';
@@ -699,15 +699,16 @@ import { getPdfTextPointFromCanvas, renderPdfTextMarker } from './ui/pdf-text-ma
             const mode = selectedMode === 'left' || selectedMode === 'right' || selectedMode === 'half-turn'
                 ? selectedMode
                 : 'auto';
-            await rotatePdfFlow({
-                file: sourceFileState.files[0],
+            await rotatePdfBatchFlow({
+                files: sourceFileState.files,
                 pagesText: getTrimmedInputValue('rotate-pages'),
                 mode,
                 deps: { getPageCountFromArrayBuffer: getPdfPageCountFromArrayBuffer, operationDeps: pdfOperationDeps },
                 i18n,
                 showStatus,
                 setActionBusy,
-                saveAs
+                saveAs,
+                JSZipCtor: JSZip
             });
         }
 
@@ -719,29 +720,31 @@ import { getPdfTextPointFromCanvas, renderPdfTextMarker } from './ui/pdf-text-ma
             const mode: CompressionMode = selectedMode === 'balanced' || selectedMode === 'compact'
                 ? selectedMode
                 : 'safe';
-            await compressPdfFlow({
-                file: sourceFileState.files[0],
+            await compressPdfBatchFlow({
+                files: sourceFileState.files,
                 mode,
                 deps: { loadPdfDocument, buildCompressedPdfFromRenderedPages },
                 i18n,
                 showStatus,
                 setActionBusy,
-                saveAs
+                saveAs,
+                JSZipCtor: JSZip
             });
         }
 
         async function quitarClavePDF() {
             const passwordInput = document.getElementById('unlock-password') as HTMLInputElement | null;
-            const result = await unlockPdfFlow({
-                file: sourceFileState.files[0],
+            const result = await unlockPdfBatchFlow({
+                files: sourceFileState.files,
                 password: passwordInput?.value || '',
                 buildUnlockedPdf: buildUnlockedPdfFromRenderedPages,
                 i18n,
                 showStatus,
                 setActionBusy,
-                saveAs
+                saveAs,
+                JSZipCtor: JSZip
             });
-            if (result.status === 'success' && passwordInput) passwordInput.value = '';
+            if ((result.status === 'success' || result.status === 'batch-success') && passwordInput) passwordInput.value = '';
         }
 
         const metadataFlowOptions = () => ({
@@ -770,8 +773,8 @@ import { getPdfTextPointFromCanvas, renderPdfTextMarker } from './ui/pdf-text-ma
         }
 
         async function agregarMarcaAgua() {
-            await watermarkPdfFlow({
-                file: sourceFileState.files[0],
+            await watermarkPdfBatchFlow({
+                files: sourceFileState.files,
                 text: getInputValue('watermark-text'),
                 pagesText: getTrimmedInputValue('watermark-pages'),
                 opacity: Number(getInputValue('watermark-opacity')) / 100,
@@ -784,7 +787,8 @@ import { getPdfTextPointFromCanvas, renderPdfTextMarker } from './ui/pdf-text-ma
                 i18n,
                 showStatus,
                 setActionBusy,
-                saveAs
+                saveAs,
+                JSZipCtor: JSZip
             });
         }
 

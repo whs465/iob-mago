@@ -2,6 +2,7 @@ import { rotatePdfPagesFromText, type PageActionDeps, type RotatePagesActionResu
 import type { PdfRotationMode } from '../pdf/operations';
 import { getPdfBaseName } from '../utils/filenames';
 import { pdfBytesToBlob } from '../utils/pdf-bytes';
+import { downloadPdfOutputs, type PdfBatchOutput, type PdfBatchZipConstructor } from '../utils/pdf-batch-download';
 import type { StatusType } from './dom';
 import type { SignatureMetaTranslator } from './signature-preview';
 
@@ -18,6 +19,11 @@ export type RotatePdfFlowOptions = {
   saveAs(blob: Blob, filename: string): void;
   rotateAction?: typeof rotatePdfPagesFromText;
   logError?: (error: unknown) => void;
+};
+
+export type RotatePdfBatchFlowOptions = Omit<RotatePdfFlowOptions, 'file'> & {
+  files: File[];
+  JSZipCtor?: PdfBatchZipConstructor;
 };
 
 export type RotatePdfFlowResult =
@@ -110,5 +116,60 @@ export async function rotatePdfFlow({
     return { status: 'error', message };
   } finally {
     finishProcessing();
+  }
+}
+
+export async function rotatePdfBatchFlow(options: RotatePdfBatchFlowOptions) {
+  if (options.files.length <= 1) return rotatePdfFlow({ ...options, file: options.files[0] });
+
+  const finish = options.setActionBusy('rotate-action', options.i18n('Rotating...', 'Rotando...'));
+  if (!finish) return { status: 'busy' as const };
+
+  const outputs: PdfBatchOutput[] = [];
+  const skipped: string[] = [];
+  const failures: string[] = [];
+  let rotatedCount = 0;
+  try {
+    for (const [index, file] of options.files.entries()) {
+      options.showStatus(options.i18n(
+        'Rotating file {{completed}} of {{total}}: {{name}}',
+        'Girando archivo {{completed}} de {{total}}: {{name}}',
+        { completed: String(index + 1), total: String(options.files.length), name: file.name },
+      ), 'processing');
+      try {
+        const action = await (options.rotateAction ?? rotatePdfPagesFromText)(
+          file, options.pagesText, options.deps, options.mode ?? 'auto',
+        );
+        if (action.status !== 'ok') {
+          skipped.push(file.name);
+          continue;
+        }
+        rotatedCount += action.result.rotatedCount;
+        outputs.push({
+          filename: `${getPdfBaseName(file.name)}${options.i18n('-rotated.pdf', '-girado.pdf')}`,
+          pdfBytes: action.result.pdfBytes,
+        });
+      } catch (error) {
+        (options.logError ?? console.error)(error);
+        failures.push(file.name);
+      }
+    }
+
+    await downloadPdfOutputs(outputs, {
+      JSZipCtor: options.JSZipCtor,
+      zipFilename: options.i18n('rotated-pdfs.zip', 'pdfs-girados.zip'),
+      saveAs: options.saveAs,
+    });
+    options.showStatus(options.i18n(
+      'Batch complete: {{success}} PDF(s), {{pages}} page(s) rotated, {{skipped}} skipped, {{failed}} failed.',
+      'Lote terminado: {{success}} PDF(s), {{pages}} página(s) girada(s), {{skipped}} omitido(s) y {{failed}} con error.',
+      {
+        success: String(outputs.length), pages: String(rotatedCount),
+        skipped: String(skipped.length), failed: String(failures.length),
+      },
+    ), outputs.length > 0 ? 'success' : 'error');
+    return { status: outputs.length > 0 ? 'batch-success' as const : 'batch-empty' as const, outputs, skipped, failures, rotatedCount };
+  } finally {
+    finish();
   }
 }
