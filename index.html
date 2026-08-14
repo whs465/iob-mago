@@ -4530,12 +4530,12 @@
                 <div class="input-group">
                     <label for="compress-mode">Nivel de compresión</label>
                     <select id="compress-mode">
-                        <option value="safe">Seguro · conserva texto y enlaces</option>
+                        <option value="safe">Seguro · optimización sin pérdida</option>
                         <option value="balanced">Equilibrado · buena calidad visual</option>
                         <option value="compact">Compacto · archivo más liviano</option>
                     </select>
                 </div>
-                <p class="tool-note" id="compress-note">El modo seguro nunca reemplaza el original por una copia más pesada. La reducción visual aplana las páginas y puede perder texto seleccionable, enlaces o formularios.</p>
+                <p class="tool-note" id="compress-note">El modo seguro conserva texto y enlaces, y solo descarga si logra una reducción significativa. La reducción visual aplana las páginas y puede perder texto seleccionable, enlaces o formularios.</p>
                 <button class="btn btn-primary" id="compress-action" style="margin-top: 16px;" onclick="comprimirPDF()">Comprimir y descargar</button>
             </div>
 

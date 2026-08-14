@@ -243,10 +243,10 @@ export function applyEnglishContent({
   setText('p', 'Reduce every loaded PDF with a safe mode or stronger visual compression.', compressCard);
   setText('label[for="compress-mode"]', 'Compression level', compressCard);
   const compressionOptions = requiredQueryAll<HTMLOptionElement>('#compress-mode option');
-  compressionOptions[0].textContent = 'Safe · keeps text and links';
+  compressionOptions[0].textContent = 'Safe · lossless optimization';
   compressionOptions[1].textContent = 'Balanced · good visual quality';
   compressionOptions[2].textContent = 'Compact · lighter file';
-  setElementText('compress-note', 'Safe mode never replaces the original with a larger copy. Visual compression flattens pages and may remove selectable text, links, or forms.');
+  setElementText('compress-note', 'Safe mode preserves text and links, and only downloads a meaningfully smaller result. Visual compression flattens pages and may remove selectable text, links, or forms.');
   setText('.btn-primary', 'Compress and download', compressCard);
 
   const unlockCard = getRequiredElement('unlock-card');

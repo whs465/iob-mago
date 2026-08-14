@@ -22,6 +22,17 @@ export type CompressPdfResult = {
   attempts: number;
 };
 
+const MIN_MEANINGFUL_REDUCTION_BYTES = 4 * 1024;
+const MIN_MEANINGFUL_REDUCTION_RATIO = 0.01;
+
+export function hasMeaningfulSafeReduction(originalSize: number, candidateSize: number) {
+  const savedBytes = originalSize - candidateSize;
+  return (
+    savedBytes >= MIN_MEANINGFUL_REDUCTION_BYTES
+    && savedBytes / originalSize >= MIN_MEANINGFUL_REDUCTION_RATIO
+  );
+}
+
 const visualPresets: Record<Exclude<CompressionMode, 'safe'>, Array<{ scale: number; quality: number }>> = {
   // Quality-first: only lowers resolution if the first pass cannot beat the source.
   balanced: [
@@ -97,7 +108,9 @@ export async function compressPdf(
     attempts = visualResult.attempts;
   }
 
-  const keptOriginal = candidate.byteLength >= originalBytes.byteLength;
+  const keptOriginal = mode === 'safe'
+    ? !hasMeaningfulSafeReduction(originalBytes.byteLength, candidate.byteLength)
+    : candidate.byteLength >= originalBytes.byteLength;
   const pdfBytes = keptOriginal ? originalBytes : candidate;
 
   return {

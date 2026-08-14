@@ -60,11 +60,17 @@ export async function compressPdfFlow(options: CompressPdfFlowOptions) {
     });
     const output = formatFileSize(result.outputSize, i18n('en-GB', 'es-CO'));
     if (result.keptOriginal) {
-      const message = i18n(
-        'This PDF is already smaller than the safe candidates for this mode ({{size}}). Nothing was downloaded.',
-        'Este PDF ya es más pequeño que las alternativas seguras de este modo ({{size}}). No se descargó una copia idéntica.',
-        { size: output },
-      );
+      const message = mode === 'safe'
+        ? i18n(
+            'This PDF is already optimized and safe mode could not reduce it meaningfully ({{size}}). Try Balanced for stronger visual compression.',
+            'Este PDF ya está optimizado y el modo seguro no logró reducirlo de forma significativa ({{size}}). Prueba Equilibrado para una reducción visual más fuerte.',
+            { size: output },
+          )
+        : i18n(
+            'This PDF is already smaller than the candidates for this mode ({{size}}). Nothing was downloaded.',
+            'Este PDF ya es más pequeño que las alternativas de este modo ({{size}}). No se descargó una copia idéntica.',
+            { size: output },
+          );
       reportCompressionStatus(message, 'error', showStatus);
       return { status: 'no-reduction' as const, ...result };
     }
@@ -141,11 +147,20 @@ export async function compressPdfBatchFlow(options: CompressPdfBatchFlowOptions)
       saveAs,
     });
     const type = outputs.length > 0 ? 'success' : 'error';
-    const message = i18n(
-      'Batch complete: {{success}} compressed, {{skipped}} unchanged, {{failed}} failed.',
-      'Lote terminado: {{success}} comprimido(s), {{skipped}} sin reducción y {{failed}} con error.',
-      { success: String(outputs.length), skipped: String(skipped.length), failed: String(failures.length) },
-    );
+    const values = {
+      success: String(outputs.length), skipped: String(skipped.length), failed: String(failures.length),
+    };
+    const message = mode === 'safe' && skipped.length > 0
+      ? i18n(
+          'Batch complete: {{success}} optimized, {{skipped}} without meaningful lossless reduction, {{failed}} failed. Try Balanced for stronger visual compression.',
+          'Lote terminado: {{success}} optimizado(s), {{skipped}} sin reducción significativa y {{failed}} con error. Prueba Equilibrado para una reducción visual más fuerte.',
+          values,
+        )
+      : i18n(
+          'Batch complete: {{success}} compressed, {{skipped}} unchanged, {{failed}} failed.',
+          'Lote terminado: {{success}} comprimido(s), {{skipped}} sin reducción y {{failed}} con error.',
+          values,
+        );
     reportCompressionStatus(message, type, showStatus);
     return { status: outputs.length > 0 ? 'batch-success' as const : 'batch-empty' as const, outputs, skipped, failures };
   } finally {

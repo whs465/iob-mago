@@ -44,6 +44,21 @@ describe('compressPdfFlow', () => {
     expect(showStatus).toHaveBeenLastCalledWith(expect.stringContaining('No se descargó una copia idéntica'), 'error');
   });
 
+  it('recommends balanced mode when safe optimization is negligible', async () => {
+    const showStatus = vi.fn();
+    const result = await compressPdfFlow({
+      file: new File([new Uint8Array(100)], 'report.pdf'), mode: 'safe', deps: {} as never,
+      i18n, showStatus, setActionBusy: () => vi.fn(), saveAs: vi.fn(),
+      compressAction: vi.fn(async () => ({
+        pdfBytes: new Uint8Array(100), originalSize: 100, outputSize: 100,
+        mode: 'safe' as const, rasterized: false, keptOriginal: true, attempts: 1,
+      })),
+    });
+
+    expect(result.status).toBe('no-reduction');
+    expect(showStatus).toHaveBeenLastCalledWith(expect.stringContaining('Prueba Equilibrado'), 'error');
+  });
+
   it('renders a visible inline error and always restores the button', async () => {
     const showStatus = vi.fn();
     const finish = vi.fn();
