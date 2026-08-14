@@ -1,3 +1,5 @@
+import { ArrowDown, ArrowUp, X, createElement, type IconNode } from 'lucide';
+
 export type SourceListLabels = {
   moveUp: string;
   moveDown: string;
@@ -15,11 +17,21 @@ export function createFileActionButton(
   disabled: boolean,
   onClick: () => void,
   extraClass = '',
+  icon?: IconNode,
 ) {
   const button = document.createElement('button');
   button.type = 'button';
   button.className = `file-action ${extraClass}`.trim();
-  button.textContent = text;
+  if (icon) {
+    button.append(createElement(icon, {
+      width: 16,
+      height: 16,
+      'stroke-width': 2,
+      'aria-hidden': 'true',
+    }));
+  } else {
+    button.textContent = text;
+  }
   button.title = label;
   button.setAttribute('aria-label', label);
   button.disabled = disabled;
@@ -95,10 +107,15 @@ export function renderSourceFileList(
     const actions = document.createElement('div');
     actions.className = 'file-actions';
 
+    const moveActions = document.createElement('div');
+    moveActions.className = 'file-move-actions';
+    moveActions.append(
+      createFileActionButton('↑', labels.moveUp, index === 0, () => callbacks.onMove(index, index - 1), 'move', ArrowUp),
+      createFileActionButton('↓', labels.moveDown, index === files.length - 1, () => callbacks.onMove(index, index + 1), 'move', ArrowDown),
+    );
     actions.append(
-      createFileActionButton('↑', labels.moveUp, index === 0, () => callbacks.onMove(index, index - 1)),
-      createFileActionButton('↓', labels.moveDown, index === files.length - 1, () => callbacks.onMove(index, index + 1)),
-      createFileActionButton('✕', labels.remove, false, () => callbacks.onRemove(index), 'remove'),
+      moveActions,
+      createFileActionButton('✕', labels.remove, false, () => callbacks.onRemove(index), 'remove', X),
     );
 
     item.append(main, actions);

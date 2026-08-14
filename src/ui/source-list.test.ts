@@ -43,6 +43,9 @@ describe('source-list ui helpers', () => {
     expect(buttons).toHaveLength(6);
     expect(buttons[0].disabled).toBe(true);
     expect(buttons[3].disabled).toBe(false);
+    expect(list.querySelectorAll('.file-move-actions')).toHaveLength(2);
+    expect(buttons[0].querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
+    expect(buttons[5].classList.contains('remove')).toBe(true);
 
     buttons[3].click();
     buttons[5].click();

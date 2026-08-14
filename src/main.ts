@@ -56,6 +56,7 @@ import {
 import { initFileInputDragDrop } from './ui/file-drag-drop';
 import { renderOrderPageListWithI18n } from './ui/order-list';
 import { getCheckboxValue, getTrimmedInputValue } from './ui/pdf-tools';
+import { renderPdfToolIcons } from './ui/pdf-tool-icons';
 import { applyEnglishContent } from './ui/english-content';
 import { setupSupportLinks } from './ui/support';
 import { setupSignatureEventHandlers } from './ui/signature-events';
@@ -540,8 +541,9 @@ import { getPdfTextPointFromCanvas, renderPdfTextMarker } from './ui/pdf-text-ma
 
         // Inicializar fechas al cargar
         function initializeApp() {
-            setupPdfToolWorkspace();
             translatePageToEnglish();
+            renderPdfToolIcons();
+            setupPdfToolWorkspace();
             setupScreenshotPolish({ i18n, saveAs });
             setupScanToPdf({
                 i18n,
