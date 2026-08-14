@@ -16,6 +16,17 @@ export function fileMatchesAccept(file: File, accept: string) {
   });
 }
 
+export function getDroppedFiles(dataTransfer: DataTransfer | null | undefined) {
+  const itemFiles = Array.from(dataTransfer?.items || [])
+    .filter(item => item.kind === 'file')
+    .map(item => item.getAsFile())
+    .filter((file): file is File => file !== null);
+
+  return itemFiles.length > 0
+    ? itemFiles
+    : Array.from(dataTransfer?.files || []);
+}
+
 export function initFileInputDragDrop() {
   document.querySelectorAll<HTMLElement>('.file-input-wrapper').forEach(wrapper => {
     const label = wrapper.querySelector<HTMLElement>('.file-input-label');
@@ -37,7 +48,7 @@ export function initFileInputDragDrop() {
       event.preventDefault();
       label.classList.remove('drag-over');
 
-      const files = Array.from(event.dataTransfer?.files || []);
+      const files = getDroppedFiles(event.dataTransfer);
       if (files.length === 0) return;
 
       const acceptedFiles = files.filter(file => fileMatchesAccept(file, input.accept));
@@ -49,6 +60,12 @@ export function initFileInputDragDrop() {
         }));
       }
       if (acceptedFiles.length === 0) return;
+
+      const shouldContinueWithInput = input.dispatchEvent(new CustomEvent('filesdropped', {
+        cancelable: true,
+        detail: { files: acceptedFiles },
+      }));
+      if (!shouldContinueWithInput) return;
 
       try {
         const dataTransfer = new DataTransfer();

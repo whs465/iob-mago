@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fileMatchesAccept, initFileInputDragDrop } from './file-drag-drop';
+import { fileMatchesAccept, getDroppedFiles, initFileInputDragDrop } from './file-drag-drop';
 
 describe('initFileInputDragDrop', () => {
   beforeEach(() => {
@@ -65,6 +65,31 @@ describe('initFileInputDragDrop', () => {
     expect(rejectionListener).toHaveBeenCalledTimes(1);
     expect(changeListener).not.toHaveBeenCalled();
   });
+
+  it('preserves DataTransfer item order and passes it directly to a drop consumer', () => {
+    const first = new File(['1'], '01-first.pdf', { type: 'application/pdf' });
+    const second = new File(['2'], '02-second.pdf', { type: 'application/pdf' });
+    const input = document.getElementById('file-input') as HTMLInputElement;
+    input.accept = '.pdf';
+    const received: File[][] = [];
+    input.addEventListener('filesdropped', event => {
+      received.push((event as CustomEvent<{ files: File[] }>).detail.files);
+      event.preventDefault();
+    });
+
+    initFileInputDragDrop();
+    const drop = new Event('drop', { bubbles: true });
+    Object.defineProperty(drop, 'dataTransfer', { value: {
+      files: [second, first],
+      items: [
+        { kind: 'file', getAsFile: () => first },
+        { kind: 'file', getAsFile: () => second },
+      ],
+    } });
+    document.querySelector<HTMLElement>('.file-input-wrapper')?.dispatchEvent(drop);
+
+    expect(received).toEqual([[first, second]]);
+  });
 });
 
 describe('fileMatchesAccept', () => {
@@ -77,5 +102,13 @@ describe('fileMatchesAccept', () => {
     const jpeg = new File(['image'], 'photo.jpg', { type: 'image/jpeg' });
     expect(fileMatchesAccept(jpeg, 'image/png,image/jpeg')).toBe(true);
     expect(fileMatchesAccept(jpeg, 'image/*')).toBe(true);
+  });
+});
+
+describe('getDroppedFiles', () => {
+  it('falls back to FileList order when drag items are unavailable', () => {
+    const first = new File(['1'], 'first.pdf');
+    const second = new File(['2'], 'second.pdf');
+    expect(getDroppedFiles({ files: [first, second] } as unknown as DataTransfer)).toEqual([first, second]);
   });
 });

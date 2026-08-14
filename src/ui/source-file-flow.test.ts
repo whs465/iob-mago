@@ -125,6 +125,32 @@ describe('setupSourceFileFlow', () => {
     expect((document.getElementById('source-clear-action') as HTMLButtonElement).disabled).toBe(false);
   });
 
+  it('keeps the exact order supplied by the drop zone', () => {
+    const sourceFileState = createMockSourceFileState();
+    setupSourceFileFlow({
+      runtime: { sourceFileState, pageOrderState },
+      deps: {
+        getPdfPageCountFromArrayBuffer: vi.fn(),
+        getPdfPageMetricsFromArrayBuffer: vi.fn(),
+      },
+      i18n: (en: string) => en,
+      onOrderListUpdate,
+    });
+    const input = document.getElementById('source-input') as HTMLInputElement;
+    const files = [
+      new File(['b'], 'second.pdf', { type: 'application/pdf' }),
+      new File(['a'], 'first.pdf', { type: 'application/pdf' }),
+    ];
+
+    input.dispatchEvent(new CustomEvent('filesdropped', {
+      cancelable: true,
+      detail: { files },
+    }));
+
+    expect(sourceFileState.setFiles).toHaveBeenCalledWith(files);
+    expect(sourceFileState.files).toEqual(files);
+  });
+
   it('rejects non-PDF files without adding them to the shared source state', () => {
     const sourceFileState = createMockSourceFileState();
     setupSourceFileFlow({

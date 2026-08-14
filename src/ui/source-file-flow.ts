@@ -258,6 +258,19 @@ export function setupSourceFileFlow({
     sourceFileState.setFiles(acceptedFiles);
     actualizarSourceList();
   });
+  sourceInput?.addEventListener('filesdropped', event => {
+    const droppedEvent = event as CustomEvent<{ files?: File[] }>;
+    const droppedFiles = droppedEvent.detail?.files || [];
+    const acceptedFiles = droppedFiles.filter(file => fileMatchesAccept(file, sourceInput.accept));
+    if (droppedFiles.length > 0 && acceptedFiles.length === 0) {
+      updateSourceWorkbench('invalid');
+      droppedEvent.preventDefault();
+      return;
+    }
+    sourceFileState.setFiles(acceptedFiles);
+    actualizarSourceList();
+    droppedEvent.preventDefault();
+  });
   sourceInput?.addEventListener('filesrejected', () => updateSourceWorkbench('invalid'));
   document.getElementById('source-clear-action')?.addEventListener('click', limpiarSourceFiles);
 
