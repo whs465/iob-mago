@@ -128,4 +128,24 @@ describe('signPdfWithImage', () => {
       expect.objectContaining({ x: 120, y: 188, size: 12 }),
     );
   });
+
+  it('does not move text left when its anchor is near the right edge', async () => {
+    const pdfDoc = makePdfDoc(1);
+
+    await signPdfWithImage(
+      makeFile(),
+      null,
+      [],
+      {
+        applyAllPages: false,
+        deps: { loadPdfDocument: vi.fn(async () => pdfDoc) },
+        textPlacements: [{ text: 'Aprobado', pageIndex: 0, x: 590, y: 200, fontSize: 12 }],
+      },
+    );
+
+    expect(pdfDoc.pages[0].drawText).toHaveBeenCalledWith(
+      'Aprobado',
+      expect.objectContaining({ x: 590, y: 188 }),
+    );
+  });
 });

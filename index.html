@@ -2477,17 +2477,30 @@
             position: absolute;
             z-index: 3;
             max-width: calc(100% - 8px);
-            padding: 2px 4px;
-            border: 1px dashed rgba(15, 23, 42, 0.64);
+            padding: 0 3px 1px 0;
+            border: 1px dashed rgba(10, 132, 255, 0.82);
             border-radius: 4px;
-            background: rgba(255, 255, 255, 0.74);
+            background: rgba(255, 255, 255, 0.28);
             color: #1d1d1f;
             font-family: Helvetica, Arial, sans-serif;
             line-height: 1;
             white-space: nowrap;
             pointer-events: auto;
             transform: translateY(0);
-            box-shadow: 0 5px 16px rgba(15, 23, 42, 0.1);
+            box-shadow: 0 4px 14px rgba(10, 132, 255, 0.12);
+            backdrop-filter: blur(0.5px);
+        }
+
+        .pdf-text-marker::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            width: 8px;
+            height: 8px;
+            border-top: 2px solid #0a84ff;
+            border-left: 2px solid #0a84ff;
+            pointer-events: none;
         }
 
         .pdf-text-marker-delete {
@@ -2498,19 +2511,34 @@
         .signature-marker {
             position: absolute;
             border: 2px solid rgba(10, 132, 255, 0.82);
-            background: rgba(255, 255, 255, 0.24);
+            background: rgba(255, 255, 255, 0.1);
             pointer-events: auto;
             transform: translate(-50%, -50%);
             cursor: grab;
             touch-action: none;
             overflow: visible;
             box-shadow: 0 10px 24px rgba(10, 132, 255, 0.2);
-            backdrop-filter: blur(1px);
+            backdrop-filter: blur(0.4px);
+        }
+
+        .signature-marker::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            border: 1px solid rgba(10, 132, 255, 0.95);
+            border-radius: 50%;
+            background: radial-gradient(circle, #0a84ff 0 1.5px, rgba(255, 255, 255, 0.72) 2px 3px, transparent 3.5px);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.52);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
         }
 
         .signature-marker.dragging {
             cursor: grabbing;
-            background: rgba(255, 255, 255, 0.34);
+            background: rgba(255, 255, 255, 0.16);
             border-color: rgba(10, 132, 255, 0.98);
             box-shadow: 0 14px 30px rgba(10, 132, 255, 0.26);
             z-index: 2;
@@ -4930,7 +4958,7 @@
                             <input type="range" id="pdf-text-size" min="6" max="48" value="12">
                             <div class="slider-label"><span>6 pt</span><span>48 pt</span></div>
                         </div>
-                        <p class="text-placement-note">Escribe el texto y haz clic sobre el PDF para ubicarlo. Otro clic mueve la misma marca.</p>
+                        <p class="text-placement-note">Escribe el texto y haz clic sobre el PDF. La esquina azul marca exactamente dónde inicia; otro clic mueve la misma marca.</p>
                     </div>
 
                     <button class="btn btn-primary" id="sign-action" style="margin-top: 16px; width: 100%;" onclick="applySignatures()">

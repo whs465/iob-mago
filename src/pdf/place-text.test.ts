@@ -23,8 +23,8 @@ describe('placeTextOnPdf', () => {
     }, { loadPdfDocument: loadPdfDocument as never });
 
     expect(drawText).toHaveBeenCalledWith('Revisado', expect.objectContaining({
-      x: 180,
-      y: 0,
+      x: 280,
+      y: -4,
       size: 12,
     }));
     expect(result).toEqual(new Uint8Array([1, 2, 3]));

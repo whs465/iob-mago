@@ -1,4 +1,5 @@
 import { StandardFonts, rgb, type PDFDocument } from 'pdf-lib';
+import { getPdfTextDrawPosition } from '../utils/pdf-text-position';
 
 export type PdfTextPlacement = {
   text: string;
@@ -11,10 +12,6 @@ export type PdfTextPlacement = {
 export type PlaceTextDeps = {
   loadPdfDocument(arrayBuffer: ArrayBuffer): Promise<PDFDocument>;
 };
-
-function clamp(value: number, minimum: number, maximum: number) {
-  return Math.min(maximum, Math.max(minimum, value));
-}
 
 export async function placeTextOnPdf(
   file: File,
@@ -29,13 +26,11 @@ export async function placeTextOnPdf(
   const page = pages[placement.pageIndex];
   if (!page) throw new Error('Selected page does not exist');
 
-  const fontSize = clamp(Number(placement.fontSize) || 12, 6, 96);
+  const fontSize = Math.min(96, Math.max(6, Number(placement.fontSize) || 12));
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const { width, height } = page.getSize();
-  const textWidth = font.widthOfTextAtSize(text, fontSize);
   const textHeight = font.heightAtSize(fontSize);
-  const x = clamp(placement.x, 0, Math.max(0, width - textWidth));
-  const y = clamp(placement.y - textHeight, 0, Math.max(0, height - textHeight));
+  const { x, y } = getPdfTextDrawPosition(placement, { width, height }, textHeight);
 
   page.drawText(text, {
     x,

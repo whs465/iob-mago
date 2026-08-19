@@ -357,7 +357,7 @@ export function applyEnglishContent({
   setText('label[for="pdf-text-content"]', 'Text');
   setInputPlaceholder('pdf-text-content', 'Reviewed and approved');
   setText('#text-mode-panel .slider-group label', 'Font size');
-  setText('.text-placement-note', 'Enter the text and click the PDF to position it. Another click moves the same marker.');
+  setText('.text-placement-note', 'Enter the text and click the PDF. The blue corner marks its exact start; another click moves the same marker.');
   setText('.signature-controls .btn-primary', 'Apply and download');
   setImageAlt('signature-preview', 'Signature preview');
   setText('.signature-generator-kicker', 'Prepare PNG');

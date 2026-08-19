@@ -2,6 +2,7 @@ import type { SignatureMarker } from '../state/signature-markers';
 import type { PdfTextPlacement } from './place-text';
 import { StandardFonts, rgb } from 'pdf-lib';
 import { getSignaturePdfDimensions } from '../utils/signature-geometry';
+import { getPdfTextDrawPosition } from '../utils/pdf-text-position';
 
 type SignatureImage = {
   width: number;
@@ -127,10 +128,8 @@ export async function signPdfWithImage(
       if (!text || !page?.drawText || !page.getSize) continue;
       const size = Math.min(96, Math.max(6, Number(placement.fontSize) || 12));
       const { width, height } = page.getSize();
-      const textWidth = font.widthOfTextAtSize(text, size);
       const textHeight = font.heightAtSize(size);
-      const x = Math.min(Math.max(0, placement.x), Math.max(0, width - textWidth));
-      const y = Math.min(Math.max(0, placement.y - textHeight), Math.max(0, height - textHeight));
+      const { x, y } = getPdfTextDrawPosition(placement, { width, height }, textHeight);
       page.drawText(text, { x, y, size, font, color: rgb(0.11, 0.11, 0.12) });
     }
   }
