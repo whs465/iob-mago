@@ -159,7 +159,10 @@ export function applyEnglishContent({
   setText('p', 'Check today’s progress and the percentage from the latest monthly report.', progressCard);
   setText('.contract-current-summary .contract-summary-label', 'Current progress', progressCard);
   setText('.contract-last-report .contract-summary-label', 'Latest report', progressCard);
-  setText('.contract-period-bar .contract-summary-label', 'Contract', progressCard);
+  setElementText('contract-code-label', 'Contract code');
+  setElementText('contract-period-label', 'Term');
+  getRequiredElement('contract-code-copy').setAttribute('aria-label', 'Copy contract code');
+  getRequiredElement('contract-code-copy').setAttribute('title', 'Copy contract code');
   setText('.contract-timeline-heading .contract-summary-label', 'Monthly reports', progressCard);
   setText('.contract-timeline-heading > span:last-child', 'Tap a point to view its cut-off', progressCard);
   const timelineDetail = getRequiredElement('contract-timeline-detail');
@@ -296,6 +299,9 @@ export function applyEnglishContent({
 
   setText('label[for="fecha-inicial"]', 'Contract start');
   setText('label[for="fecha-final"]', 'Contract end');
+  setText('label[for="contract-code"]', 'Contract code');
+  setInputPlaceholder('contract-code', 'e.g. 1.111-2026');
+  getRequiredElement('contract-code').setAttribute('aria-label', 'Contract code');
   getRequiredElement('fecha-inicial').setAttribute('aria-label', 'Contract start date');
   getRequiredElement('fecha-final').setAttribute('aria-label', 'Contract end date');
   setInputPlaceholder('extract-pages', '1, 2, 3 or 1-5, 8, 10-12');

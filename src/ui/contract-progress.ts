@@ -10,6 +10,8 @@ export type ContractTimelinePointView = {
 };
 
 export type ContractProgressResult = {
+  contractCode: string;
+  emptyContractCodeText: string;
   currentPercentage: number;
   currentDateText: string;
   lastReportPercentage: number | null;
@@ -23,7 +25,16 @@ function setText(id: string, text: string) {
   getRequiredElement(id).textContent = text;
 }
 
-export function resetContractProgressFields() {
+function renderContractCode(code: string, emptyText: string) {
+  const element = getRequiredElement('contract-code-text');
+  const normalizedCode = code.trim();
+  element.textContent = normalizedCode || emptyText;
+  element.classList.toggle('is-empty', !normalizedCode);
+  getRequiredElement<HTMLButtonElement>('contract-code-copy').disabled = !normalizedCode;
+}
+
+export function resetContractProgressFields(contractCode = '', emptyContractCodeText = 'Sin código') {
+  renderContractCode(contractCode, emptyContractCodeText);
   setText('current-progress-number', '—');
   setText('current-progress-date', '—');
   setText('last-report-number', '—');
@@ -65,6 +76,7 @@ function createTimelinePoint(point: ContractTimelinePointView, kind: 'report' | 
 }
 
 export function renderContractProgressResult(result: ContractProgressResult) {
+  renderContractCode(result.contractCode, result.emptyContractCodeText);
   setText('current-progress-number', result.currentPercentage.toFixed(1));
   setText('current-progress-date', result.currentDateText);
   setText('last-report-number', result.lastReportPercentage === null ? '—' : result.lastReportPercentage.toFixed(1));

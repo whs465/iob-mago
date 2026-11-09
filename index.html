@@ -3667,6 +3667,112 @@
             background: rgba(29, 29, 31, 0.025);
         }
 
+        .contract-period-main {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            min-width: 0;
+        }
+
+        .contract-identity,
+        .contract-term {
+            min-width: 0;
+        }
+
+        .contract-identity {
+            flex: 0 0 auto;
+        }
+
+        .contract-term {
+            padding-left: 18px;
+            border-left: 1px solid rgba(29, 29, 31, 0.1);
+        }
+
+        #contract-code-text {
+            display: inline-flex;
+            align-items: center;
+            min-height: 30px;
+            margin-top: 5px;
+            padding: 5px 10px;
+            border: 1px solid rgba(0, 113, 227, 0.14);
+            border-radius: 9px;
+            background: rgba(0, 113, 227, 0.075);
+            color: var(--accent-strong);
+            font-size: 0.9rem;
+            font-weight: 760;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.025em;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .contract-code-value {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .contract-code-copy {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 30px;
+            width: 30px;
+            height: 30px;
+            margin-top: 5px;
+            padding: 0;
+            border: 1px solid rgba(0, 113, 227, 0.14);
+            border-radius: 9px;
+            background: #ffffff;
+            color: var(--accent-strong);
+            cursor: pointer;
+            transition: color 0.18s ease, background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+        }
+
+        .contract-code-copy:hover:not(:disabled),
+        .contract-code-copy:focus-visible {
+            border-color: rgba(0, 113, 227, 0.32);
+            background: rgba(0, 113, 227, 0.075);
+            outline: none;
+            transform: translateY(-1px);
+        }
+
+        .contract-code-copy:disabled {
+            opacity: 0.34;
+            cursor: not-allowed;
+        }
+
+        .contract-code-copy.is-copied {
+            border-color: rgba(47, 158, 98, 0.24);
+            background: rgba(47, 158, 98, 0.1);
+            color: #21734a;
+        }
+
+        .contract-code-copy.is-copied::after {
+            content: attr(data-feedback);
+            position: absolute;
+            right: 0;
+            bottom: calc(100% + 7px);
+            padding: 5px 8px;
+            border-radius: 8px;
+            background: #111827;
+            color: #ffffff;
+            font-size: 0.68rem;
+            font-weight: 700;
+            line-height: 1;
+            white-space: nowrap;
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
+        }
+
+        #contract-code-text.is-empty {
+            border-color: rgba(29, 29, 31, 0.08);
+            background: rgba(29, 29, 31, 0.035);
+            color: var(--muted);
+            font-weight: 650;
+        }
+
         .contract-period-bar strong {
             display: block;
             margin-top: 5px;
@@ -3700,6 +3806,18 @@
             border: 1px solid rgba(29, 29, 31, 0.08);
             border-radius: 20px;
             background: rgba(255, 255, 255, 0.72);
+        }
+
+        .contract-editor-grid {
+            display: grid;
+            grid-template-columns: minmax(180px, 0.7fr) minmax(0, 1.5fr);
+            gap: 18px;
+            align-items: end;
+        }
+
+        .contract-code-input {
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.025em;
         }
 
         .contract-date-editor[hidden] {
@@ -3906,6 +4024,11 @@
                 grid-column: 1;
             }
 
+            .contract-editor-grid {
+                grid-template-columns: 1fr;
+                align-items: stretch;
+            }
+
             .contract-timeline-heading {
                 align-items: flex-start;
                 flex-direction: column;
@@ -3936,6 +4059,17 @@
 
             .contract-period-bar {
                 align-items: flex-start;
+            }
+
+            .contract-period-main {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 11px;
+            }
+
+            .contract-term {
+                padding: 0;
+                border-left: 0;
             }
 
             .contract-period-bar strong {
@@ -4386,25 +4520,44 @@
                     </div>
 
                     <div class="contract-period-bar">
-                        <div>
-                            <span class="contract-summary-label">Contrato</span>
-                            <strong id="contract-period-text">Sin fechas configuradas</strong>
+                        <div class="contract-period-main">
+                            <div class="contract-identity">
+                                <span class="contract-summary-label" id="contract-code-label">Código del contrato</span>
+                                <div class="contract-code-value">
+                                    <strong id="contract-code-text" class="is-empty">Sin código</strong>
+                                    <button class="contract-code-copy" id="contract-code-copy" type="button"
+                                            aria-label="Copiar código del contrato" title="Copiar código del contrato" disabled></button>
+                                </div>
+                            </div>
+                            <div class="contract-term">
+                                <span class="contract-summary-label" id="contract-period-label">Vigencia</span>
+                                <strong id="contract-period-text">Sin fechas configuradas</strong>
+                            </div>
                         </div>
                         <button class="contract-edit-action" id="contract-date-edit-action" type="button" aria-expanded="true">Cerrar</button>
                     </div>
 
                     <div class="contract-date-editor" id="contract-date-editor">
-                        <div class="avance-period-row">
+                        <div class="contract-editor-grid">
                             <div class="avance-field">
-                                <label class="avance-label" for="fecha-inicial">Inicio del contrato</label>
-                                <input type="date" id="fecha-inicial" class="avance-date-sm"
-                                       aria-label="Fecha inicial del contrato" oninput="autoCalcularAvance()">
+                                <label class="avance-label" for="contract-code">Código del contrato</label>
+                                <input type="text" id="contract-code" class="avance-date-sm contract-code-input"
+                                       maxlength="40" autocomplete="off" spellcheck="false"
+                                       placeholder="Ej. 1.111-2026" aria-label="Código del contrato"
+                                       oninput="autoCalcularAvance()">
                             </div>
-                            <div class="avance-sep">→</div>
-                            <div class="avance-field">
-                                <label class="avance-label" for="fecha-final">Fin del contrato</label>
-                                <input type="date" id="fecha-final" class="avance-date-sm"
-                                       aria-label="Fecha final del contrato" oninput="autoCalcularAvance()">
+                            <div class="avance-period-row">
+                                <div class="avance-field">
+                                    <label class="avance-label" for="fecha-inicial">Inicio del contrato</label>
+                                    <input type="date" id="fecha-inicial" class="avance-date-sm"
+                                           aria-label="Fecha inicial del contrato" oninput="autoCalcularAvance()">
+                                </div>
+                                <div class="avance-sep">→</div>
+                                <div class="avance-field">
+                                    <label class="avance-label" for="fecha-final">Fin del contrato</label>
+                                    <input type="date" id="fecha-final" class="avance-date-sm"
+                                           aria-label="Fecha final del contrato" oninput="autoCalcularAvance()">
+                                </div>
                             </div>
                         </div>
                     </div>

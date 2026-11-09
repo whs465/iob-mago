@@ -7,12 +7,14 @@ import {
   getLastClosedReportDate,
 } from '../utils/contract-progress';
 import { parseInputDate, toDateInputValue } from '../utils/locale';
+import { Check, Copy, createElement, type IconNode } from 'lucide';
 
 export type ContractProgressFlowOptions = {
   i18n: SignatureMetaTranslator;
   formatDateValue: (date: Date) => string;
   formatDateTimeValue: (date: Date) => string;
   now?: () => Date;
+  copyText?: (text: string) => Promise<void>;
 };
 
 export type ContractProgressFlowApi = {
@@ -51,14 +53,42 @@ function getTodayTimelinePosition(today: Date, start: Date, reportDates: Date[])
   return ((reportIndex + segmentProgress) / reportDates.length) * 100;
 }
 
+function renderContractCopyIcon(button: HTMLButtonElement, icon: IconNode) {
+  button.replaceChildren(createElement(icon, {
+    width: 15,
+    height: 15,
+    'stroke-width': 2,
+    'aria-hidden': 'true',
+  }));
+}
+
+async function copyTextToClipboard(text: string) {
+  if (navigator.clipboard?.writeText && window.isSecureContext) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand('copy');
+  textarea.remove();
+}
+
 export function setupContractProgressFlow({
   i18n,
   formatDateValue,
   formatDateTimeValue: _formatDateTimeValue,
   now = () => new Date(),
+  copyText = copyTextToClipboard,
 }: ContractProgressFlowOptions): ContractProgressFlowApi {
   const locale = i18n('en-GB', 'es-CO');
   const shortDateFormatter = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' });
+  const copyButton = getRequiredElement<HTMLButtonElement>('contract-code-copy');
+  renderContractCopyIcon(copyButton, Copy);
 
   function setDateEditorExpanded(expanded: boolean) {
     const editor = getRequiredElement('contract-date-editor');
@@ -95,11 +125,13 @@ export function setupContractProgressFlow({
   }
 
   function calcularAvance() {
+    const contractCode = getInputValue('contract-code').trim();
+    const emptyContractCodeText = i18n('No code', 'Sin código');
     const startValue = getInputValue('fecha-inicial');
     const endValue = getInputValue('fecha-final');
 
     if (!startValue || !endValue) {
-      resetContractProgressFields();
+      resetContractProgressFields(contractCode, emptyContractCodeText);
       setMessage(i18n('Set the contract start and end dates.', 'Configura el inicio y el fin del contrato.'));
       return;
     }
@@ -107,7 +139,7 @@ export function setupContractProgressFlow({
     const start = parseInputDate(startValue);
     const end = parseInputDate(endValue);
     if (end < start) {
-      resetContractProgressFields();
+      resetContractProgressFields(contractCode, emptyContractCodeText);
       setMessage(
         i18n('The end date must be on or after the start date.', 'La fecha final debe ser igual o posterior a la inicial.'),
         'error',
@@ -171,6 +203,8 @@ export function setupContractProgressFlow({
         : i18n('As of {{date}}', 'Al {{date}}', { date: formatDateValue(today) });
 
     renderContractProgressResult({
+      contractCode,
+      emptyContractCodeText,
       currentPercentage,
       currentDateText,
       lastReportPercentage: lastClosedPoint?.percentage ?? null,
@@ -211,12 +245,34 @@ export function setupContractProgressFlow({
   }
 
   function autoCalcularAvance() {
+    const contractCode = getInputValue('contract-code').trim();
     const startValue = getInputValue('fecha-inicial');
     const endValue = getInputValue('fecha-final');
     calcularAvance();
 
-    if (startValue && endValue && parseInputDate(startValue) <= parseInputDate(endValue)) {
-      localStorage.setItem('fechasAvance', JSON.stringify({ fechaInicial: startValue, fechaFinal: endValue }));
+    const hasValidDates = Boolean(
+      startValue
+      && endValue
+      && parseInputDate(startValue) <= parseInputDate(endValue),
+    );
+    if (hasValidDates) {
+      localStorage.setItem('fechasAvance', JSON.stringify({
+        codigoContrato: contractCode,
+        fechaInicial: startValue,
+        fechaFinal: endValue,
+      }));
+    } else if (contractCode) {
+      let previousDates: { fechaInicial?: string; fechaFinal?: string } = {};
+      try {
+        previousDates = JSON.parse(localStorage.getItem('fechasAvance') || '{}');
+      } catch {
+        previousDates = {};
+      }
+      localStorage.setItem('fechasAvance', JSON.stringify({
+        codigoContrato: contractCode,
+        fechaInicial: previousDates.fechaInicial || '',
+        fechaFinal: previousDates.fechaFinal || '',
+      }));
     } else if (!startValue || !endValue) {
       localStorage.removeItem('fechasAvance');
     }
@@ -232,6 +288,7 @@ export function setupContractProgressFlow({
 
     try {
       const dates = JSON.parse(saved);
+      setInputValue('contract-code', dates.codigoContrato || '');
       setInputValue('fecha-inicial', dates.fechaInicial || '');
       setInputValue('fecha-final', dates.fechaFinal || '');
       setDateEditorExpanded(false);
@@ -248,6 +305,27 @@ export function setupContractProgressFlow({
   getRequiredElement('contract-date-edit-action').addEventListener('click', () => {
     const expanded = getRequiredElement('contract-date-edit-action').getAttribute('aria-expanded') === 'true';
     setDateEditorExpanded(!expanded);
+  });
+
+  copyButton.addEventListener('click', async () => {
+    const code = getInputValue('contract-code').trim();
+    if (!code || copyButton.disabled) return;
+
+    try {
+      await copyText(code);
+      copyButton.classList.add('is-copied');
+      copyButton.dataset.feedback = i18n('Copied', 'Copiado');
+      copyButton.setAttribute('aria-label', i18n('Contract code copied', 'Código del contrato copiado'));
+      renderContractCopyIcon(copyButton, Check);
+      window.setTimeout(() => {
+        copyButton.classList.remove('is-copied');
+        copyButton.dataset.feedback = '';
+        copyButton.setAttribute('aria-label', i18n('Copy contract code', 'Copiar código del contrato'));
+        renderContractCopyIcon(copyButton, Copy);
+      }, 1600);
+    } catch {
+      setMessage(i18n('The contract code could not be copied.', 'No se pudo copiar el código del contrato.'), 'error');
+    }
   });
 
   (window as unknown as Record<string, unknown>).calcularAvance = calcularAvance;

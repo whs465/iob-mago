@@ -7,6 +7,8 @@ function mountContractProgressDom() {
   document.body.innerHTML = `
     <span id="current-progress-number"></span><span id="current-progress-date"></span>
     <span id="last-report-number"></span><span id="last-report-meta"></span>
+    <span id="contract-code-text"></span>
+    <button id="contract-code-copy"></button>
     <span id="contract-period-text"></span>
     <div id="contract-progress-fill"></div><div id="contract-timeline-track"></div>
     <div id="contract-timeline-detail" data-default-text="Tap a point"></div>
@@ -21,12 +23,16 @@ describe('contract progress UI helpers', () => {
     expect(document.getElementById('current-progress-number')?.textContent).toBe('—');
     expect(document.getElementById('last-report-number')?.textContent).toBe('—');
     expect(document.getElementById('contract-period-text')?.textContent).toBe('Sin fechas configuradas');
+    expect(document.getElementById('contract-code-text')?.textContent).toBe('Sin código');
+    expect((document.getElementById('contract-code-copy') as HTMLButtonElement).disabled).toBe(true);
     expect(document.getElementById('contract-progress-fill')?.style.width).toBe('0%');
   });
 
   it('renders summaries and interactive timeline points', () => {
     mountContractProgressDom();
     renderContractProgressResult({
+      contractCode: '1.111-2026',
+      emptyContractCodeText: 'Sin código',
       currentPercentage: 48.4,
       currentDateText: 'Al 03/03/2027',
       lastReportPercentage: 40.2,
@@ -42,6 +48,8 @@ describe('contract progress UI helpers', () => {
 
     expect(document.getElementById('current-progress-number')?.textContent).toBe('48.4');
     expect(document.getElementById('last-report-number')?.textContent).toBe('40.2');
+    expect(document.getElementById('contract-code-text')?.textContent).toBe('1.111-2026');
+    expect((document.getElementById('contract-code-copy') as HTMLButtonElement).disabled).toBe(false);
     expect(document.querySelectorAll('.contract-timeline-point')).toHaveLength(2);
     expect(document.querySelector('.contract-timeline-today')?.getAttribute('aria-label')).toContain('48,4 %');
     (document.querySelector('.contract-timeline-today') as HTMLButtonElement).click();
