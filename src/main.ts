@@ -127,6 +127,7 @@ import {
 import { updateSignatureProgress } from './ui/signature-progress';
 import { setupSourceFileFlow } from './ui/source-file-flow';
 import { setupContractProgressFlow } from './ui/contract-progress-flow';
+import { setupContractIbcFlow } from './ui/contract-ibc-flow';
 import { setupPdfToolWorkspace } from './ui/pdf-tool-workspace';
 import { setupScreenshotPolish } from './ui/screenshot-polish';
 import { setupScanToPdf } from './ui/scan-to-pdf';
@@ -192,6 +193,7 @@ import { getPdfTextPointFromCanvas, renderPdfTextMarker } from './ui/pdf-text-ma
             formatDateValue,
             formatDateTimeValue,
         });
+        setupContractIbcFlow({ i18n });
 
         function updatePageInfoDisplay(page = 1, total = 1) {
             return i18n(
