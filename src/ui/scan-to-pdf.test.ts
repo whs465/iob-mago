@@ -9,7 +9,9 @@ const i18n = (_en: string, es: string, vars: Record<string, string> = {}) =>
 function canvasContext() {
   return {
     fillRect: vi.fn(), save: vi.fn(), restore: vi.fn(), translate: vi.fn(), rotate: vi.fn(),
-    drawImage: vi.fn(), fillStyle: '', filter: '',
+    drawImage: vi.fn(), fillStyle: '', filter: '', beginPath: vi.fn(), rect: vi.fn(), moveTo: vi.fn(),
+    lineTo: vi.fn(), closePath: vi.fn(), fill: vi.fn(), stroke: vi.fn(), arc: vi.fn(),
+    strokeStyle: '', lineWidth: 1,
   } as unknown as CanvasRenderingContext2D;
 }
 
@@ -32,6 +34,13 @@ function fixture() {
       <select id="scan-margin"><option value="18" selected></option></select>
       <button id="scan-clear-action"></button>
       <button id="scan-download-action"></button>
+      <div id="scan-crop-editor" hidden>
+        <h3 id="scan-crop-title"></h3>
+        <canvas id="scan-crop-canvas"></canvas>
+        <button id="scan-crop-reset"></button>
+        <button id="scan-crop-cancel"></button>
+        <button id="scan-crop-apply"></button>
+      </div>
     </section>
   `;
 }
@@ -91,6 +100,33 @@ describe('scan to PDF UI', () => {
       expect.any(Object),
     ));
     expect(saveAs).toHaveBeenCalledWith(expect.any(Blob), expect.stringMatching(/^escaneo-\d{4}-\d{2}-\d{2}\.pdf$/));
+    cleanup();
+  });
+
+  it('opens the four-corner editor and marks an applied crop', async () => {
+    fixture();
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(canvasContext());
+    const cleanup = setupScanToPdf({
+      i18n,
+      saveAs: vi.fn(),
+      deps: { createPdfDocument: vi.fn() as never },
+      decodeImage: vi.fn(async () => ({ width: 900, height: 1200 } as never)),
+      createObjectUrl: file => `blob:${(file as File).name}`,
+      revokeObjectUrl: vi.fn(),
+    });
+    const input = document.getElementById('scan-image-input') as HTMLInputElement;
+    Object.defineProperty(input, 'files', {
+      configurable: true,
+      value: [new File(['page'], 'contrato.jpg', { type: 'image/jpeg' })],
+    });
+    input.dispatchEvent(new Event('change'));
+    document.querySelector<HTMLButtonElement>('[data-scan-action="crop"]')?.click();
+
+    await vi.waitFor(() => expect(document.getElementById('scan-crop-editor')?.hidden).toBe(false));
+    document.getElementById('scan-crop-apply')?.click();
+
+    expect(document.getElementById('scan-crop-editor')?.hidden).toBe(true);
+    expect(document.querySelector('.scan-page-adjusted')?.textContent).toBe('Bordes ajustados');
     cleanup();
   });
 });

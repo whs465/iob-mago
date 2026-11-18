@@ -1832,6 +1832,91 @@
         }
         .scan-page-actions button:disabled { cursor: default; opacity: 0.28; }
 
+        .scan-page-adjusted {
+            display: inline-flex;
+            width: fit-content;
+            margin-top: 5px;
+            padding: 3px 7px;
+            border-radius: 999px;
+            color: #0875d1;
+            background: rgba(8, 117, 209, 0.09);
+            font-size: 0.66rem;
+            font-weight: 750;
+        }
+
+        body.scan-crop-open { overflow: hidden; }
+
+        .scan-crop-editor {
+            position: fixed;
+            z-index: 1200;
+            inset: 0;
+            display: grid;
+            padding: 20px;
+            place-items: center;
+            background: rgba(3, 11, 22, 0.78);
+            backdrop-filter: blur(12px);
+        }
+
+        .scan-crop-editor[hidden] { display: none; }
+
+        .scan-crop-dialog {
+            display: grid;
+            width: min(920px, 100%);
+            max-height: calc(100vh - 40px);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 24px;
+            background: #101c2a;
+            box-shadow: 0 30px 90px rgba(0, 0, 0, 0.42);
+        }
+
+        .scan-crop-heading {
+            display: flex;
+            padding: 18px 20px 15px;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+            color: #ffffff;
+        }
+
+        .scan-crop-heading h3 { margin: 0; font-size: 1.05rem; }
+        .scan-crop-heading p {
+            margin: 5px 0 0;
+            color: rgba(255, 255, 255, 0.62);
+            font-size: 0.8rem;
+            line-height: 1.45;
+        }
+
+        .scan-crop-stage {
+            display: grid;
+            min-height: 280px;
+            padding: 0 20px;
+            place-items: center;
+            overflow: auto;
+        }
+
+        #scan-crop-canvas {
+            display: block;
+            width: auto;
+            max-width: 100%;
+            height: auto;
+            max-height: calc(100vh - 240px);
+            border-radius: 8px;
+            cursor: crosshair;
+            touch-action: none;
+            user-select: none;
+        }
+
+        .scan-crop-actions {
+            display: flex;
+            padding: 16px 20px 20px;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 9px;
+        }
+
+        .scan-crop-actions .scan-crop-reset { margin-right: auto; }
+
         .scan-controls {
             padding: 20px;
             border: 1px solid rgba(29, 29, 31, 0.08);
@@ -1848,6 +1933,12 @@
             .scan-page-item { grid-template-columns: 58px minmax(0, 1fr); }
             .scan-page-preview { width: 58px; height: 58px; }
             .scan-page-actions { grid-column: 1 / -1; justify-content: flex-end; padding-top: 2px; }
+            .scan-crop-editor { padding: 0; }
+            .scan-crop-dialog { max-height: 100vh; border-radius: 0; }
+            .scan-crop-stage { padding: 0 12px; }
+            #scan-crop-canvas { max-height: calc(100vh - 225px); }
+            .scan-crop-actions { padding: 14px 12px 16px; flex-wrap: wrap; }
+            .scan-crop-actions .btn { min-height: 42px; }
         }
 
         .support-box {
@@ -5774,6 +5865,7 @@
                                 <option value="document" selected>Documento · recomendado</option>
                                 <option value="original">Color original</option>
                                 <option value="grayscale">Escala de grises</option>
+                                <option value="black-white">Blanco y negro · intenso</option>
                             </select>
                         </div>
                         <div class="input-group">
@@ -5797,6 +5889,24 @@
                             <button class="btn btn-secondary" type="button" id="scan-clear-action" disabled>Limpiar páginas</button>
                         </div>
                     </aside>
+                </div>
+                <div class="scan-crop-editor" id="scan-crop-editor" role="dialog" aria-modal="true" aria-labelledby="scan-crop-title" hidden>
+                    <div class="scan-crop-dialog">
+                        <div class="scan-crop-heading">
+                            <div>
+                                <h3 id="scan-crop-title">Ajusta los bordes del documento</h3>
+                                <p id="scan-crop-help">Arrastra los cuatro puntos hasta las esquinas del papel. Corregiremos la perspectiva al crear el PDF.</p>
+                            </div>
+                        </div>
+                        <div class="scan-crop-stage">
+                            <canvas id="scan-crop-canvas"></canvas>
+                        </div>
+                        <div class="scan-crop-actions">
+                            <button class="btn btn-secondary scan-crop-reset" type="button" id="scan-crop-reset">Usar imagen completa</button>
+                            <button class="btn btn-secondary" type="button" id="scan-crop-cancel">Cancelar</button>
+                            <button class="btn btn-primary" type="button" id="scan-crop-apply">Aplicar recorte</button>
+                        </div>
+                    </div>
                 </div>
                 <input type="file" id="scan-image-input" accept="image/png,image/jpeg,image/webp" multiple>
                 <input type="file" id="scan-camera-input" accept="image/*" capture="environment">

@@ -142,6 +142,7 @@ export function applyEnglishContent({
   scanFinishOptions[0].textContent = 'Document · recommended';
   scanFinishOptions[1].textContent = 'Original colour';
   scanFinishOptions[2].textContent = 'Greyscale';
+  scanFinishOptions[3].textContent = 'Black and white · strong';
   const scanFormatOptions = requiredQueryAll<HTMLOptionElement>('#scan-page-format option');
   scanFormatOptions[0].textContent = 'A4 · automatic orientation';
   scanFormatOptions[1].textContent = 'Letter · automatic orientation';
@@ -152,6 +153,11 @@ export function applyEnglishContent({
   scanMarginOptions[2].textContent = 'Normal';
   setElementText('scan-download-action', 'Create PDF');
   setElementText('scan-clear-action', 'Clear pages');
+  setElementText('scan-crop-title', 'Adjust document edges');
+  setElementText('scan-crop-help', 'Drag the four points onto the paper corners. Perspective will be corrected when creating the PDF.');
+  setElementText('scan-crop-reset', 'Use full image');
+  setElementText('scan-crop-cancel', 'Cancel');
+  setElementText('scan-crop-apply', 'Apply crop');
 
   const progressCard = getRequiredElement('progress-card');
   setText('.card-icon', 'Progress', progressCard);
