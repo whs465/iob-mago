@@ -173,6 +173,7 @@ export function applyEnglishContent({
   setElementText('ibc-start-label', 'From');
   setElementText('ibc-end-label', 'To');
   setElementText('ibc-result-label', 'Estimated IBC');
+  setElementText('ibc-period-income-label', 'Proportional period value');
   setElementText('ibc-arl-label', 'ARL included');
   setElementText('ibc-arl-level', 'Risk level');
   setElementText('ibc-health-label', 'Health');

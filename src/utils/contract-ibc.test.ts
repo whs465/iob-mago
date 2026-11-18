@@ -26,6 +26,7 @@ describe('contract IBC', () => {
     });
 
     expect(result.days).toBe(10);
+    expect(result.periodIncome).toBe(666_667);
     expect(result.adjustment).toBe('minimum');
     expect(result.ibc).toBe(Math.ceil(COLOMBIA_SMMLV_2026 / 3));
   });

@@ -13,6 +13,7 @@ function mountDom() {
       <input id="ibc-start-date"><input id="ibc-end-date">
     </div>
     <strong id="ibc-result-value"></strong>
+    <span id="ibc-period-income" hidden><strong id="ibc-period-income-value"></strong></span>
     <span id="ibc-result-detail"></span>
     <span id="ibc-result-note"></span>
     <span id="ibc-health-value"></span>
@@ -59,7 +60,9 @@ describe('contract IBC flow', () => {
     document.getElementById('ibc-end-date')?.dispatchEvent(new Event('input'));
 
     expect(document.getElementById('ibc-day-fields')?.hasAttribute('hidden')).toBe(false);
-    expect(document.getElementById('ibc-result-detail')?.textContent).toContain('10 day(s) of 30');
+    expect(document.getElementById('ibc-period-income')?.hasAttribute('hidden')).toBe(false);
+    expect(document.getElementById('ibc-period-income-value')?.textContent).toContain('3,333,334');
+    expect(document.getElementById('ibc-result-detail')?.textContent).toContain('÷ 30 × 10 day(s)');
     expect(document.getElementById('ibc-result-value')?.textContent).toContain('1,333,334');
   });
 

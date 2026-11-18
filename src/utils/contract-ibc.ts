@@ -21,6 +21,7 @@ export type ContractIbcPeriod =
 export type ContractIbcResult = {
   ibc: number;
   days: number;
+  periodIncome: number;
   monthlyIbc: number;
   rawMonthlyIbc: number;
   adjustment: 'minimum' | 'maximum' | null;
@@ -91,10 +92,12 @@ export function calculateContractIbc(
   const days = period.mode === 'full-month'
     ? 30
     : getContractContributionDays(period.startDate, period.endDate);
+  const periodIncome = roundIbcUp(monthlyIncome * (days / 30));
 
   return {
     ibc: roundIbcUp(monthlyIbc * (days / 30)),
     days,
+    periodIncome,
     monthlyIbc: roundIbcUp(monthlyIbc),
     rawMonthlyIbc: roundIbcUp(rawMonthlyIbc),
     adjustment,

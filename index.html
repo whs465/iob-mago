@@ -4012,6 +4012,31 @@
             letter-spacing: -0.045em;
         }
 
+        .contract-ibc-period-income {
+            display: flex;
+            margin-top: 10px;
+            padding: 8px 10px;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.13);
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.72);
+            background: rgba(255, 255, 255, 0.07);
+            font-size: 0.72rem;
+        }
+
+        .contract-ibc-period-income[hidden] {
+            display: none;
+        }
+
+        .contract-ibc-period-income strong {
+            color: #ffffff;
+            font-size: 0.82rem;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
         #ibc-result-detail {
             margin-top: 7px;
             color: rgba(255, 255, 255, 0.82);
@@ -4953,6 +4978,10 @@
                                 <output class="contract-ibc-result" aria-live="polite">
                                     <span class="contract-ibc-result-label" id="ibc-result-label">IBC estimado</span>
                                     <strong id="ibc-result-value">—</strong>
+                                    <span class="contract-ibc-period-income" id="ibc-period-income" hidden>
+                                        <span id="ibc-period-income-label">Valor proporcional del periodo</span>
+                                        <strong id="ibc-period-income-value">—</strong>
+                                    </span>
                                     <span id="ibc-result-detail">Ingresa el valor mensual del contrato.</span>
                                     <div class="contract-ibc-breakdown">
                                         <div class="contract-ibc-row">

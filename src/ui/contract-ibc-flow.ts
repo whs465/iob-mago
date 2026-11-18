@@ -69,6 +69,8 @@ export function setupContractIbcFlow({
   const dayFields = getRequiredElement('ibc-day-fields');
   const resultValue = getRequiredElement('ibc-result-value');
   const resultDetail = getRequiredElement('ibc-result-detail');
+  const periodIncome = getRequiredElement('ibc-period-income');
+  const periodIncomeValue = getRequiredElement('ibc-period-income-value');
   const resultNote = getRequiredElement('ibc-result-note');
   const copyButton = getRequiredElement<HTMLButtonElement>('ibc-copy');
   const modeInputs = Array.from(document.querySelectorAll<HTMLInputElement>('input[name="ibc-period-mode"]'));
@@ -118,6 +120,8 @@ export function setupContractIbcFlow({
     currentIbc = null;
     resultValue.textContent = '—';
     resultDetail.textContent = message;
+    periodIncome.hidden = true;
+    periodIncomeValue.textContent = '—';
     resultNote.textContent = i18n(
       'The result is an estimate of the contribution base, not the final PILA payment.',
       'El resultado estima la base de cotización, no el valor final de la planilla PILA.',
@@ -156,10 +160,12 @@ export function setupContractIbcFlow({
       );
       renderContributions(contributions);
       resultValue.textContent = pesoFormatter.format(result.ibc);
+      periodIncome.hidden = mode !== 'days';
+      periodIncomeValue.textContent = pesoFormatter.format(result.periodIncome);
       resultDetail.textContent = mode === 'days'
         ? i18n(
-          '{{income}} × 40% · {{days}} day(s) of 30',
-          '{{income}} × 40% · {{days}} día(s) de 30',
+          '{{income}} ÷ 30 × {{days}} day(s) · 40% is applied to this value',
+          '{{income}} ÷ 30 × {{days}} día(s) · sobre este valor se aplica el 40%',
           { income: pesoFormatter.format(monthlyIncome), days: String(result.days) },
         )
         : i18n(
