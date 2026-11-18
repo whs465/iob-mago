@@ -1853,8 +1853,7 @@
             display: grid;
             padding: 20px;
             place-items: center;
-            background: rgba(3, 11, 22, 0.78);
-            backdrop-filter: blur(12px);
+            background: rgba(3, 11, 22, 0.88);
         }
 
         .scan-crop-editor[hidden] { display: none; }
@@ -1926,6 +1925,28 @@
         .scan-controls h3 { margin: 0 0 6px; font-size: 1.25rem; }
         .scan-controls > p { margin: 0 0 18px; color: var(--muted); font-size: 0.84rem; line-height: 1.5; }
         .scan-actions { display: grid; gap: 9px; margin-top: 18px; }
+
+        .scan-tone-controls { margin: 14px 0; }
+        .scan-tone-controls label {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 650;
+        }
+        .scan-tone-controls output { color: var(--accent); font-variant-numeric: tabular-nums; }
+        .scan-tone-controls input { width: 100%; min-height: 28px; accent-color: var(--accent); }
+        .scan-finish-preview { margin: 14px 0; }
+        .scan-finish-preview canvas {
+            width: auto;
+            max-width: 100%;
+            height: auto;
+            margin-inline: auto;
+            border: 1px solid rgba(29, 29, 31, 0.12);
+            border-radius: 8px;
+        }
+        #scan-preview-status { color: var(--muted); font-size: 0.8rem; }
+        #scan-preview-status:empty { display: none; }
 
         @media (max-width: 780px) {
             .scan-layout { grid-template-columns: 1fr; }
@@ -5868,6 +5889,26 @@
                                 <option value="black-white">Blanco y negro · intenso</option>
                             </select>
                         </div>
+                        <div class="scan-tone-controls" id="scan-tone-controls" hidden>
+                            <div data-scan-tone="grayscale" hidden>
+                                <label for="scan-contrast"><span id="scan-contrast-label">Contraste</span><output for="scan-contrast">100%</output></label>
+                                <input id="scan-contrast" type="range" min="50" max="220" value="100">
+                                <label for="scan-brightness"><span id="scan-brightness-label">Brillo</span><output for="scan-brightness">0%</output></label>
+                                <input id="scan-brightness" type="range" min="-40" max="40" value="0">
+                            </div>
+                            <div data-scan-tone="black-white" hidden>
+                                <label for="scan-threshold"><span id="scan-threshold-label">Umbral de negro</span><output for="scan-threshold">150</output></label>
+                                <input id="scan-threshold" type="range" min="0" max="255" value="150">
+                            </div>
+                        </div>
+                        <div class="scan-finish-preview" id="scan-finish-preview" hidden>
+                            <div class="input-group">
+                                <label for="scan-preview-page" id="scan-preview-label">Vista previa de página</label>
+                                <select id="scan-preview-page"></select>
+                            </div>
+                            <p id="scan-preview-status" role="status"></p>
+                            <canvas id="scan-preview-canvas" role="img" aria-labelledby="scan-preview-label" hidden></canvas>
+                        </div>
                         <div class="input-group">
                             <label for="scan-page-format">Tamaño de página</label>
                             <select id="scan-page-format" disabled>
@@ -5890,7 +5931,10 @@
                         </div>
                     </aside>
                 </div>
-                <div class="scan-crop-editor" id="scan-crop-editor" role="dialog" aria-modal="true" aria-labelledby="scan-crop-title" hidden>
+                <input type="file" id="scan-image-input" accept="image/png,image/jpeg,image/webp" multiple>
+                <input type="file" id="scan-camera-input" accept="image/*" capture="environment">
+            </div>
+            <div class="scan-crop-editor" id="scan-crop-editor" role="dialog" aria-modal="true" aria-labelledby="scan-crop-title" hidden>
                     <div class="scan-crop-dialog">
                         <div class="scan-crop-heading">
                             <div>
@@ -5907,9 +5951,6 @@
                             <button class="btn btn-primary" type="button" id="scan-crop-apply">Aplicar recorte</button>
                         </div>
                     </div>
-                </div>
-                <input type="file" id="scan-image-input" accept="image/png,image/jpeg,image/webp" multiple>
-                <input type="file" id="scan-camera-input" accept="image/*" capture="environment">
             </div>
         </section>
 

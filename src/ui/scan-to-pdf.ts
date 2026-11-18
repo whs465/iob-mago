@@ -11,6 +11,7 @@ import {
 } from '../utils/scan-crop';
 
 type ScanFinish = 'original' | 'document' | 'grayscale' | 'black-white';
+type ScanTone = { contrast: number; brightness: number; threshold: number };
 type DrawableImage = CanvasImageSource & { width: number; height: number };
 
 type ScanSourcePage = {
@@ -33,6 +34,7 @@ export type ScanToPdfOptions = {
 };
 
 const MAX_SCAN_EDGE = 2400;
+const DEFAULT_SCAN_TONE: ScanTone = { contrast: 100, brightness: 0, threshold: 150 };
 
 export function getRotatedImageSize(width: number, height: number, rotation: number) {
   return rotation % 180 === 0
@@ -70,11 +72,15 @@ export function drawScannedImage(
   image: DrawableImage,
   rotation: 0 | 90 | 180 | 270,
   finish: ScanFinish,
+  tone = DEFAULT_SCAN_TONE,
+  maxEdge = MAX_SCAN_EDGE,
 ) {
   const rotated = getRotatedImageSize(image.width, image.height, rotation);
-  const scale = Math.min(1, MAX_SCAN_EDGE / Math.max(rotated.width, rotated.height));
-  canvas.width = Math.max(1, Math.round(rotated.width * scale));
-  canvas.height = Math.max(1, Math.round(rotated.height * scale));
+  const scale = Math.min(1, maxEdge / Math.max(rotated.width, rotated.height));
+  const width = Math.max(1, Math.round(rotated.width * scale));
+  const height = Math.max(1, Math.round(rotated.height * scale));
+  if (canvas.width !== width) canvas.width = width;
+  if (canvas.height !== height) canvas.height = height;
   const context = canvas.getContext('2d');
   if (!context) throw new Error('Canvas 2D context unavailable');
   context.fillStyle = '#ffffff';
@@ -84,11 +90,7 @@ export function drawScannedImage(
   context.rotate(rotation * Math.PI / 180);
   context.filter = finish === 'document'
     ? 'grayscale(0.3) contrast(1.28) brightness(1.07)'
-    : finish === 'grayscale'
-      ? 'grayscale(1) contrast(1.48) brightness(1.08)'
-      : finish === 'black-white'
-        ? 'grayscale(1) contrast(1.65) brightness(1.1)'
-      : 'none';
+    : 'none';
   const sourceScale = Math.min(
     canvas.width / (rotation % 180 === 0 ? image.width : image.height),
     canvas.height / (rotation % 180 === 0 ? image.height : image.width),
@@ -101,22 +103,24 @@ export function drawScannedImage(
     image.height * sourceScale,
   );
   context.restore();
-  if (finish === 'black-white') applyBlackWhiteFinish(canvas);
+  applyScanTone(canvas, context, finish, tone);
   return { width: canvas.width, height: canvas.height };
 }
 
-function applyBlackWhiteFinish(canvas: HTMLCanvasElement) {
-  const context = canvas.getContext('2d');
-  if (!context) return;
+function applyScanTone(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, finish: ScanFinish, tone: ScanTone) {
+  if (finish !== 'grayscale' && finish !== 'black-white') return;
   const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-  for (let offset = 0; offset < imageData.data.length; offset += 4) {
-    const luminance = imageData.data[offset] * 0.2126
-      + imageData.data[offset + 1] * 0.7152
-      + imageData.data[offset + 2] * 0.0722;
-    const value = luminance >= 178 ? 255 : 0;
-    imageData.data[offset] = value;
-    imageData.data[offset + 1] = value;
-    imageData.data[offset + 2] = value;
+  const { data } = imageData;
+  const contrast = tone.contrast / 100;
+  const brightness = tone.brightness * 255 / 100;
+  for (let offset = 0; offset < data.length; offset += 4) {
+    const luminance = data[offset] * 0.2126 + data[offset + 1] * 0.7152 + data[offset + 2] * 0.0722;
+    const value = finish === 'black-white'
+      ? (Math.round(luminance) >= tone.threshold ? 255 : 0)
+      : (luminance - 128) * contrast + 128 + brightness;
+    data[offset] = value;
+    data[offset + 1] = value;
+    data[offset + 2] = value;
   }
   context.putImageData(imageData, 0, 0);
 }
@@ -127,15 +131,17 @@ export function drawCroppedScannedImage(
   rotation: 0 | 90 | 180 | 270,
   finish: ScanFinish,
   crop: ScanCrop | null,
+  tone = DEFAULT_SCAN_TONE,
+  maxEdge = MAX_SCAN_EDGE,
 ) {
-  if (!crop) return drawScannedImage(canvas, image, rotation, finish);
+  if (!crop) return drawScannedImage(canvas, image, rotation, finish, tone, maxEdge);
 
   const sourceCanvas = document.createElement('canvas');
-  drawScannedImage(sourceCanvas, image, rotation, 'original');
+  drawScannedImage(sourceCanvas, image, rotation, 'original', tone, maxEdge);
   const sourceContext = sourceCanvas.getContext('2d');
   const targetContext = canvas.getContext('2d');
   if (!sourceContext || !targetContext) throw new Error('Canvas 2D context unavailable');
-  const size = getScanCropOutputSize(sourceCanvas.width, sourceCanvas.height, crop, MAX_SCAN_EDGE);
+  const size = getScanCropOutputSize(sourceCanvas.width, sourceCanvas.height, crop, maxEdge);
   const warped = warpScanCrop(
     sourceContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height),
     crop,
@@ -152,13 +158,9 @@ export function drawCroppedScannedImage(
   targetContext.fillRect(0, 0, size.width, size.height);
   targetContext.filter = finish === 'document'
     ? 'grayscale(0.3) contrast(1.28) brightness(1.07)'
-    : finish === 'grayscale'
-      ? 'grayscale(1) contrast(1.48) brightness(1.08)'
-      : finish === 'black-white'
-        ? 'grayscale(1) contrast(1.65) brightness(1.1)'
-        : 'none';
+    : 'none';
   targetContext.drawImage(warpedCanvas, 0, 0);
-  if (finish === 'black-white') applyBlackWhiteFinish(canvas);
+  applyScanTone(canvas, targetContext, finish, tone);
   return size;
 }
 
@@ -185,6 +187,14 @@ export function setupScanToPdf({
   const empty = root.querySelector<HTMLElement>('#scan-empty');
   const status = root.querySelector<HTMLElement>('#scan-status');
   const finish = root.querySelector<HTMLSelectElement>('#scan-finish');
+  const toneControls = root.querySelector<HTMLElement>('#scan-tone-controls');
+  const contrast = root.querySelector<HTMLInputElement>('#scan-contrast');
+  const brightness = root.querySelector<HTMLInputElement>('#scan-brightness');
+  const threshold = root.querySelector<HTMLInputElement>('#scan-threshold');
+  const previewPanel = root.querySelector<HTMLElement>('#scan-finish-preview');
+  const previewSelect = root.querySelector<HTMLSelectElement>('#scan-preview-page');
+  const previewCanvas = root.querySelector<HTMLCanvasElement>('#scan-preview-canvas');
+  const previewStatus = root.querySelector<HTMLElement>('#scan-preview-status');
   const format = root.querySelector<HTMLSelectElement>('#scan-page-format');
   const margin = root.querySelector<HTMLSelectElement>('#scan-margin');
   const action = root.querySelector<HTMLButtonElement>('#scan-download-action');
@@ -197,34 +207,108 @@ export function setupScanToPdf({
   const cropReset = root.querySelector<HTMLButtonElement>('#scan-crop-reset');
   const toolButtons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-image-tool]'));
   const toolPanels = Array.from(root.querySelectorAll<HTMLElement>('[data-image-tool-panel]'));
-  if (!panel || !zone || !input || !camera || !list || !empty || !status || !finish || !format || !margin || !action || !clear) {
+  if (!panel || !zone || !input || !camera || !list || !empty || !status || !finish || !format || !margin || !action || !clear
+    || !toneControls || !contrast || !brightness || !threshold || !previewPanel || !previewSelect || !previewCanvas || !previewStatus) {
     return () => undefined;
   }
 
   let pages: ScanSourcePage[] = [];
   let cropPageId: string | null = null;
-  let cropImage: DrawableImage | null = null;
+  let cropPhoto: HTMLCanvasElement | null = null;
+  let cropRequest = 0;
+  let cropFrame: number | null = null;
   let cropPoints = cloneScanCrop(EDITOR_SCAN_CROP);
   let activeCropPoint: number | null = null;
   const cleanups: Array<() => void> = [];
+  let previewPage: ScanSourcePage | undefined;
+  let previewPhoto: HTMLCanvasElement | null = null;
+  let previewFrame: number | null = null;
+
+  const getTone = (): ScanTone => ({
+    contrast: contrast.valueAsNumber,
+    brightness: brightness.valueAsNumber,
+    threshold: threshold.valueAsNumber,
+  });
+
+  const refreshPreview = () => {
+    if (!previewPhoto || previewFrame !== null) return;
+    previewFrame = requestAnimationFrame(() => {
+      previewFrame = null;
+      if (!previewPhoto) return;
+      drawScannedImage(previewCanvas, previewPhoto, 0, finish.value as ScanFinish, getTone(), 800);
+      previewCanvas.hidden = false;
+    });
+  };
+
+  const loadPreview = async () => {
+    const page = previewPanel.hidden ? undefined : pages.find(candidate => candidate.id === previewSelect.value);
+    if (page === previewPage) return;
+    previewPage = page;
+    previewPhoto = null;
+    previewCanvas.hidden = true;
+    previewStatus.textContent = '';
+    if (!page) return;
+    previewStatus.textContent = i18n('Preparing preview…', 'Preparando vista previa…');
+    try {
+      const image = await decodeImage(page.file);
+      if (previewPage !== page) return;
+      const photo = previewCanvas.ownerDocument.createElement('canvas');
+      drawCroppedScannedImage(photo, image, page.rotation, 'original', page.crop, DEFAULT_SCAN_TONE, 800);
+      previewPhoto = photo;
+      previewStatus.textContent = '';
+      refreshPreview();
+    } catch {
+      if (previewPage !== page) return;
+      previewPage = undefined;
+      previewStatus.textContent = i18n('Preview unavailable', 'No se pudo mostrar la vista previa');
+    }
+  };
+
+  const updateFinishControls = () => {
+    const grayscale = finish.value === 'grayscale';
+    const blackWhite = finish.value === 'black-white';
+    toneControls.hidden = !pages.length || !(grayscale || blackWhite);
+    previewPanel.hidden = toneControls.hidden;
+    toneControls.querySelectorAll<HTMLElement>('[data-scan-tone]').forEach(group => {
+      group.hidden = group.dataset.scanTone !== finish.value;
+    });
+    [contrast, brightness, threshold].forEach(slider => {
+      const value = toneControls.querySelector<HTMLOutputElement>(`output[for="${slider.id}"]`);
+      if (value) value.value = slider === threshold ? slider.value : `${slider.value}%`;
+    });
+    void loadPreview();
+    refreshPreview();
+  };
+  finish.addEventListener('change', updateFinishControls);
+  previewSelect.addEventListener('change', loadPreview);
+  [contrast, brightness, threshold].forEach(slider => slider.addEventListener('input', updateFinishControls));
+  cleanups.push(() => {
+    finish.removeEventListener('change', updateFinishControls);
+    previewSelect.removeEventListener('change', loadPreview);
+    [contrast, brightness, threshold].forEach(slider => slider.removeEventListener('input', updateFinishControls));
+    if (previewFrame !== null) cancelAnimationFrame(previewFrame);
+    previewPage = undefined;
+    previewPhoto = null;
+  });
 
   const canEditCrop = Boolean(cropEditor && cropCanvas && cropTitle && cropApply && cropCancel && cropReset);
 
   const closeCropEditor = () => {
+    cropRequest += 1;
+    if (cropFrame !== null) cancelAnimationFrame(cropFrame);
+    cropFrame = null;
     if (cropEditor) cropEditor.hidden = true;
     cropPageId = null;
-    cropImage = null;
+    cropPhoto = null;
     activeCropPoint = null;
     document.body.classList.remove('scan-crop-open');
   };
 
   const renderCropEditor = () => {
-    if (!cropCanvas || !cropImage || !cropPageId) return;
-    const page = pages.find(candidate => candidate.id === cropPageId);
-    if (!page) return;
-    drawScannedImage(cropCanvas, cropImage, page.rotation, 'original');
+    if (!cropCanvas || !cropPhoto) return;
     const context = cropCanvas.getContext('2d');
-    if (!context) return;
+    if (!context) throw new Error('Canvas 2D context unavailable');
+    context.drawImage(cropPhoto, 0, 0);
     const points = cropPoints.map(point => ({ x: point.x * cropCanvas.width, y: point.y * cropCanvas.height }));
     context.save();
     context.beginPath();
@@ -254,28 +338,47 @@ export function setupScanToPdf({
     context.restore();
   };
 
+  const scheduleCropRender = () => {
+    if (cropFrame !== null) return;
+    cropFrame = requestAnimationFrame(() => {
+      cropFrame = null;
+      renderCropEditor();
+    });
+  };
+
   const openCropEditor = async (page: ScanSourcePage) => {
-    if (!canEditCrop || !cropEditor || !cropTitle) return;
-    cropPageId = page.id;
-    cropPoints = cloneScanCrop(page.crop || EDITOR_SCAN_CROP);
-    cropTitle.textContent = i18n('Adjust document edges', 'Ajusta los bordes del documento');
-    cropEditor.hidden = false;
-    document.body.classList.add('scan-crop-open');
+    if (!canEditCrop || !cropEditor || !cropCanvas || !cropTitle) return;
+    closeCropEditor();
+    const request = cropRequest;
     status.textContent = i18n('Preparing crop editor...', 'Preparando editor de recorte...');
     try {
-      cropImage = await decodeImage(page.file);
+      const image = await decodeImage(page.file);
+      if (request !== cropRequest || !pages.includes(page)) return;
+
+      const photo = cropCanvas.ownerDocument.createElement('canvas');
+      drawScannedImage(photo, image, page.rotation, 'original');
+      cropCanvas.width = photo.width;
+      cropCanvas.height = photo.height;
+      cropPhoto = photo;
+      cropPageId = page.id;
+      cropPoints = cloneScanCrop(page.crop || EDITOR_SCAN_CROP);
       renderCropEditor();
+      cropTitle.textContent = i18n('Adjust document edges', 'Ajusta los bordes del documento');
+      cropEditor.hidden = false;
+      document.body.classList.add('scan-crop-open');
       status.textContent = i18n(
         'Drag each corner onto the document edge',
         'Arrastra cada esquina hasta el borde del documento',
       );
     } catch {
+      if (request !== cropRequest || !pages.includes(page)) return;
       closeCropEditor();
       status.textContent = i18n('The image could not be read', 'No se pudo leer la imagen');
     }
   };
 
   const setTool = (tool: string) => {
+    if (tool !== 'scan') closeCropEditor();
     const tabs = root.querySelector<HTMLElement>('.image-tool-tabs');
     if (tabs) tabs.dataset.activeImageTool = tool;
     toolButtons.forEach(button => {
@@ -295,7 +398,7 @@ export function setupScanToPdf({
     const hasPages = pages.length > 0;
     empty.hidden = hasPages;
     list.hidden = !hasPages;
-    action.disabled = !hasPages;
+    action.disabled = !hasPages || action.hasAttribute('aria-busy');
     clear.disabled = !hasPages;
     [finish, format, margin].forEach(control => { control.disabled = !hasPages; });
     status.textContent = hasPages
@@ -308,6 +411,12 @@ export function setupScanToPdf({
   };
 
   const renderPages = () => {
+    const previousPreview = previewSelect.value;
+    previewSelect.replaceChildren(...pages.map((page, index) => new Option(
+      i18n('Page {{page}}', 'Página {{page}}', { page: String(index + 1) }), page.id,
+    )));
+    if (pages.some(page => page.id === previousPreview)) previewSelect.value = previousPreview;
+    updateFinishControls();
     list.innerHTML = '';
     pages.forEach((page, index) => {
       const item = document.createElement('article');
@@ -444,6 +553,7 @@ export function setupScanToPdf({
       };
     };
     const onPointerDown = (event: PointerEvent) => {
+      if (!cropPhoto) return;
       const point = getPointer(event);
       let closest = 0;
       let distance = Number.POSITIVE_INFINITY;
@@ -457,16 +567,17 @@ export function setupScanToPdf({
       activeCropPoint = closest;
       cropCanvas.setPointerCapture?.(event.pointerId);
       cropPoints[closest] = point;
-      renderCropEditor();
+      scheduleCropRender();
     };
     const onPointerMove = (event: PointerEvent) => {
       if (activeCropPoint === null) return;
       cropPoints[activeCropPoint] = getPointer(event);
-      renderCropEditor();
+      scheduleCropRender();
     };
     const onPointerUp = () => {
+      if (activeCropPoint === null) return;
       activeCropPoint = null;
-      renderCropEditor();
+      scheduleCropRender();
     };
     const onApplyCrop = () => {
       if (!cropPageId) return;
@@ -477,7 +588,7 @@ export function setupScanToPdf({
     };
     const onResetCrop = () => {
       cropPoints = cloneScanCrop(FULL_SCAN_CROP);
-      renderCropEditor();
+      scheduleCropRender();
     };
     cropCanvas.addEventListener('pointerdown', onPointerDown);
     cropCanvas.addEventListener('pointermove', onPointerMove);
@@ -516,10 +627,10 @@ export function setupScanToPdf({
   document.addEventListener('keydown', onCropEditorKeydown);
   cleanups.push(() => document.removeEventListener('keydown', onCropEditorKeydown));
 
-  const preparePage = async (page: ScanSourcePage): Promise<ScannedImagePage> => {
+  const preparePage = async (page: ScanSourcePage, selectedFinish: ScanFinish, tone: ScanTone): Promise<ScannedImagePage> => {
     const image = await decodeImage(page.file);
     const canvas = document.createElement('canvas');
-    const size = drawCroppedScannedImage(canvas, image, page.rotation, finish.value as ScanFinish, page.crop);
+    const size = drawCroppedScannedImage(canvas, image, page.rotation, selectedFinish, page.crop, tone);
     const blob = await canvasToJpeg(canvas);
     return { bytes: await blob.arrayBuffer(), type: 'image/jpeg', ...size };
   };
@@ -528,16 +639,19 @@ export function setupScanToPdf({
     if (!pages.length || action.disabled) return;
     action.disabled = true;
     action.setAttribute('aria-busy', 'true');
+    const selectedFinish = finish.value as ScanFinish;
+    const tone = getTone();
+    const exportPages = [...pages];
     status.textContent = i18n('Preparing scanned pages...', 'Preparando páginas escaneadas...');
     try {
       const prepared: ScannedImagePage[] = [];
-      for (let index = 0; index < pages.length; index += 1) {
+      for (let index = 0; index < exportPages.length; index += 1) {
         status.textContent = i18n(
           'Preparing page {{page}} of {{total}}...',
           'Preparando página {{page}} de {{total}}...',
-          { page: String(index + 1), total: String(pages.length) },
+          { page: String(index + 1), total: String(exportPages.length) },
         );
-        prepared.push(await preparePage(pages[index]));
+        prepared.push(await preparePage(exportPages[index], selectedFinish, tone));
       }
       const bytes = await buildPdf(prepared, {
         format: format.value as ScanPageFormat,

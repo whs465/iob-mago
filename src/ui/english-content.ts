@@ -136,6 +136,10 @@ export function applyEnglishContent({
   setElementText('scan-controls-title', 'Final document');
   setElementText('scan-controls-copy', 'The Document setting gently improves photos without erasing details.');
   setText('label[for="scan-finish"]', 'Finish');
+  setElementText('scan-contrast-label', 'Contrast');
+  setElementText('scan-brightness-label', 'Brightness');
+  setElementText('scan-threshold-label', 'Black threshold');
+  setElementText('scan-preview-label', 'Page preview');
   setText('label[for="scan-page-format"]', 'Page size');
   setText('label[for="scan-margin"]', 'Margin');
   const scanFinishOptions = requiredQueryAll<HTMLOptionElement>('#scan-finish option');

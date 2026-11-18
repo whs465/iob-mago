@@ -29,7 +29,23 @@ function fixture() {
       <div id="scan-page-list"></div>
       <div id="scan-empty"></div>
       <p id="scan-status"></p>
-      <select id="scan-finish"><option value="document" selected></option></select>
+      <select id="scan-finish">
+        <option value="document" selected></option><option value="grayscale"></option><option value="black-white"></option>
+      </select>
+      <div id="scan-tone-controls" hidden>
+        <div data-scan-tone="grayscale">
+          <input id="scan-contrast" type="range" min="50" max="220" value="100">
+          <input id="scan-brightness" type="range" min="-40" max="40" value="0">
+        </div>
+        <div data-scan-tone="black-white">
+          <input id="scan-threshold" type="range" min="0" max="255" value="150">
+        </div>
+      </div>
+      <div id="scan-finish-preview" hidden>
+        <select id="scan-preview-page"></select>
+        <canvas id="scan-preview-canvas" hidden></canvas>
+        <p id="scan-preview-status"></p>
+      </div>
       <select id="scan-page-format"><option value="a4" selected></option></select>
       <select id="scan-margin"><option value="18" selected></option></select>
       <button id="scan-clear-action"></button>
@@ -57,6 +73,66 @@ describe('scan to PDF UI', () => {
       .toEqual({ width: 1200, height: 800 });
     expect(context.rotate).toHaveBeenCalledWith(Math.PI / 2);
     expect(context.filter).toContain('contrast');
+  });
+
+  it('uses the selected grayscale brightness and black threshold on the rendered pixels', () => {
+    const canvas = document.createElement('canvas');
+    const context = Object.assign(canvasContext(), {
+      getImageData: vi.fn(() => ({ data: new Uint8ClampedArray([120, 120, 120, 255]) })),
+      putImageData: vi.fn(),
+    });
+    vi.spyOn(canvas, 'getContext').mockReturnValue(context);
+    const source = { width: 1, height: 1 } as never;
+    const tone = { contrast: 150, brightness: 20, threshold: 100 };
+
+    drawScannedImage(canvas, source, 0, 'grayscale', tone);
+    expect(context.putImageData.mock.lastCall?.[0].data[0]).toBe(167);
+    drawScannedImage(canvas, source, 0, 'black-white', tone);
+    expect(context.putImageData.mock.lastCall?.[0].data[0]).toBe(255);
+    drawScannedImage(canvas, source, 0, 'black-white', { ...tone, threshold: 140 });
+    expect(context.putImageData.mock.lastCall?.[0].data[0]).toBe(0);
+    context.getImageData.mockReturnValueOnce({ data: new Uint8ClampedArray([255, 255, 255, 255]) });
+    drawScannedImage(canvas, source, 0, 'black-white', { ...tone, threshold: 255 });
+    expect(context.putImageData.mock.lastCall?.[0].data[0]).toBe(255);
+  });
+
+  it('uses the same adjusted threshold in the preview and the exported page', async () => {
+    fixture();
+    const context = Object.assign(canvasContext(), {
+      getImageData: vi.fn(() => ({ data: new Uint8ClampedArray([120, 120, 120, 255]) })),
+      putImageData: vi.fn(),
+    });
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(context);
+    vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation(callback => {
+      expect(context.putImageData.mock.lastCall?.[0].data[0]).toBe(255);
+      callback(new Blob(['jpeg'], { type: 'image/jpeg' }));
+    });
+    const saveAs = vi.fn();
+    const cleanup = setupScanToPdf({
+      i18n,
+      saveAs,
+      deps: { createPdfDocument: vi.fn() as never },
+      buildPdf: vi.fn(async () => new Uint8Array([1])),
+      decodeImage: vi.fn(async () => ({ width: 1, height: 1 } as never)),
+      createObjectUrl: () => 'blob:scan',
+      revokeObjectUrl: vi.fn(),
+    });
+    const input = document.querySelector<HTMLInputElement>('#scan-image-input')!;
+    Object.defineProperty(input, 'files', { value: [new File(['page'], 'page.jpg', { type: 'image/jpeg' })] });
+    input.dispatchEvent(new Event('change'));
+    const finish = document.querySelector<HTMLSelectElement>('#scan-finish')!;
+    finish.value = 'black-white';
+    finish.dispatchEvent(new Event('change'));
+    expect(document.getElementById('scan-tone-controls')?.hidden).toBe(false);
+    await vi.waitFor(() => expect(context.putImageData.mock.lastCall?.[0].data[0]).toBe(0));
+
+    const threshold = document.querySelector<HTMLInputElement>('#scan-threshold')!;
+    threshold.value = '100';
+    threshold.dispatchEvent(new Event('input'));
+    await vi.waitFor(() => expect(context.putImageData.mock.lastCall?.[0].data[0]).toBe(255));
+    document.getElementById('scan-download-action')?.click();
+    await vi.waitFor(() => expect(saveAs).toHaveBeenCalledOnce());
+    cleanup();
   });
 
   it('adds, orders and exports several images as one PDF', async () => {
@@ -103,14 +179,20 @@ describe('scan to PDF UI', () => {
     cleanup();
   });
 
-  it('opens the four-corner editor and marks an applied crop', async () => {
+  it('opens the crop editor only once the photo is ready and keeps its canvas sized while editing', async () => {
     fixture();
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(canvasContext());
+    const context = canvasContext();
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(context);
+    const canvas = document.querySelector<HTMLCanvasElement>('#scan-crop-canvas')!;
+    const resizeWidth = vi.spyOn(canvas, 'width', 'set');
+    const resizeHeight = vi.spyOn(canvas, 'height', 'set');
+    let finishLoading!: (image: never) => void;
+    const decodeImage = vi.fn(() => new Promise<never>(resolve => { finishLoading = resolve; }));
     const cleanup = setupScanToPdf({
       i18n,
       saveAs: vi.fn(),
       deps: { createPdfDocument: vi.fn() as never },
-      decodeImage: vi.fn(async () => ({ width: 900, height: 1200 } as never)),
+      decodeImage,
       createObjectUrl: file => `blob:${(file as File).name}`,
       revokeObjectUrl: vi.fn(),
     });
@@ -120,9 +202,24 @@ describe('scan to PDF UI', () => {
       value: [new File(['page'], 'contrato.jpg', { type: 'image/jpeg' })],
     });
     input.dispatchEvent(new Event('change'));
+    document.querySelector<HTMLButtonElement>('[data-image-tool="scan"]')?.click();
     document.querySelector<HTMLButtonElement>('[data-scan-action="crop"]')?.click();
 
+    expect(document.getElementById('scan-crop-editor')?.hidden).toBe(true);
+    finishLoading({ width: 900, height: 1200 } as never);
     await vi.waitFor(() => expect(document.getElementById('scan-crop-editor')?.hidden).toBe(false));
+    expect(canvas.width).toBe(900);
+    expect(canvas.height).toBe(1200);
+
+    const draws = vi.mocked(context.drawImage).mock.calls.length;
+    canvas.dispatchEvent(new MouseEvent('pointerdown', { clientX: 0, clientY: 0 }));
+    canvas.dispatchEvent(new MouseEvent('pointermove', { clientX: 1, clientY: 1 }));
+    canvas.dispatchEvent(new MouseEvent('pointerup'));
+    expect(context.drawImage).toHaveBeenCalledTimes(draws);
+    await vi.waitFor(() => expect(context.drawImage).toHaveBeenCalledTimes(draws + 1));
+    expect(resizeWidth).toHaveBeenCalledTimes(1);
+    expect(resizeHeight).toHaveBeenCalledTimes(1);
+
     document.getElementById('scan-crop-apply')?.click();
 
     expect(document.getElementById('scan-crop-editor')?.hidden).toBe(true);
