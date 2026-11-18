@@ -43,6 +43,7 @@ function fixture() {
       </div>
       <div id="scan-finish-preview" hidden>
         <select id="scan-preview-page"></select>
+        <button id="scan-preview-rotate"></button>
         <canvas id="scan-preview-canvas" hidden></canvas>
         <p id="scan-preview-status"></p>
       </div>
@@ -113,7 +114,7 @@ describe('scan to PDF UI', () => {
       saveAs,
       deps: { createPdfDocument: vi.fn() as never },
       buildPdf: vi.fn(async () => new Uint8Array([1])),
-      decodeImage: vi.fn(async () => ({ width: 1, height: 1 } as never)),
+      decodeImage: vi.fn(async () => ({ width: 10, height: 20 } as never)),
       createObjectUrl: () => 'blob:scan',
       revokeObjectUrl: vi.fn(),
     });
@@ -130,6 +131,12 @@ describe('scan to PDF UI', () => {
     threshold.value = '100';
     threshold.dispatchEvent(new Event('input'));
     await vi.waitFor(() => expect(context.putImageData.mock.lastCall?.[0].data[0]).toBe(255));
+    document.getElementById('scan-preview-rotate')?.click();
+    const preview = document.querySelector<HTMLCanvasElement>('#scan-preview-canvas')!;
+    await vi.waitFor(() => {
+      expect(preview.hidden).toBe(false);
+      expect([preview.width, preview.height]).toEqual([20, 10]);
+    });
     document.getElementById('scan-download-action')?.click();
     await vi.waitFor(() => expect(saveAs).toHaveBeenCalledOnce());
     cleanup();
@@ -224,6 +231,9 @@ describe('scan to PDF UI', () => {
 
     expect(document.getElementById('scan-crop-editor')?.hidden).toBe(true);
     expect(document.querySelector('.scan-page-adjusted')?.textContent).toBe('Bordes ajustados');
+    document.querySelector<HTMLButtonElement>('[data-scan-action="rotate"]')?.click();
+    expect(document.querySelector('.scan-page-adjusted')?.textContent).toBe('Bordes ajustados');
+    expect(document.querySelector<HTMLElement>('.scan-page-preview img')?.style.transform).toBe('rotate(90deg)');
     cleanup();
   });
 });

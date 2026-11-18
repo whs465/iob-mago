@@ -6,6 +6,7 @@ import {
   EDITOR_SCAN_CROP,
   FULL_SCAN_CROP,
   getScanCropOutputSize,
+  rotateScanCropClockwise,
   warpScanCrop,
   type ScanCrop,
 } from '../utils/scan-crop';
@@ -193,6 +194,7 @@ export function setupScanToPdf({
   const threshold = root.querySelector<HTMLInputElement>('#scan-threshold');
   const previewPanel = root.querySelector<HTMLElement>('#scan-finish-preview');
   const previewSelect = root.querySelector<HTMLSelectElement>('#scan-preview-page');
+  const previewRotate = root.querySelector<HTMLButtonElement>('#scan-preview-rotate');
   const previewCanvas = root.querySelector<HTMLCanvasElement>('#scan-preview-canvas');
   const previewStatus = root.querySelector<HTMLElement>('#scan-preview-status');
   const format = root.querySelector<HTMLSelectElement>('#scan-page-format');
@@ -452,7 +454,7 @@ export function setupScanToPdf({
         ...(canEditCrop ? [['crop', '⌗', i18n('Crop and straighten', 'Recortar y enderezar')]] : []),
         ['up', '↑', i18n('Move up', 'Subir')],
         ['down', '↓', i18n('Move down', 'Bajar')],
-        ['rotate', '↻', i18n('Rotate', 'Girar')],
+        ['rotate', i18n('↻ Rotate 90°', '↻ Girar 90°'), i18n('Rotate 90° clockwise', 'Girar 90° a la derecha')],
         ['remove', '×', i18n('Remove', 'Quitar')],
       ];
       actions.forEach(([actionName, label, title]) => {
@@ -471,6 +473,23 @@ export function setupScanToPdf({
     });
     updateState();
   };
+
+  const rotatePage = (index: number) => {
+    const page = pages[index];
+    pages[index] = {
+      ...page,
+      rotation: ((page.rotation + 90) % 360) as ScanSourcePage['rotation'],
+      crop: page.crop && rotateScanCropClockwise(page.crop),
+    };
+    renderPages();
+  };
+
+  const onPreviewRotate = () => {
+    const index = pages.findIndex(page => page.id === previewSelect.value);
+    if (index >= 0) rotatePage(index);
+  };
+  previewRotate?.addEventListener('click', onPreviewRotate);
+  cleanups.push(() => previewRotate?.removeEventListener('click', onPreviewRotate));
 
   const addFiles = (files: File[]) => {
     const images = files.filter(file => file.type.startsWith('image/'));
@@ -530,10 +549,10 @@ export function setupScanToPdf({
       void openCropEditor(pages[index]);
       return;
     } else if (actionName === 'rotate') {
-      const page = pages[index];
-      pages = pages.map((candidate, pageIndex) => pageIndex === index
-        ? { ...page, rotation: ((page.rotation + 90) % 360) as ScanSourcePage['rotation'], crop: null }
-        : candidate);
+      const hadFocus = button === button.ownerDocument.activeElement;
+      rotatePage(index);
+      if (hadFocus) list.children[index]?.querySelector<HTMLButtonElement>('[data-scan-action="rotate"]')?.focus();
+      return;
     } else if (actionName === 'up' && index > 0) {
       [pages[index - 1], pages[index]] = [pages[index], pages[index - 1]];
     } else if (actionName === 'down' && index < pages.length - 1) {

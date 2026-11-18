@@ -19,6 +19,11 @@ export function cloneScanCrop(crop: ScanCrop): ScanCrop {
   return crop.map(point => ({ ...point })) as ScanCrop;
 }
 
+export function rotateScanCropClockwise([topLeft, topRight, bottomRight, bottomLeft]: ScanCrop): ScanCrop {
+  const rotate = ({ x, y }: ScanCropPoint) => ({ x: 1 - y, y: x });
+  return [rotate(bottomLeft), rotate(topLeft), rotate(topRight), rotate(bottomRight)];
+}
+
 export function clampScanCropPoint(point: ScanCropPoint): ScanCropPoint {
   return {
     x: Math.min(1, Math.max(0, point.x)),

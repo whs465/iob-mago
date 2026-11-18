@@ -1831,6 +1831,15 @@
             cursor: pointer;
         }
         .scan-page-actions button:disabled { cursor: default; opacity: 0.28; }
+        .scan-page-actions button[data-scan-action="rotate"] {
+            width: auto;
+            padding-inline: 10px;
+            border-radius: 999px;
+            color: var(--accent);
+            font-size: 0.78rem;
+            font-weight: 650;
+            white-space: nowrap;
+        }
 
         .scan-page-adjusted {
             display: inline-flex;
@@ -1937,6 +1946,7 @@
         .scan-tone-controls output { color: var(--accent); font-variant-numeric: tabular-nums; }
         .scan-tone-controls input { width: 100%; min-height: 28px; accent-color: var(--accent); }
         .scan-finish-preview { margin: 14px 0; }
+        #scan-preview-rotate { margin-bottom: 10px; }
         .scan-finish-preview canvas {
             width: auto;
             max-width: 100%;
@@ -5906,6 +5916,7 @@
                                 <label for="scan-preview-page" id="scan-preview-label">Vista previa de página</label>
                                 <select id="scan-preview-page"></select>
                             </div>
+                            <button type="button" class="btn btn-secondary" id="scan-preview-rotate">↻ Girar 90°</button>
                             <p id="scan-preview-status" role="status"></p>
                             <canvas id="scan-preview-canvas" role="img" aria-labelledby="scan-preview-label" hidden></canvas>
                         </div>

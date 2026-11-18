@@ -140,6 +140,7 @@ export function applyEnglishContent({
   setElementText('scan-brightness-label', 'Brightness');
   setElementText('scan-threshold-label', 'Black threshold');
   setElementText('scan-preview-label', 'Page preview');
+  setElementText('scan-preview-rotate', '↻ Rotate 90°');
   setText('label[for="scan-page-format"]', 'Page size');
   setText('label[for="scan-margin"]', 'Margin');
   const scanFinishOptions = requiredQueryAll<HTMLOptionElement>('#scan-finish option');
