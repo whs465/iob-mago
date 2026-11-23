@@ -91,6 +91,7 @@ import { rotatePdfBatchFlow } from './ui/rotate-pdf-flow';
 import { compressPdfBatchFlow } from './ui/compress-pdf-flow';
 import { unlockPdfBatchFlow } from './ui/unlock-pdf-flow';
 import { loadPdfMetadataFlow, savePdfMetadataFlow } from './ui/pdf-metadata-flow';
+import { removeBookmarksFlow } from './ui/remove-bookmarks-flow';
 import { watermarkPdfBatchFlow } from './ui/watermark-pdf-flow';
 import type { CompressionMode } from './pdf/compress';
 import { registerWindowPdfActions } from './ui/window-actions';
@@ -546,6 +547,9 @@ import { getPdfTextPointFromCanvas, renderPdfTextMarker } from './ui/pdf-text-ma
             translatePageToEnglish();
             renderPdfToolIcons();
             setupPdfToolWorkspace();
+            document.getElementById('remove-bookmarks-action')?.addEventListener('click', () => {
+                void removeBookmarksFlow({ file: sourceFileState.files[0], i18n, showStatus, setActionBusy, saveAs });
+            });
             setupScreenshotPolish({ i18n, saveAs });
             setupScanToPdf({
                 i18n,

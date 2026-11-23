@@ -9,6 +9,8 @@ import {
   splitPdfIntoPages,
 } from './operations';
 import type { SourcePdfLike } from './copy-pages';
+import { PDFDocument, PDFName as RealName, PDFHexString as RealHexString, PDFString, degrees } from 'pdf-lib';
+import { extractPdfBookmarks } from './bookmarks';
 
 const PDFName = {
   of: (name: string) => name,
@@ -86,6 +88,67 @@ function createSourcePdf(pageCount: number) {
 function makeFile(name: string) {
   return new File(['fake-pdf'], name, { type: 'application/pdf' });
 }
+
+it('keeps direct and named bookmarks attached to the same physical pages across document operations', async () => {
+  const source = await PDFDocument.create();
+  const pages = [100, 200, 300].map(width => source.addPage([width, 400]));
+  const { context } = source;
+  const destination = (page: number) => context.obj([pages[page].ref, 'Fit']);
+  const namesLeaf = context.register(context.obj({
+    Names: [PDFString.of('third'), { D: destination(2) }],
+  }));
+  source.catalog.set(RealName.of('Names'), context.obj({ Dests: { Kids: [namesLeaf] } }));
+  source.catalog.set(RealName.of('Dests'), context.obj({ second: destination(1) }));
+  const outline = context.nextRef();
+  const third = context.register(context.obj({
+    Title: PDFString.of('C'), Parent: outline, A: { S: 'GoTo', D: PDFString.of('third') },
+  }));
+  const second = context.register(context.obj({
+    Title: PDFString.of('B'), Parent: outline, Dest: RealName.of('second'), Next: third,
+  }));
+  const first = context.register(context.obj({
+    Title: PDFString.of('A'), Parent: outline, Dest: destination(0), Next: second,
+  }));
+  context.assign(outline, context.obj({ Type: 'Outlines', First: first, Last: third, Count: 3 }));
+  source.catalog.set(RealName.of('Outlines'), outline);
+  const file = new File([Uint8Array.from(await source.save())], 'source.pdf');
+
+  const bookmarkDeps = { PDFName: RealName, PDFHexString: RealHexString };
+  const deps: PdfOperationDeps = {
+    PDFDocument,
+    pageCopyDeps: {
+      loadPdfDocument: bytes => PDFDocument.load(bytes),
+      isEncryptedPdfError: () => false,
+      appendRenderedPdfPages: vi.fn(),
+      bookmarkDeps,
+    },
+    bookmarkDeps,
+    degrees,
+    buildRotatedPortraitPdfFromRenderedPages: vi.fn(),
+  };
+  const assertBookmarks = async (pdfBytes: Uint8Array, expected: Array<[string, number, number]>) => {
+    const pdf = await PDFDocument.load(pdfBytes);
+    const bookmarks = extractPdfBookmarks(pdf, bookmarkDeps);
+    expect(bookmarks.map(({ title, pageIndex }) => [title, pageIndex, pdf.getPage(pageIndex).getWidth()]))
+      .toEqual(expected);
+  };
+
+  await assertBookmarks((await reorderPdfPages(file, [2, 0, 1], deps)).pdfBytes,
+    [['C', 0, 300], ['A', 1, 100], ['B', 2, 200]]);
+  await assertBookmarks((await extractPdfPages(file, [2, 1], deps)).pdfBytes,
+    [['C', 0, 300], ['B', 1, 200]]);
+  await assertBookmarks((await removePdfPages(file, [0, 2], 1, deps)).pdfBytes,
+    [['A', 0, 100], ['C', 1, 300]]);
+  const split = await splitPdfIntoPages(file, deps);
+  await assertBookmarks(split.pages[1].pdfBytes, [['B', 0, 200]]);
+  await assertBookmarks(split.pages[2].pdfBytes, [['C', 0, 300]]);
+
+  const cover = await PDFDocument.create();
+  cover.addPage([400, 400]);
+  const coverFile = new File([Uint8Array.from(await cover.save())], 'cover.pdf');
+  const merged = await mergePdfFiles([coverFile, file], { addFileBookmarks: false, deps });
+  await assertBookmarks(merged.pdfBytes, [['A', 1, 100], ['B', 2, 200], ['C', 3, 300]]);
+});
 
 function makeDeps(
   targetPdf: ReturnType<typeof createTargetPdf>,

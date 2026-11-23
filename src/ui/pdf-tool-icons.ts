@@ -1,4 +1,5 @@
 import {
+  Bookmark,
   FileCog,
   FileMinus,
   FileOutput,
@@ -24,6 +25,7 @@ const operationIcons: Record<string, IconNode> = {
   'pdf-tool-unlock': LockOpen,
   'pdf-tool-watermark': Stamp,
   'pdf-tool-metadata': FileCog,
+  'pdf-tool-bookmarks': Bookmark,
 };
 
 export function renderPdfToolIcons(root: ParentNode = document) {

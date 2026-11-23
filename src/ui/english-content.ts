@@ -221,6 +221,10 @@ export function applyEnglishContent({
   setElementText('pdf-tool-unlock', 'Remove password');
   setElementText('pdf-tool-watermark', 'Watermark');
   setElementText('pdf-tool-metadata', 'Metadata');
+  setElementText('pdf-tool-bookmarks', 'Bookmarks');
+  setElementText('bookmarks-title', 'PDF bookmarks');
+  setElementText('bookmarks-description', 'Download a copy without the bookmarks in the sidebar.');
+  setElementText('remove-bookmarks-action', 'Remove bookmarks');
 
   const mergeCard = getRequiredElement('merge-card');
   setText('.card-icon', 'Merge', mergeCard);

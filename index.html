@@ -5201,6 +5201,7 @@
                         <button class="pdf-operation-button" id="pdf-tool-unlock" type="button" data-pdf-tool="unlock-card" data-pdf-category="document" aria-controls="unlock-card" aria-pressed="false" hidden>Quitar clave</button>
                         <button class="pdf-operation-button" id="pdf-tool-watermark" type="button" data-pdf-tool="watermark-card" data-pdf-category="document" aria-controls="watermark-card" aria-pressed="false" hidden>Marca de agua</button>
                         <button class="pdf-operation-button" id="pdf-tool-metadata" type="button" data-pdf-tool="metadata-card" data-pdf-category="document" aria-controls="metadata-card" aria-pressed="false" hidden>Metadatos</button>
+                        <button class="pdf-operation-button" id="pdf-tool-bookmarks" type="button" data-pdf-tool="bookmarks-card" data-pdf-category="document" aria-controls="bookmarks-card" aria-pressed="false" hidden>Marcadores</button>
                     </nav>
 
                     <div class="pdf-tool-panels">
@@ -5409,6 +5410,13 @@
                         <button class="btn btn-danger" id="metadata-clear-action" onclick="borrarMetadatosPDF()">Borrar metadatos y descargar</button>
                     </div>
                 </div>
+            </div>
+
+            <div class="card" id="bookmarks-card" role="tabpanel" aria-labelledby="pdf-tool-bookmarks" hidden>
+                <h3 id="bookmarks-title">Marcadores del PDF</h3>
+                <p id="bookmarks-description">Descarga una copia sin los marcadores del panel lateral.</p>
+                <p class="list-help" id="bookmarks-status"></p>
+                <button class="btn btn-primary" id="remove-bookmarks-action" type="button" disabled>Quitar marcadores</button>
             </div>
                     </div>
                 </div>

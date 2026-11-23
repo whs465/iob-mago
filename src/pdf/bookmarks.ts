@@ -46,6 +46,7 @@ type PdfCreatedDictLike = PdfDictLike & {
 
 type PdfArrayLike = {
   get?(index: number): unknown;
+  size?(): number;
 };
 
 type PdfTitleLike = {
@@ -121,12 +122,49 @@ function decodePdfBookmarkTitle(titleValue: unknown) {
   return String(titleValue).replace(/^\((.*)\)$/, '$1');
 }
 
+function readNamedDestinations(pdfDoc: PdfDocumentLike, PDFName: PdfLibBookmarkDeps['PDFName']) {
+  const destinations = new Map<string, unknown>();
+  const names = getPdfDictValue(pdfDoc, pdfDoc.catalog, 'Names', PDFName);
+  const root = getPdfDictValue(pdfDoc, names, 'Dests', PDFName);
+  const pending = root ? [root] : [];
+  const visited = new Set<PdfDictLike>();
+  while (pending.length) {
+    const node = pending.pop()!;
+    if (visited.has(node)) continue;
+    visited.add(node);
+    const entries = getPdfDictValue(pdfDoc, node, 'Names', PDFName) as PdfArrayLike | null;
+    const entryCount = entries?.size?.() ?? 0;
+    for (let index = 0; index + 1 < entryCount; index += 2) {
+      const key = getPdfArrayValue(pdfDoc, entries, index);
+      if (hasDecodeText(key)) destinations.set(key.decodeText(), entries.get(index + 1));
+    }
+    const children = getPdfDictValue(pdfDoc, node, 'Kids', PDFName) as PdfArrayLike | null;
+    const childCount = children?.size?.() ?? 0;
+    for (let index = 0; index < childCount; index += 1) {
+      const child = getPdfArrayValue(pdfDoc, children, index);
+      if (hasGet(child)) pending.push(child as PdfDictLike);
+    }
+  }
+  const legacy = getPdfDictValue(pdfDoc, pdfDoc.catalog, 'Dests', PDFName);
+  return (name: string) => destinations.get(name) ?? getPdfRawDictValue(legacy, name, PDFName);
+}
+
 function extractPdfDestPageIndex(
   pdfDoc: PdfDocumentLike,
   destValue: unknown,
   pageRefIndexMap: Map<string, number>,
+  resolveNamedDestination: (name: string) => unknown,
+  PDFName: PdfLibBookmarkDeps['PDFName'],
 ) {
-  const dest = destValue ? pdfDoc.context.lookup(destValue) : null;
+  let dest = destValue ? pdfDoc.context.lookup(destValue) : null;
+  if (hasDecodeText(dest)) {
+    const named = resolveNamedDestination(dest.decodeText());
+    dest = named ? pdfDoc.context.lookup(named) : null;
+    if (hasGet(dest)) {
+      const wrapped = getPdfRawDictValue(dest as PdfDictLike, 'D', PDFName);
+      if (wrapped) dest = pdfDoc.context.lookup(wrapped);
+    }
+  }
   if (!hasGet(dest)) return null;
 
   const pageRef = dest.get(0);
@@ -144,39 +182,45 @@ function extractPdfBookmarkPageIndex(
   pdfDoc: PdfDocumentLike,
   itemDict: PdfDictLike,
   pageRefIndexMap: Map<string, number>,
+  resolveNamedDestination: (name: string) => unknown,
   PDFName: PdfLibBookmarkDeps['PDFName'],
 ) {
   const directDest = getPdfRawDictValue(itemDict, 'Dest', PDFName);
-  const directPageIndex = extractPdfDestPageIndex(pdfDoc, directDest, pageRefIndexMap);
+  const directPageIndex = extractPdfDestPageIndex(pdfDoc, directDest, pageRefIndexMap, resolveNamedDestination, PDFName);
   if (directPageIndex !== null && directPageIndex >= 0) return directPageIndex;
 
   const actionDict = getPdfDictValue(pdfDoc, itemDict, 'A', PDFName);
   const actionType = getPdfRawDictValue(actionDict, 'S', PDFName)?.toString?.();
   if (actionType && actionType !== '/GoTo') return null;
 
-  return extractPdfDestPageIndex(pdfDoc, getPdfRawDictValue(actionDict, 'D', PDFName), pageRefIndexMap);
+  return extractPdfDestPageIndex(
+    pdfDoc, getPdfRawDictValue(actionDict, 'D', PDFName), pageRefIndexMap, resolveNamedDestination, PDFName,
+  );
 }
 
 function extractPdfBookmarkSiblings(
   pdfDoc: PdfDocumentLike,
   firstItem: unknown,
   pageRefIndexMap: Map<string, number>,
+  resolveNamedDestination: (name: string) => unknown,
   PDFName: PdfLibBookmarkDeps['PDFName'],
+  visited: Set<unknown>,
 ): BookmarkNode[] {
   const bookmarks: BookmarkNode[] = [];
-  const visited = new Set<unknown>();
   let current: unknown = firstItem ? pdfDoc.context.lookup(firstItem) : null;
 
   while (hasGet(current) && !visited.has(current)) {
     visited.add(current);
 
     const title = decodePdfBookmarkTitle(getPdfRawDictValue(current, 'Title', PDFName));
-    const pageIndex = extractPdfBookmarkPageIndex(pdfDoc, current, pageRefIndexMap, PDFName);
+    const pageIndex = extractPdfBookmarkPageIndex(pdfDoc, current, pageRefIndexMap, resolveNamedDestination, PDFName);
     const children = extractPdfBookmarkSiblings(
       pdfDoc,
       getPdfRawDictValue(current, 'First', PDFName),
       pageRefIndexMap,
+      resolveNamedDestination,
       PDFName,
+      visited,
     );
 
     if (title || children.length > 0) {
@@ -203,7 +247,9 @@ export function extractPdfBookmarks(
     pageRefIndexMap.set(String(page.ref), index);
   });
 
-  return extractPdfBookmarkSiblings(pdfDoc, firstItem, pageRefIndexMap, PDFName);
+  return extractPdfBookmarkSiblings(
+    pdfDoc, firstItem, pageRefIndexMap, readNamedDestinations(pdfDoc, PDFName), PDFName, new Set(),
+  );
 }
 
 export function flattenOffsetBookmarks(bookmarks: BookmarkNode[], pageOffset: number): BookmarkEntry[] {
@@ -232,17 +278,9 @@ export function remapBookmarksToCopiedPages(
     }
   });
 
-  return bookmarks.flatMap(bookmark => {
-    const entries: BookmarkEntry[] = [];
-    if (Number.isInteger(bookmark.pageIndex) && pageIndexMap.has(bookmark.pageIndex)) {
-      entries.push({
-        title: bookmark.title,
-        pageIndex: pageIndexMap.get(bookmark.pageIndex) as number,
-      });
-    }
-
-    entries.push(...remapBookmarksToCopiedPages(bookmark.children || [], copiedPageIndices));
-    return entries;
+  return flattenOffsetBookmarks(bookmarks, 0).flatMap(bookmark => {
+    const pageIndex = pageIndexMap.get(bookmark.pageIndex);
+    return pageIndex === undefined ? [] : [{ title: bookmark.title, pageIndex }];
   });
 }
 
@@ -251,7 +289,8 @@ export function writeFlatBookmarks(
   bookmarkEntries: BookmarkEntry[],
   { PDFHexString, PDFName }: PdfLibBookmarkDeps,
 ) {
-  const entries = bookmarkEntries.filter(entry => Number.isInteger(entry.pageIndex));
+  const entries = bookmarkEntries.filter(entry => Number.isInteger(entry.pageIndex) && entry.pageIndex >= 0)
+    .sort((a, b) => a.pageIndex - b.pageIndex);
   if (entries.length === 0) return;
 
   const context = pdfDoc.context;

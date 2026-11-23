@@ -25,6 +25,7 @@ export function updateSourceToolStatuses(files: File[], labels: SourceToolStatus
   const unlockStatus = getElement('unlock-status');
   const watermarkStatus = getElement('watermark-status');
   const metadataStatus = getElement('metadata-status');
+  const bookmarksStatus = getElement('bookmarks-status');
   const hasFiles = files.length > 0;
 
   [
@@ -38,6 +39,7 @@ export function updateSourceToolStatuses(files: File[], labels: SourceToolStatus
     ['unlock-card', 'unlock-action'],
     ['watermark-card', 'watermark-action'],
     ['metadata-card', 'metadata-load-action'],
+    ['bookmarks-card', 'remove-bookmarks-action'],
   ].forEach(([cardId, buttonId]) => {
     const card = getElement(cardId);
     const button = getElement<HTMLButtonElement>(buttonId);
@@ -48,13 +50,13 @@ export function updateSourceToolStatuses(files: File[], labels: SourceToolStatus
     }
 
     if (button) {
-      button.disabled = !hasFiles;
+      button.disabled = !hasFiles || button.getAttribute('aria-busy') === 'true';
       button.setAttribute('aria-disabled', String(!hasFiles));
     }
   });
 
   if (!hasFiles) {
-    [mergeStatus, splitStatus, extractStatus, deleteStatus, rotateStatus, compressStatus, unlockStatus, watermarkStatus, metadataStatus].forEach(element => {
+    [mergeStatus, splitStatus, extractStatus, deleteStatus, rotateStatus, compressStatus, unlockStatus, watermarkStatus, metadataStatus, bookmarksStatus].forEach(element => {
       if (element) element.textContent = labels.noFile;
     });
     if (orderFileName) orderFileName.textContent = labels.noFile;
@@ -74,4 +76,5 @@ export function updateSourceToolStatuses(files: File[], labels: SourceToolStatus
   if (unlockStatus) unlockStatus.textContent = batchName;
   if (watermarkStatus) watermarkStatus.textContent = batchName;
   if (metadataStatus) metadataStatus.textContent = firstName;
+  if (bookmarksStatus) bookmarksStatus.textContent = firstName;
 }
