@@ -216,6 +216,18 @@ export function applyEnglishContent({
   setElementText('pdf-tool-extract', 'Extract');
   setElementText('pdf-tool-delete', 'Remove');
   setElementText('pdf-tool-order', 'Reorder');
+  setElementText('pdf-tool-enhance', 'Enhance');
+  setElementText('enhance-title', 'Enhance pages');
+  setElementText('enhance-intro', 'Adjust contrast or brightness on pages that are hard to read.');
+  setElementText('enhance-open', 'Open editor');
+  setElementText('enhance-page-label', 'Page');
+  setElementText('enhance-contrast-label', 'Contrast');
+  setElementText('enhance-brightness-label', 'Brightness');
+  setElementText('enhance-original-label', 'Show original');
+  setElementText('enhance-reset', 'Reset page');
+  setElementText('enhance-note', 'The content of adjusted pages is converted to an image.');
+  setElementText('enhance-download', 'Download PDF');
+  getRequiredElement('enhance-preview').setAttribute('aria-label', 'Page preview');
   setElementText('pdf-tool-rotate', 'Rotate');
   setElementText('pdf-tool-compress', 'Compress');
   setElementText('pdf-tool-unlock', 'Remove password');

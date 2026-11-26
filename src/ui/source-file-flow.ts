@@ -21,6 +21,7 @@ export type SourceFileFlowOptions = {
   deps: SourceFileFlowDeps;
   i18n: SignatureMetaTranslator;
   onOrderListUpdate(): void;
+  onFirstFileUpdate?(file: File | undefined): void;
 };
 
 export type SourceFileFlowApi = {
@@ -34,6 +35,7 @@ export function setupSourceFileFlow({
   deps,
   i18n,
   onOrderListUpdate,
+  onFirstFileUpdate,
 }: SourceFileFlowOptions): SourceFileFlowApi {
   const { sourceFileState, pageOrderState } = runtime;
   const { getPdfPageCountFromArrayBuffer, getPdfPageMetricsFromArrayBuffer } = deps;
@@ -110,6 +112,7 @@ export function setupSourceFileFlow({
     // Metadata belongs to the current first file; never leave stale values visible
     // after the shared source list changes or is reordered.
     document.getElementById('metadata-editor')?.setAttribute('hidden', '');
+    onFirstFileUpdate?.(sourceFileState.files[0]);
 
     renderSourceFileList(list, sourceFileState.files, {
       moveUp: i18n('Move up', 'Subir'),

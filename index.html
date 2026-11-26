@@ -1064,6 +1064,32 @@
             accent-color: var(--accent);
         }
 
+        .enhance-editor:not([hidden]) {
+            display: grid;
+            grid-template-columns: minmax(0, 1.6fr) minmax(225px, 1fr);
+            gap: 18px;
+            margin-top: 16px;
+            align-items: start;
+        }
+        .enhance-stage {
+            display: grid;
+            place-items: start center;
+            min-height: 180px;
+            max-height: min(65vh, 640px);
+            overflow: auto;
+            padding: 12px;
+            border-radius: 14px;
+            background: var(--surface-muted);
+        }
+        .enhance-stage canvas { width: 100%; max-width: 700px; height: auto; box-shadow: var(--shadow-md); }
+        .enhance-settings { display: grid; gap: 12px; min-width: 0; }
+        .enhance-tone { min-width: 0; margin: 0; padding: 0; border: 0; }
+        .enhance-compare { display: flex; align-items: center; gap: 8px; margin: 12px 0; }
+        @media (max-width: 700px) {
+            .enhance-editor:not([hidden]) { grid-template-columns: minmax(0, 1fr); }
+            .enhance-stage { max-height: 52vh; }
+        }
+
         @media (max-width: 640px) {
             .metadata-grid,
             .input-row {
@@ -5196,6 +5222,7 @@
                         <button class="pdf-operation-button" id="pdf-tool-extract" type="button" data-pdf-tool="extract-card" data-pdf-category="pages" aria-controls="extract-card" aria-pressed="false" hidden>Extraer</button>
                         <button class="pdf-operation-button" id="pdf-tool-delete" type="button" data-pdf-tool="delete-card" data-pdf-category="pages" aria-controls="delete-card" aria-pressed="false" hidden>Eliminar</button>
                         <button class="pdf-operation-button" id="pdf-tool-order" type="button" data-pdf-tool="order-card" data-pdf-category="pages" aria-controls="order-card" aria-pressed="false" hidden>Ordenar</button>
+                        <button class="pdf-operation-button" id="pdf-tool-enhance" type="button" data-pdf-tool="enhance-card" data-pdf-category="pages" aria-controls="enhance-card" aria-pressed="false" hidden>Mejorar</button>
                         <button class="pdf-operation-button" id="pdf-tool-rotate" type="button" data-pdf-tool="rotate-card" data-pdf-category="pages" aria-controls="rotate-card" aria-pressed="false" hidden>Girar</button>
                         <button class="pdf-operation-button" id="pdf-tool-compress" type="button" data-pdf-tool="compress-card" data-pdf-category="document" aria-controls="compress-card" aria-pressed="false" hidden>Comprimir</button>
                         <button class="pdf-operation-button" id="pdf-tool-unlock" type="button" data-pdf-tool="unlock-card" data-pdf-category="document" aria-controls="unlock-card" aria-pressed="false" hidden>Quitar clave</button>
@@ -5389,6 +5416,39 @@
             </div>
 
             <!-- Metadatos PDF -->
+            <div class="card" id="enhance-card" role="tabpanel" aria-labelledby="pdf-tool-enhance" hidden>
+                <h3 id="enhance-title">Mejorar páginas</h3>
+                <p id="enhance-intro">Ajusta el contraste o el brillo en las páginas que se leen mal.</p>
+                <button class="btn btn-secondary" id="enhance-open" type="button" disabled>Abrir editor</button>
+                <p class="list-help" id="enhance-status" role="status"></p>
+                <div class="enhance-editor" id="enhance-editor" hidden>
+                    <div class="enhance-settings">
+                        <div class="input-group">
+                            <label id="enhance-page-label" for="enhance-page">Página</label>
+                            <select id="enhance-page"></select>
+                        </div>
+                        <fieldset class="enhance-tone" id="enhance-tone-controls" disabled>
+                            <div class="input-group">
+                                <label id="enhance-contrast-label" for="enhance-contrast">Contraste</label>
+                                <div class="range-control"><input type="range" id="enhance-contrast" min="50" max="350" value="100"><output id="enhance-contrast-value" for="enhance-contrast">100%</output></div>
+                            </div>
+                            <div class="input-group">
+                                <label id="enhance-brightness-label" for="enhance-brightness">Brillo</label>
+                                <div class="range-control"><input type="range" id="enhance-brightness" min="-35" max="35" value="0"><output id="enhance-brightness-value" for="enhance-brightness">0%</output></div>
+                            </div>
+                            <label class="enhance-compare"><input type="checkbox" id="enhance-original"><span id="enhance-original-label">Ver original</span></label>
+                            <button class="btn btn-secondary" id="enhance-reset" type="button">Restablecer página</button>
+                        </fieldset>
+                        <p class="list-help" id="enhance-count"></p>
+                        <p class="tool-note" id="enhance-note">En las páginas ajustadas, el contenido se convierte en imagen.</p>
+                        <button class="btn btn-primary" id="enhance-download" type="button" disabled>Descargar PDF</button>
+                    </div>
+                    <div class="enhance-stage">
+                        <canvas id="enhance-preview" role="img" aria-label="Vista previa de página" hidden></canvas>
+                    </div>
+                </div>
+            </div>
+
             <div class="card card-full" id="metadata-card" role="tabpanel" aria-labelledby="pdf-tool-metadata" hidden>
                 <div class="card-icon">Metadatos</div>
                 <h3>Información del documento</h3>
