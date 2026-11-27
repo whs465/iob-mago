@@ -217,6 +217,16 @@ export function applyEnglishContent({
   setElementText('pdf-tool-delete', 'Remove');
   setElementText('pdf-tool-order', 'Reorder');
   setElementText('pdf-tool-enhance', 'Enhance');
+  setElementText('pdf-tool-stack', 'Two in one');
+  setElementText('stack-title', 'Two pages on one sheet');
+  setElementText('stack-intro', 'Place two PDF pages on one portrait A4 sheet.');
+  setElementText('stack-open', 'Open editor');
+  setElementText('stack-top-label', 'Top page');
+  setElementText('stack-bottom-label', 'Bottom page');
+  setElementText('stack-swap', 'Swap pages');
+  setElementText('stack-trim-label', 'Trim white margins');
+  setElementText('stack-download', 'Download PDF');
+  getRequiredElement('stack-preview').setAttribute('aria-label', 'A4 sheet preview');
   setElementText('enhance-title', 'Enhance pages');
   setElementText('enhance-intro', 'Adjust contrast or brightness on pages that are hard to read.');
   setElementText('enhance-open', 'Open editor');

@@ -1085,6 +1085,7 @@
         .enhance-settings { display: grid; gap: 12px; min-width: 0; }
         .enhance-tone { min-width: 0; margin: 0; padding: 0; border: 0; }
         .enhance-compare { display: flex; align-items: center; gap: 8px; margin: 12px 0; }
+        .stack-stage canvas { width: auto; max-width: 100%; max-height: 56vh; object-fit: contain; }
         @media (max-width: 700px) {
             .enhance-editor:not([hidden]) { grid-template-columns: minmax(0, 1fr); }
             .enhance-stage { max-height: 52vh; }
@@ -5223,6 +5224,7 @@
                         <button class="pdf-operation-button" id="pdf-tool-delete" type="button" data-pdf-tool="delete-card" data-pdf-category="pages" aria-controls="delete-card" aria-pressed="false" hidden>Eliminar</button>
                         <button class="pdf-operation-button" id="pdf-tool-order" type="button" data-pdf-tool="order-card" data-pdf-category="pages" aria-controls="order-card" aria-pressed="false" hidden>Ordenar</button>
                         <button class="pdf-operation-button" id="pdf-tool-enhance" type="button" data-pdf-tool="enhance-card" data-pdf-category="pages" aria-controls="enhance-card" aria-pressed="false" hidden>Mejorar</button>
+                        <button class="pdf-operation-button" id="pdf-tool-stack" type="button" data-pdf-tool="stack-card" data-pdf-category="pages" aria-controls="stack-card" aria-pressed="false" hidden>Dos en una</button>
                         <button class="pdf-operation-button" id="pdf-tool-rotate" type="button" data-pdf-tool="rotate-card" data-pdf-category="pages" aria-controls="rotate-card" aria-pressed="false" hidden>Girar</button>
                         <button class="pdf-operation-button" id="pdf-tool-compress" type="button" data-pdf-tool="compress-card" data-pdf-category="document" aria-controls="compress-card" aria-pressed="false" hidden>Comprimir</button>
                         <button class="pdf-operation-button" id="pdf-tool-unlock" type="button" data-pdf-tool="unlock-card" data-pdf-category="document" aria-controls="unlock-card" aria-pressed="false" hidden>Quitar clave</button>
@@ -5445,6 +5447,31 @@
                     </div>
                     <div class="enhance-stage">
                         <canvas id="enhance-preview" role="img" aria-label="Vista previa de página" hidden></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" id="stack-card" role="tabpanel" aria-labelledby="pdf-tool-stack" hidden>
+                <h3 id="stack-title">Dos páginas en una</h3>
+                <p id="stack-intro">Coloca dos páginas del PDF en una hoja A4 vertical.</p>
+                <button class="btn btn-secondary" id="stack-open" type="button" disabled>Abrir editor</button>
+                <p class="list-help" id="stack-status" role="status"></p>
+                <div class="enhance-editor" id="stack-editor" hidden>
+                    <div class="enhance-settings">
+                        <div class="input-group">
+                            <label id="stack-top-label" for="stack-top">Página de arriba</label>
+                            <select id="stack-top"></select>
+                        </div>
+                        <div class="input-group">
+                            <label id="stack-bottom-label" for="stack-bottom">Página de abajo</label>
+                            <select id="stack-bottom"></select>
+                        </div>
+                        <button class="btn btn-secondary" id="stack-swap" type="button">Invertir orden</button>
+                        <label class="enhance-compare"><input type="checkbox" id="stack-trim" checked><span id="stack-trim-label">Recortar bordes blancos</span></label>
+                        <button class="btn btn-primary" id="stack-download" type="button" disabled>Descargar PDF</button>
+                    </div>
+                    <div class="enhance-stage stack-stage">
+                        <canvas id="stack-preview" role="img" aria-label="Vista previa de la hoja A4" hidden></canvas>
                     </div>
                 </div>
             </div>

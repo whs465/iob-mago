@@ -93,6 +93,7 @@ import { unlockPdfBatchFlow } from './ui/unlock-pdf-flow';
 import { loadPdfMetadataFlow, savePdfMetadataFlow } from './ui/pdf-metadata-flow';
 import { removeBookmarksFlow } from './ui/remove-bookmarks-flow';
 import { setupEnhancePagesFlow } from './ui/enhance-pages-flow';
+import { setupStackPagesFlow } from './ui/stack-pages-flow';
 import { watermarkPdfBatchFlow } from './ui/watermark-pdf-flow';
 import type { CompressionMode } from './pdf/compress';
 import { registerWindowPdfActions } from './ui/window-actions';
@@ -608,12 +609,16 @@ import { getPdfTextPointFromCanvas, renderPdfTextMarker } from './ui/pdf-text-ma
         // ==================== FUENTE COMPARTIDA ====================
 
         const enhancePages = setupEnhancePagesFlow({ pdfjs: pdfjsLib, i18n, saveAs });
+        const stackPages = setupStackPagesFlow({ pdfjs: pdfjsLib, i18n, saveAs });
         setupSourceFileFlow({
             runtime: { sourceFileState, pageOrderState },
             deps: { getPdfPageCountFromArrayBuffer, getPdfPageMetricsFromArrayBuffer },
             i18n,
             onOrderListUpdate: actualizarOrderList,
-            onFirstFileUpdate: enhancePages.setFile,
+            onFirstFileUpdate: file => {
+                enhancePages.setFile(file);
+                stackPages.setFile(file);
+            },
         });
 
         // ==================== UNIR PDFs ====================
